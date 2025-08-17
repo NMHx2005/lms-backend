@@ -246,4 +246,93 @@ export class CourseController {
       });
     }
   }
+
+  // Feature/unfeature course
+  static async toggleCourseFeature(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { isFeatured } = req.body;
+      
+      if (typeof isFeatured !== 'boolean') {
+        return res.status(400).json({
+          success: false,
+          error: 'isFeatured must be a boolean value'
+        });
+      }
+
+      const course = await CourseService.updateCourse(id, { isFeatured });
+      
+      res.json({
+        success: true,
+        message: `Course ${isFeatured ? 'featured' : 'unfeatured'} successfully`,
+        data: course
+      });
+    } catch (error: any) {
+      console.error('Toggle course feature error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to toggle course feature'
+      });
+    }
+  }
+
+  // Get course enrollment statistics
+  static async getCourseEnrollmentStats(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const stats = await CourseService.getCourseEnrollmentStats(id);
+      
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error: any) {
+      console.error('Get course enrollment stats error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get course enrollment statistics'
+      });
+    }
+  }
+
+  // Get pending course approvals
+  static async getPendingApprovals(req: Request, res: Response) {
+    try {
+      const { page = 1, limit = 20 } = req.query;
+      
+      const result = await CourseService.getPendingApprovals(Number(page), Number(limit));
+      
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error: any) {
+      console.error('Get pending approvals error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get pending approvals'
+      });
+    }
+  }
+
+  // Get course analytics
+  static async getCourseAnalytics(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { period = '30d' } = req.query;
+      
+      const analytics = await CourseService.getCourseAnalytics(id, period as string);
+      
+      res.json({
+        success: true,
+        data: analytics
+      });
+    } catch (error: any) {
+      console.error('Get course analytics error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get course analytics'
+      });
+    }
+  }
 }

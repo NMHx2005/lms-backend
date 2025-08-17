@@ -323,4 +323,133 @@ export class CourseService {
 
     return courses;
   }
+
+  // Get course enrollment statistics
+  static async getCourseEnrollmentStats(courseId: string) {
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    const [
+      totalEnrollments,
+      activeEnrollments,
+      completedEnrollments,
+      averageProgress,
+      recentEnrollments
+    ] = await Promise.all([
+      EnrollmentModel.countDocuments({ courseId }),
+      EnrollmentModel.countDocuments({ courseId, status: 'active' }),
+      EnrollmentModel.countDocuments({ courseId, status: 'completed' }),
+      EnrollmentModel.aggregate([
+        { $match: { courseId } },
+        { $group: { _id: null, avg: { $avg: '$progress' } } }
+      ]),
+      EnrollmentModel.find({ courseId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('userId', 'name email')
+    ]);
+
+    return {
+      courseId,
+      totalEnrollments,
+      activeEnrollments,
+      completedEnrollments,
+      averageProgress: averageProgress[0]?.avg || 0,
+      recentEnrollments,
+      completionRate: totalEnrollments > 0 ? (completedEnrollments / totalEnrollments) * 100 : 0
+    };
+  }
+
+  // Get pending course approvals
+  static async getPendingApprovals(page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    
+    const [courses, total] = await Promise.all([
+      CourseModel.find({ isApproved: false })
+        .populate('instructorId', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      CourseModel.countDocuments({ isApproved: false })
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      courses,
+      total,
+      page,
+      limit,
+      totalPages
+    };
+  }
+
+  // Get course analytics
+  static async getCourseAnalytics(courseId: string, period: string = '30d') {
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    // Calculate date range based on period
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (period) {
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case '1y':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    const [
+      enrollmentsInPeriod,
+      revenueInPeriod,
+      averageRatingInPeriod,
+      lessonCompletionsInPeriod
+    ] = await Promise.all([
+      EnrollmentModel.countDocuments({
+        courseId,
+        createdAt: { $gte: startDate }
+      }),
+      BillModel.aggregate([
+        { $match: { courseId, status: 'completed', createdAt: { $gte: startDate } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      EnrollmentModel.aggregate([
+        { $match: { courseId, updatedAt: { $gte: startDate } } },
+        { $group: { _id: null, avg: { $avg: '$rating' } } }
+      ]),
+      EnrollmentModel.aggregate([
+        { $match: { courseId, updatedAt: { $gte: startDate } } },
+        { $group: { _id: null, total: { $sum: { $size: '$completedLessons' } } } }
+      ])
+    ]);
+
+    return {
+      courseId,
+      period,
+      startDate,
+      endDate: now,
+      enrollmentsInPeriod,
+      revenueInPeriod: revenueInPeriod[0]?.total || 0,
+      averageRatingInPeriod: averageRatingInPeriod[0]?.avg || 0,
+      lessonCompletionsInPeriod: lessonCompletionsInPeriod[0]?.total || 0,
+      totalEnrollments: course.totalStudents,
+      totalRevenue: course.price * course.totalStudents,
+      averageRating: course.averageRating
+    };
+  }
 }

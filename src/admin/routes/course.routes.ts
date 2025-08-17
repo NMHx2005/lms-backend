@@ -11,6 +11,9 @@ router.get('/', validateRequest(adminCourseValidation.queryParams), CourseContro
 // Get course statistics
 router.get('/stats', CourseController.getCourseStats);
 
+// Get pending course approvals
+router.get('/pending-approvals', CourseController.getPendingApprovals);
+
 // Search courses
 router.get('/search', CourseController.searchCourses);
 
@@ -31,5 +34,14 @@ router.patch('/approve', CourseController.approveCourse);
 
 // Bulk update course status
 router.patch('/bulk-status', CourseController.bulkUpdateCourseStatus);
+
+// Feature/unfeature course
+router.patch('/:id/feature', CourseController.toggleCourseFeature);
+
+// Get course enrollment statistics
+router.get('/:id/enrollment-stats', CourseController.getCourseEnrollmentStats);
+
+// Get course analytics
+router.get('/:id/analytics', CourseController.getCourseAnalytics);
 
 export default router;

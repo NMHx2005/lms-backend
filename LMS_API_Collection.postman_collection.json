@@ -469,7 +469,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/admin/courses?page=1&limit=10&status=pending&domain=programming",
+                  "raw": "{{base_url}}/api/admin/courses?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
                   "host": ["{{base_url}}"],
                   "path": ["api", "admin", "courses"],
                   "query": [
@@ -479,15 +479,15 @@
                     },
                     {
                       "key": "limit",
-                      "value": "10"
+                      "value": "20"
                     },
                     {
-                      "key": "status",
-                      "value": "pending"
+                      "key": "sortBy",
+                      "value": "createdAt"
                     },
                     {
-                      "key": "domain",
-                      "value": "programming"
+                      "key": "sortOrder",
+                      "value": "desc"
                     }
                   ]
                 }
@@ -499,14 +499,35 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "raw": "{{base_url}}/api/admin/courses/{{course_id}}",
                   "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "path": ["api", "admin", "courses", "{{course_id}}"]
                 }
               }
             },
             {
-              "name": "Approve Course",
+              "name": "Create Course",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Advanced JavaScript Course\",\n  \"description\": \"Learn advanced JavaScript concepts\",\n  \"shortDescription\": \"Master JS advanced features\",\n  \"domain\": \"Programming\",\n  \"level\": \"advanced\",\n  \"price\": 99.99,\n  \"instructorId\": \"{{instructor_id}}\",\n  \"tags\": [\"javascript\", \"programming\", \"web\"],\n  \"prerequisites\": [\"Basic JavaScript knowledge\"],\n  \"benefits\": [\"Advanced JS skills\", \"Better job opportunities\"]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses"]
+                }
+              }
+            },
+            {
+              "name": "Update Course",
               "request": {
                 "method": "PUT",
                 "header": [
@@ -517,33 +538,12 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"action\": \"approve\",\n  \"feedback\": \"Course approved successfully\"\n}"
+                  "raw": "{\n  \"title\": \"Updated JavaScript Course\",\n  \"description\": \"Updated course description\",\n  \"price\": 89.99\n}"
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1/approval",
+                  "raw": "{{base_url}}/api/admin/courses/{{course_id}}",
                   "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1", "approval"]
-                }
-              }
-            },
-            {
-              "name": "Feature/Unfeature Course",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"isFeatured\": true\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1/feature",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1", "feature"]
+                  "path": ["api", "admin", "courses", "{{course_id}}"]
                 }
               }
             },
@@ -553,9 +553,9 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "raw": "{{base_url}}/api/admin/courses/{{course_id}}",
                   "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "path": ["api", "admin", "courses", "{{course_id}}"]
                 }
               }
             },
@@ -568,6 +568,143 @@
                   "raw": "{{base_url}}/api/admin/courses/stats",
                   "host": ["{{base_url}}"],
                   "path": ["api", "admin", "courses", "stats"]
+                }
+              }
+            },
+            {
+              "name": "Approve/Reject Course",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"{{course_id}}\",\n  \"approved\": true,\n  \"feedback\": \"Course approved successfully\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/approve",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "approve"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Update Course Status",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseIds\": [\"{{course_id}}\"],\n  \"isPublished\": true,\n  \"isApproved\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/bulk-status",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "bulk-status"]
+                }
+              }
+            },
+            {
+              "name": "Search Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/search?q=javascript&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "javascript"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Pending Approvals",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/pending-approvals?page=1&limit=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "pending-approvals"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Toggle Course Feature",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isFeatured\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/{{course_id}}/feature",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "{{course_id}}", "feature"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Enrollment Stats",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/{{course_id}}/enrollment-stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "{{course_id}}", "enrollment-stats"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Analytics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/{{course_id}}/analytics?period=30d",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "{{course_id}}", "analytics"],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "30d"
+                    }
+                  ]
                 }
               }
             }
@@ -1749,6 +1886,237 @@
                   "raw": "{{base_url}}/api/client/payments/stats",
                   "host": ["{{base_url}}"],
                   "path": ["api", "client", "payments", "stats"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📚 Client Course Management",
+          "item": [
+            {
+              "name": "Get Published Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses?page=1&limit=12&sortBy=createdAt&sortOrder=desc",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "12"
+                    },
+                    {
+                      "key": "sortBy",
+                      "value": "createdAt"
+                    },
+                    {
+                      "key": "sortOrder",
+                      "value": "desc"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Course by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/{{course_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "{{course_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Search Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/search?q=javascript&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "javascript"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Course Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/categories",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "categories"]
+                }
+              }
+            },
+            {
+              "name": "Get Featured Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/featured?limit=6",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "featured"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "6"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Popular Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/popular?limit=8",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "popular"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "8"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Courses by Instructor",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/instructor/{{instructor_id}}?page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "instructor", "{{instructor_id}}"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Related Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/{{course_id}}/related?limit=4",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "{{course_id}}", "related"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "4"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Course Content (Enrolled)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/{{course_id}}/content",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "{{course_id}}", "content"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Progress",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/{{course_id}}/progress",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "{{course_id}}", "progress"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Content",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/{{course_id}}/lessons/{{lesson_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "{{course_id}}", "lessons", "{{lesson_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Recommendations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/recommendations?limit=6",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "recommendations"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "6"
+                    }
+                  ]
                 }
               }
             }
