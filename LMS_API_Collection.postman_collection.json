@@ -34,8 +34,167 @@
   },
   "item": [
     {
+      "name": "🏠 Project Information",
+      "item": [
+        {
+          "name": "Get Home Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api",
+              "host": ["{{base_url}}"],
+              "path": ["api"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "🔐 Authentication",
       "item": [
+        {
+          "name": "User Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!@#\",\n  \"roles\": [\"student\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!@#\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your_refresh_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"your_access_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/validate-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "validate-token"]
+            }
+          }
+        },
         {
           "name": "Admin Login",
           "request": {
@@ -134,6 +293,27 @@
               }
             },
             {
+              "name": "Create New User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"roles\": [\"student\"],\n  \"profile\": {\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St\",\n    \"country\": \"USA\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users"]
+                }
+              }
+            },
+            {
               "name": "Get User by ID",
               "request": {
                 "method": "GET",
@@ -175,6 +355,94 @@
                   "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
                   "host": ["{{base_url}}"],
                   "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Activate User",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1/activate",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1", "activate"]
+                }
+              }
+            },
+            {
+              "name": "Deactivate User",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1/deactivate",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1", "deactivate"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Update User Status",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userIds\": [\"64f1a2b3c4d5e6f7a8b9c0d1\", \"64f1a2b3c4d5e6f7a8b9c0d2\"],\n  \"isActive\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/bulk-status",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "bulk-status"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Update User Roles",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userIds\": [\"64f1a2b3c4d5e6f7a8b9c0d1\", \"64f1a2b3c4d5e6f7a8b9c0d2\"],\n  \"roles\": [\"teacher\"]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/bulk-roles",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "bulk-roles"]
+                }
+              }
+            },
+            {
+              "name": "Search Users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/search?q=john&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "john"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
                 }
               }
             },
@@ -819,6 +1087,33 @@
               }
             },
             {
+              "name": "Update User Avatar",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "multipart/form-data"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "avatar",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/avatar",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "avatar"]
+                }
+              }
+            },
+            {
               "name": "Change Password",
               "request": {
                 "method": "PUT",
@@ -836,6 +1131,72 @@
                   "raw": "{{base_url}}/api/client/user/password",
                   "host": ["{{base_url}}"],
                   "path": ["api", "client", "user", "password"]
+                }
+              }
+            },
+            {
+              "name": "Request Password Reset",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/password/reset-request",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "password", "reset-request"]
+                }
+              }
+            },
+            {
+              "name": "Reset Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"reset_token_here\",\n  \"newPassword\": \"newpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/password/reset",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "password", "reset"]
+                }
+              }
+            },
+            {
+              "name": "Verify Email",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/verify-email/verification_token_here",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "verify-email", "verification_token_here"]
+                }
+              }
+            },
+            {
+              "name": "Resend Email Verification",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/verify-email/resend",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "verify-email", "resend"]
                 }
               }
             },
@@ -876,6 +1237,42 @@
               }
             },
             {
+              "name": "Get Achievements",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/achievements",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "achievements"]
+                }
+              }
+            },
+            {
+              "name": "Get Study Schedule",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/schedule",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "schedule"]
+                }
+              }
+            },
+            {
+              "name": "Get Learning Goals",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/goals",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "goals"]
+                }
+              }
+            },
+            {
               "name": "Update User Preferences",
               "request": {
                 "method": "PUT",
@@ -893,6 +1290,115 @@
                   "raw": "{{base_url}}/api/client/user/preferences",
                   "host": ["{{base_url}}"],
                   "path": ["api", "client", "user", "preferences"]
+                }
+              }
+            },
+            {
+              "name": "Update Notification Settings",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": {\n    \"courseUpdates\": true,\n    \"assignments\": true,\n    \"announcements\": false\n  },\n  \"push\": {\n    \"courseUpdates\": true,\n    \"assignments\": true,\n    \"announcements\": false\n  },\n  \"sms\": {\n    \"urgentNotifications\": true\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/notifications",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "notifications"]
+                }
+              }
+            },
+            {
+              "name": "Update Social Links",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"linkedin\": \"https://linkedin.com/in/johndoe\",\n  \"github\": \"https://github.com/johndoe\",\n  \"twitter\": \"https://twitter.com/johndoe\",\n  \"website\": \"https://johndoe.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/social-links",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "social-links"]
+                }
+              }
+            },
+            {
+              "name": "Get Learning Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "stats"]
+                }
+              }
+            },
+            {
+              "name": "Get Activity Log",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/activity?limit=20&page=1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "activity"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Subscription Info",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/subscription",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "subscription"]
+                }
+              }
+            },
+            {
+              "name": "Delete Account",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"currentpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/account",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "account"]
                 }
               }
             }
@@ -1252,3 +1758,4 @@
     }
   ]
 }
+

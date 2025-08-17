@@ -18,6 +18,12 @@ const startServer = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📊 Database: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/lms_database'}`);
+      console.log(`🌐 Home: http://localhost:${PORT}/`);
+      console.log(`🔍 Health Check: http://localhost:${PORT}/health`);
+      console.log(`📚 Admin API: http://localhost:${PORT}/api/admin`);
+      console.log(`👤 Client API: http://localhost:${PORT}/api/client`);
+      console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
+      console.log(`📤 Upload API: http://localhost:${PORT}/api/upload`);
     });
 
     // Graceful shutdown handling
