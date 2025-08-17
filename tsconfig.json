@@ -5,6 +5,20 @@
     "lib": ["es2020"],
     "outDir": "./dist",
     "rootDir": "./",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@admin/*": ["src/admin/*"],
+      "@client/*": ["src/client/*"],
+      "@shared/*": ["src/shared/*"],
+      "@admin-routes/*": ["src/admin/routes/*"],
+      "@client-routes/*": ["src/client/routes/*"],
+      "@admin-middleware/*": ["src/admin/middleware/*"],
+      "@client-middleware/*": ["src/client/middleware/*"],
+      "@shared-models/*": ["src/shared/models/*"],
+      "@shared-config/*": ["src/shared/config/*"],
+      "@shared-utils/*": ["src/shared/utils/*"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -14,7 +28,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node", "express", "multer"]
   },
   "include": ["src/**/*", "server.ts"],
   "exclude": ["node_modules", "dist"]

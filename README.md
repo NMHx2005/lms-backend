@@ -1,253 +1,294 @@
-# 🎓 LMS Backend
+# 🎓 LMS Backend API
 
-Backend API cho hệ thống Learning Management System (LMS) được xây dựng với Node.js, Express, TypeScript và MongoDB.
+Hệ thống quản lý học tập (Learning Management System) backend API được xây dựng với Node.js, Express.js, TypeScript và MongoDB.
 
-## 🚀 **PHASE 1: Setup & Infrastructure - HOÀN THÀNH 100%** ✅
+## 🚀 **Tính năng chính**
 
-### ✅ **Đã hoàn thành:**
+### **👥 Quản lý người dùng**
+- Đăng ký, đăng nhập, xác thực JWT
+- Quản lý profile và preferences
+- Role-based access control (Student, Teacher, Admin)
+- Quản lý subscription plans
 
-#### 1. **Project Setup**
-- [x] Package.json với scripts
-- [x] TypeScript configuration
-- [x] ESLint & Prettier setup
-- [x] Environment variables template
+### **📚 Quản lý khóa học**
+- Tạo, chỉnh sửa, xóa khóa học
+- Quản lý sections và lessons
+- Hệ thống duyệt khóa học
+- Tìm kiếm và lọc khóa học
 
-#### 2. **Database Models**
-- [x] User Model (admin, teacher, student roles)
-- [x] Course Model (with validation, indexes, virtuals)
-- [x] Section Model (course structure)
-- [x] Lesson Model (content management)
-- [x] Assignment Model (quiz, file, text types)
-- [x] Submission Model (student work)
-- [x] Enrollment Model (student progress)
-- [x] Bill Model (payment tracking)
-- [x] RefundRequest Model (refund management)
-- [x] CourseRating Model (upvotes & reports)
+### **🎯 Quản lý học tập**
+- Đăng ký khóa học
+- Theo dõi tiến độ học tập
+- Quản lý bài tập và nộp bài
+- Hệ thống chứng chỉ
 
-#### 3. **Database Connection**
-- [x] MongoDB connection với Mongoose
-- [x] Connection pooling & error handling
-- [x] Connection events & graceful shutdown
-- [x] Health check functions
+### **💰 Quản lý thanh toán**
+- Tích hợp payment gateway
+- Quản lý hóa đơn và hoàn tiền
+- Subscription management
 
-#### 4. **Database Seeding**
-- [x] Sample data cho tất cả models
-- [x] Admin, teacher, student users
-- [x] Sample courses, sections, lessons
-- [x] Sample assignments, enrollments, bills
+### **📊 Analytics & Reporting**
+- Thống kê người dùng và khóa học
+- Báo cáo doanh thu
+- Theo dõi hiệu suất hệ thống
 
-#### 5. **Infrastructure**
-- [x] Custom error classes
-- [x] Health check endpoints
-- [x] Global type definitions
-- [x] Path aliases configuration
+## 🏗️ **Kiến trúc hệ thống**
 
-## 🛠️ **Tech Stack**
+```
+src/
+├── config/          # Cấu hình database, cloudinary
+├── controllers/     # Business logic (admin/client)
+├── middleware/      # Auth, CORS, validation, rate limiting
+├── models/          # MongoDB schemas và interfaces
+├── routes/          # API endpoints
+│   ├── admin/       # Admin API routes
+│   ├── client/      # Client API routes
+│   └── auth.ts      # Authentication routes
+├── services/        # Business logic services
+├── utils/           # Helper functions, error handling
+└── scripts/         # Database seeding, testing
+```
+
+## 🛠️ **Công nghệ sử dụng**
 
 - **Runtime**: Node.js 18+
 - **Framework**: Express.js
 - **Language**: TypeScript
-- **Database**: MongoDB với Mongoose
-- **Authentication**: JWT (planned)
-- **File Upload**: Multer + Cloudinary (planned)
-- **Payment**: Stripe (planned)
-- **Email**: SendGrid (planned)
-- **AI**: OpenAI (planned)
+- **Database**: MongoDB với Mongoose ODM
+- **Authentication**: JWT (JSON Web Tokens)
+- **Validation**: Custom validation middleware
+- **Security**: Helmet, CORS, Rate Limiting
+- **File Upload**: Multer + Cloudinary
+- **Payment**: Stripe integration
+- **Email**: SendGrid integration
+- **Deployment**: Docker
 
-## 📁 **Project Structure**
+## 📋 **Yêu cầu hệ thống**
 
-```
-lms-backend/
-├── src/
-│   ├── config/          # Database, Cloudinary config
-│   ├── models/          # MongoDB schemas & models
-│   ├── routes/          # API endpoints
-│   ├── middleware/      # Auth, validation middleware
-│   ├── services/        # Business logic
-│   ├── types/           # TypeScript type definitions
-│   ├── utils/           # Utility functions
-│   └── scripts/         # Database seeding & utilities
-├── .env.example         # Environment variables template
-├── .eslintrc.js         # ESLint configuration
-├── .prettierrc          # Prettier configuration
-├── tsconfig.json        # TypeScript configuration
-└── package.json         # Dependencies & scripts
+- Node.js 18.0.0 hoặc cao hơn
+- MongoDB 5.0 hoặc cao hơn
+- npm hoặc yarn
+
+## 🚀 **Cài đặt và chạy**
+
+### **1. Clone repository**
+```bash
+git clone <repository-url>
+cd lms-backend
 ```
 
-## 🚀 **Quick Start**
-
-### 1. **Install Dependencies**
+### **2. Cài đặt dependencies**
 ```bash
 npm install
 ```
 
-### 2. **Environment Setup**
+### **3. Cấu hình environment**
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your configuration
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-# ... other variables
+cp env.example .env
+# Chỉnh sửa .env file với thông tin của bạn
 ```
 
-### 3. **Database Setup**
+### **4. Chạy development server**
 ```bash
-# Seed database with sample data
-npm run seed
-
-# Check database status
-npm run db:status
-```
-
-### 4. **Development**
-```bash
-# Start development server
 npm run dev
+```
 
-# Build for production
+### **5. Build production**
+```bash
 npm run build
-
-# Start production server
 npm start
 ```
 
-## 📋 **Available Scripts**
+## 🔧 **Scripts có sẵn**
 
 ```bash
-npm run dev              # Start development server
-npm run build            # Build TypeScript to JavaScript
-npm run start            # Start production server
-npm run seed             # Seed database with sample data
-npm run db:status        # Check database connection
-npm run test:cors        # Test CORS configuration
-npm run lint             # Run ESLint
-npm run lint:fix         # Fix ESLint errors automatically
-npm run format           # Format code with Prettier
-npm run type-check       # Check TypeScript types
+npm run dev          # Chạy development server với nodemon
+npm run build        # Build TypeScript
+npm run start        # Chạy production server
+npm run seed         # Seed database với dữ liệu mẫu
+npm run test         # Chạy tests
+npm run lint         # Kiểm tra code quality
+npm run lint:fix     # Tự động fix linting errors
 ```
 
-## 🔒 **CORS Configuration**
+## 🌐 **API Endpoints**
 
-### CORS Setup
-- **Development**: Allows all origins when `CORS_ORIGIN` is not set
-- **Production**: Requires `CORS_ORIGIN` to be configured
-- **Multiple Origins**: Support for comma-separated origins
-- **Wildcard Subdomains**: Support for `*.yourdomain.com` patterns
+### **Authentication**
+- `POST /api/auth/register` - Đăng ký người dùng
+- `POST /api/auth/login` - Đăng nhập
+- `POST /api/auth/refresh` - Làm mới token
+- `GET /api/auth/profile` - Lấy thông tin profile
 
-### Environment Variables
-```bash
-# Multiple origins separated by commas
-CORS_ORIGIN=http://localhost:3000,http://localhost:5173
+### **Admin API** (`/api/admin`)
+- `GET /dashboard` - Dashboard tổng quan
+- `GET /users` - Quản lý người dùng
+- `GET /courses` - Quản lý khóa học
+- `GET /analytics/*` - Thống kê và báo cáo
+- `GET /system/*` - Quản lý hệ thống
+- `GET /support/*` - Hỗ trợ và tickets
 
-# Wildcard subdomains
-CORS_ORIGIN=*.yourdomain.com
+### **Client API** (`/api/client`)
+- `GET /courses` - Xem danh sách khóa học
+- `GET /courses/:id` - Chi tiết khóa học
+- `POST /enrollments` - Đăng ký khóa học
+- `GET /user/profile` - Quản lý profile
+- `GET /assignments` - Quản lý bài tập
+- `GET /payments/*` - Quản lý thanh toán
 
-# Production example
-CORS_ORIGIN=https://yourdomain.com,https://www.yourdomain.com
+## 🔐 **Authentication & Authorization**
+
+### **JWT Token Structure**
+```typescript
+interface JwtPayload {
+  userId: string;
+  email: string;
+  roles: string[];
+  iat: number;
+  exp: number;
+}
 ```
 
-### Test CORS Configuration
+### **Role-based Access Control**
+- **Student**: Truy cập khóa học, nộp bài, xem tiến độ
+- **Teacher**: Quản lý khóa học, chấm bài, xem thống kê
+- **Admin**: Quản lý toàn bộ hệ thống, duyệt khóa học
+
+### **Middleware Stack**
+- `authenticate`: Xác thực JWT token
+- `authorize`: Kiểm tra quyền truy cập
+- `requireAdmin/Teacher/Student`: Role-specific guards
+- `checkOwnership`: Kiểm tra quyền sở hữu resource
+
+## 📊 **Database Schema**
+
+### **Core Collections**
+- **Users**: Thông tin người dùng và roles
+- **Courses**: Khóa học và metadata
+- **Sections**: Chương của khóa học
+- **Lessons**: Bài học cụ thể
+- **Assignments**: Bài tập và quiz
+- **Submissions**: Bài nộp của học viên
+- **Enrollments**: Đăng ký khóa học
+- **Bills**: Hóa đơn thanh toán
+
+### **Extended Collections**
+- **RefundRequests**: Yêu cầu hoàn tiền
+- **CourseRatings**: Đánh giá khóa học
+- **SupportTickets**: Tickets hỗ trợ
+- **AuditLogs**: Log hoạt động hệ thống
+
+## 🔒 **Security Features**
+
+- **JWT Authentication**: Secure token-based auth
+- **CORS Protection**: Cross-origin resource sharing
+- **Rate Limiting**: API abuse prevention
+- **Input Validation**: Data sanitization
+- **Helmet Security**: HTTP security headers
+- **Password Hashing**: bcrypt encryption
+
+## 📈 **Performance & Scalability**
+
+- **Database Indexing**: Optimized queries
+- **Connection Pooling**: MongoDB connection management
+- **Async/Await**: Non-blocking I/O operations
+- **Error Handling**: Comprehensive error management
+- **Logging**: Structured logging system
+
+## 🧪 **Testing**
+
+### **Unit Tests**
 ```bash
+npm run test
+```
+
+### **Database Testing**
+```bash
+npm run db:status
 npm run test:cors
 ```
 
-## 🔍 **API Endpoints**
+## 🐳 **Docker Deployment**
 
-### Health Check
-- `GET /health` - System health status
-- `GET /health/ready` - Kubernetes readiness probe
-- `GET /health/live` - Kubernetes liveness probe
+### **Build Image**
+```bash
+docker build -t lms-backend .
+```
 
-### Authentication (Planned)
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `POST /api/auth/refresh` - Refresh token
+### **Run Container**
+```bash
+docker run -p 5000:5000 lms-backend
+```
 
-### Users (Planned)
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update user profile
-- `GET /api/admin/users` - Admin: list all users
+### **Docker Compose**
+```bash
+docker compose up --build
+```
 
-### Courses (Planned)
-- `GET /api/courses` - List courses
-- `POST /api/courses` - Create course
-- `GET /api/courses/:id` - Get course details
-- `PUT /api/courses/:id` - Update course
-- `DELETE /api/courses/:id` - Delete course
+## 📝 **Environment Variables**
 
-## 🗄️ **Database Schema**
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=5000
 
-### Core Entities
-- **Users**: Admin, Teacher, Student roles
-- **Courses**: Course content & metadata
-- **Sections**: Course structure organization
-- **Lessons**: Individual learning units
-- **Assignments**: Tasks & assessments
-- **Submissions**: Student work submissions
-- **Enrollments**: Student course progress
-- **Bills**: Payment tracking
-- **RefundRequests**: Refund management
-- **CourseRatings**: Course feedback & reports
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/lms_database
 
-### Key Features
-- Role-based access control
-- Course approval workflow
-- Progress tracking
-- Payment integration ready
-- File upload support
-- Search & filtering
-- Pagination support
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key
+JWT_REFRESH_SECRET=your-refresh-token-secret
+JWT_EXPIRES_IN=1d
+JWT_REFRESH_EXPIRES_IN=7d
 
-## 🔧 **Development Tools**
+# CORS Configuration
+CORS_ORIGIN=http://localhost:3000,http://localhost:5173
 
-### Code Quality
-- **ESLint**: Code linting
-- **Prettier**: Code formatting
-- **TypeScript**: Type safety
-
-### Database Tools
-- **Mongoose**: MongoDB ODM
-- **Database Seeding**: Sample data generation
-- **Health Checks**: Connection monitoring
-
-## 📊 **Current Status**
-
-- ✅ **Phase 1**: Setup & Infrastructure - **100% Complete**
-- 🔄 **Phase 2**: Core Middleware & Utilities - **Next**
-- ⏳ **Phase 3**: Core Controllers & Services
-- ⏳ **Phase 4**: API Routes & Endpoints
-- ⏳ **Phase 5**: Payment & Billing System
-- ⏳ **Phase 6**: Analytics & Reporting
-- ⏳ **Phase 7**: Notification & Communication
-- ⏳ **Phase 8**: Testing & Quality Assurance
-- ⏳ **Phase 9**: Deployment & DevOps
-- ⏳ **Phase 10**: Documentation & Maintenance
-
-## 🎯 **Next Steps**
-
-1. **Phase 2**: Implement authentication middleware, validation, error handling
-2. **Phase 3**: Create controllers và services cho core functionality
-3. **Phase 4**: Build API endpoints và integrate với frontend
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+```
 
 ## 🤝 **Contributing**
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
+1. Fork repository
+2. Tạo feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+5. Tạo Pull Request
 
-## 📝 **License**
+## 📄 **License**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Dự án này được cấp phép theo MIT License - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
 
 ## 📞 **Support**
 
-For support, email support@lms.com or create an issue in this repository.
+Nếu bạn gặp vấn đề hoặc có câu hỏi:
+
+- Tạo issue trên GitHub
+- Liên hệ team development
+- Xem documentation chi tiết
+
+## 🎯 **Roadmap**
+
+### **Phase 1** ✅
+- [x] Core API structure
+- [x] User authentication
+- [x] Basic CRUD operations
+- [x] Database models
+
+### **Phase 2** 🚧
+- [ ] Advanced analytics
+- [ ] Real-time notifications
+- [ ] File management system
+- [ ] Payment integration
+
+### **Phase 3** 📋
+- [ ] AI-powered features
+- [ ] Mobile API optimization
+- [ ] Advanced reporting
+- [ ] Performance monitoring
 
 ---
 
-**🎉 Phase 1 hoàn thành! Backend infrastructure đã sẵn sàng cho development tiếp theo.**
+**Made with ❤️ by LMS Development Team**

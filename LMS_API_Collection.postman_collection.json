@@ -1,0 +1,1254 @@
+{
+  "info": {
+    "name": "LMS Learning Management System API",
+    "description": "Complete API collection for LMS Backend with Admin and Client endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{admin_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Client Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Admin APIs",
+      "item": [
+        {
+          "name": "Dashboard",
+          "item": [
+            {
+              "name": "Get Admin Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/dashboard",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "dashboard"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "👥 User Management",
+          "item": [
+            {
+              "name": "Get All Users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users?page=1&limit=10&role=student&search=john",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "role",
+                      "value": "student"
+                    },
+                    {
+                      "key": "search",
+                      "value": "john"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get User by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Update User",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"email\": \"john.updated@example.com\",\n  \"roles\": [\"student\"],\n  \"isActive\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Get User Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/users/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "users", "stats"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📚 Course Management",
+          "item": [
+            {
+              "name": "Get All Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses?page=1&limit=10&status=pending&domain=programming",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "status",
+                      "value": "pending"
+                    },
+                    {
+                      "key": "domain",
+                      "value": "programming"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Course by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Approve Course",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"approve\",\n  \"feedback\": \"Course approved successfully\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1/approval",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1", "approval"]
+                }
+              }
+            },
+            {
+              "name": "Feature/Unfeature Course",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isFeatured\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1/feature",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1", "feature"]
+                }
+              }
+            },
+            {
+              "name": "Delete Course",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/courses/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "courses", "stats"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📊 Analytics",
+          "item": [
+            {
+              "name": "Dashboard Overview",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/analytics/dashboard",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "analytics", "dashboard"]
+                }
+              }
+            },
+            {
+              "name": "User Analytics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/analytics/users?period=30d",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "analytics", "users"],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "30d"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Course Analytics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/analytics/courses?period=30d",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "analytics", "courses"],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "30d"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Revenue Analytics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/analytics/revenue?period=30d",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "analytics", "revenue"],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "30d"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Enrollment Analytics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/analytics/enrollments?period=30d",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "analytics", "enrollments"],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "30d"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "⚙️ System Management",
+          "item": [
+            {
+              "name": "System Overview",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/overview",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "overview"]
+                }
+              }
+            },
+            {
+              "name": "Get Refund Requests",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/refunds?status=pending",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "refunds"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Process Refund Request",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"approve\",\n  \"feedback\": \"Refund approved\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/refunds/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "refunds", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Get System Logs",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/logs?level=error&limit=50",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "logs"],
+                  "query": [
+                    {
+                      "key": "level",
+                      "value": "error"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get System Settings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/settings",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "settings"]
+                }
+              }
+            },
+            {
+              "name": "Update System Settings",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"maintenanceMode\": false,\n  \"maxFileSize\": 10485760,\n  \"allowedFileTypes\": [\"pdf\", \"mp4\", \"jpg\"]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/settings",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "settings"]
+                }
+              }
+            },
+            {
+              "name": "Get Backup Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/system/backup/status",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "system", "backup", "status"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "🆘 Support Management",
+          "item": [
+            {
+              "name": "Get All Support Tickets",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/tickets?status=open&priority=high",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "tickets"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "open"
+                    },
+                    {
+                      "key": "priority",
+                      "value": "high"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Ticket by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Assign Ticket",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"assignedTo\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"priority\": \"high\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1/assign",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1", "assign"]
+                }
+              }
+            },
+            {
+              "name": "Update Ticket Status",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"in_progress\",\n  \"resolution\": \"Working on solution\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1/status",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1", "status"]
+                }
+              }
+            },
+            {
+              "name": "Add Internal Note",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"note\": \"Customer requested refund due to technical issues\",\n  \"internal\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1/notes",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1", "notes"]
+                }
+              }
+            },
+            {
+              "name": "Get Support Staff",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/staff",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "staff"]
+                }
+              }
+            },
+            {
+              "name": "Get Ticket Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/support/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "support", "stats"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "👤 Client APIs",
+      "item": [
+        {
+          "name": "Dashboard",
+          "item": [
+            {
+              "name": "Get Client Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/dashboard",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "dashboard"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📚 Courses",
+          "item": [
+            {
+              "name": "Get All Published Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses?page=1&limit=12&domain=programming&level=beginner&search=javascript&sort=popular",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "12"
+                    },
+                    {
+                      "key": "domain",
+                      "value": "programming"
+                    },
+                    {
+                      "key": "level",
+                      "value": "beginner"
+                    },
+                    {
+                      "key": "search",
+                      "value": "javascript"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "popular"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Course by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Content",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/64f1a2b3c4d5e6f7a8b9c0d1/content",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "64f1a2b3c4d5e6f7a8b9c0d1", "content"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Content",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/64f1a2b3c4d5e6f7a8b9c0d1/content",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "64f1a2b3c4d5e6f7a8b9c0d1", "content"]
+                }
+              }
+            },
+            {
+              "name": "Get Course Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/categories",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "categories"]
+                }
+              }
+            },
+            {
+              "name": "Search Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/courses/search?q=javascript&domain=programming&level=beginner",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "courses", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "javascript"
+                    },
+                    {
+                      "key": "domain",
+                      "value": "programming"
+                    },
+                    {
+                      "key": "level",
+                      "value": "beginner"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "👤 User Profile",
+          "item": [
+            {
+              "name": "Get User Profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/profile",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "profile"]
+                }
+              }
+            },
+            {
+              "name": "Update User Profile",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"avatar\": \"https://example.com/avatar.jpg\",\n  \"bio\": \"Updated bio information\",\n  \"socialLinks\": {\n    \"linkedin\": \"https://linkedin.com/in/johndoe\",\n    \"github\": \"https://github.com/johndoe\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/profile",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "profile"]
+                }
+              }
+            },
+            {
+              "name": "Change Password",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"oldpassword123\",\n  \"newPassword\": \"newpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/password",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "password"]
+                }
+              }
+            },
+            {
+              "name": "Get User Dashboard Data",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/dashboard",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "dashboard"]
+                }
+              }
+            },
+            {
+              "name": "Get Learning Progress",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/progress",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "progress"]
+                }
+              }
+            },
+            {
+              "name": "Get Certificates",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/certificates",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "certificates"]
+                }
+              }
+            },
+            {
+              "name": "Update User Preferences",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"notifications\": {\n    \"email\": true,\n    \"push\": false\n  },\n  \"language\": \"en\",\n  \"timezone\": \"UTC+7\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/user/preferences",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "user", "preferences"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "🎓 Enrollments",
+          "item": [
+            {
+              "name": "Get User Enrollments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments?status=active&page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "active"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Enroll in Course",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"paymentMethod\": \"credit_card\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments"]
+                }
+              }
+            },
+            {
+              "name": "Get Enrollment by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Update Enrollment Progress",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"completedLessons\": [\"64f1a2b3c4d5e6f7a8b9c0d1\"],\n  \"currentLesson\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"progress\": 75\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1/progress",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1", "progress"]
+                }
+              }
+            },
+            {
+              "name": "Mark Lesson as Completed",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lessonId\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"completedAt\": \"2024-01-15T10:30:00Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1/complete-lesson",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1", "complete-lesson"]
+                }
+              }
+            },
+            {
+              "name": "Cancel Enrollment",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Get Enrollment Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/enrollments/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "enrollments", "stats"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📝 Assignments",
+          "item": [
+            {
+              "name": "Get Assignments for Enrolled Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments?courseId=64f1a2b3c4d5e6f7a8b9c0d1&status=pending",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "assignments"],
+                  "query": [
+                    {
+                      "key": "courseId",
+                      "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+                    },
+                    {
+                      "key": "status",
+                      "value": "pending"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Assignment by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "assignments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Submit Assignment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"assignmentId\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"submission\": {\n    \"text\": \"This is my assignment submission\",\n    \"attachments\": [\"file1.pdf\", \"file2.zip\"]\n  },\n  \"submittedAt\": \"2024-01-15T14:30:00Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/64f1a2b3c4d5e6f7a8b9c0d1/submit",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "assignments", "64f1a2b3c4d5e6f7a8b9c0d1", "submit"]
+                }
+              }
+            },
+            {
+              "name": "Get Submission History",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/64f1a2b3c4d5e6f7a8b9c0d1/submissions",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "assignments", "64f1a2b3c4d5e6f7a8b9c0d1", "submissions"]
+                }
+              }
+            },
+            {
+              "name": "Get Upcoming Assignments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/upcoming?limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "assignments", "upcoming"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "💳 Payments",
+          "item": [
+            {
+              "name": "Get User Payment History",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments?page=1&limit=10&status=completed",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "status",
+                      "value": "completed"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Bill by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              }
+            },
+            {
+              "name": "Create Payment for Course",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"amount\": 99.99,\n  \"currency\": \"USD\",\n  \"paymentMethod\": \"credit_card\",\n  \"cardDetails\": {\n    \"number\": \"4111111111111111\",\n    \"expiry\": \"12/25\",\n    \"cvv\": \"123\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments/create",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments", "create"]
+                }
+              }
+            },
+            {
+              "name": "Process Payment Callback",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"paymentId\": \"pay_123456789\",\n  \"status\": \"succeeded\",\n  \"amount\": 9999,\n  \"currency\": \"usd\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments/callback",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments", "callback"]
+                }
+              }
+            },
+            {
+              "name": "Request Refund",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"billId\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"reason\": \"Course content not as expected\",\n  \"description\": \"The course content was different from what was advertised\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments/refund",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments", "refund"]
+                }
+              }
+            },
+            {
+              "name": "Get Payment Methods",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments/methods",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments", "methods"]
+                }
+              }
+            },
+            {
+              "name": "Get Payment Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/payments/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "payments", "stats"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

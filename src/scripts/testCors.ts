@@ -1,4 +1,4 @@
-import { testCorsConfiguration, getCorsSummary } from '../utils/corsTest';
+import { testCorsConfiguration, getCorsSummary } from '../shared/utils/corsTest';
 
 // Test CORS configuration
 console.log('🚀 Testing CORS Configuration...\n');

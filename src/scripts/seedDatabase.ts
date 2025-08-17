@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+
+// Import models
 import {
   User,
   Course,
@@ -11,8 +13,8 @@ import {
   Enrollment,
   Bill,
   RefundRequest,
-  CourseRating,
-} from '../models';
+  CourseRating
+} from '../shared/models';
 
 // Load environment variables
 dotenv.config();

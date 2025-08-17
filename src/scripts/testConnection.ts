@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { testConnection, getDBStats } from '../config/database';
+import { testConnection, getDBStats } from '../shared/config/database';
 
 // Load environment variables
 dotenv.config();

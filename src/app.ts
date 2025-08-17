@@ -3,10 +3,21 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 // mongoose import removed as it's not used
-import connectDB from './config/database';
-import { corsMiddleware } from './middleware/cors';
-import authRoutes from './routes/auth';
-import healthRoutes from './routes/health';
+import connectDB from './shared/config/database';
+import { applySecurityMiddleware } from './shared/middleware/security';
+import adminRoutes from './admin/routes/index.route';
+import clientRoutes from './client/routes/index.route';
+import { authRoutes, uploadRoutes } from './shared/routes';
+
+// Import error handling middleware
+import {
+  requestIdMiddleware,
+  globalErrorHandler,
+  notFoundHandler,
+  gracefulShutdown,
+  unhandledRejectionHandler,
+  uncaughtExceptionHandler
+} from './shared/middleware/errorHandler';
 
 dotenv.config();
 
@@ -15,47 +26,35 @@ const app = express();
 // Connect to database
 connectDB();
 
-// Middleware
-app.use(helmet());
-app.use(corsMiddleware);
+// Request ID middleware (must be first)
+app.use(requestIdMiddleware);
+
+// Apply all security middleware
+applySecurityMiddleware(app);
+
+// Basic middleware
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Health & readiness endpoints
-app.use('/health', healthRoutes);
-
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/client', clientRoutes);
 
 // 404 handler
-app.use((req, res) => {
-  res
-    .status(404)
-    .json({ success: false, error: 'Not Found', path: req.originalUrl });
-});
+app.use(notFoundHandler);
 
-// Error handling middleware (standardized envelope)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use(
-  (
-    err: any,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction
-  ) => {
-    const status =
-      err.statusCode && Number.isInteger(err.statusCode) ? err.statusCode : 500;
-    const errorCode = err.errorCode ?? (status === 500 ? 9999 : undefined);
-    if (status >= 500) {
-      console.error(err);
-    }
-    res.status(status).json({
-      success: false,
-      error: err.message || 'Internal Server Error',
-      ...(errorCode ? { errorCode } : {}),
-    });
-  }
-);
+// Global error handler (must be last)
+app.use(globalErrorHandler);
 
+// Export app for server.ts to use
 export default app;
+
+// Export error handling functions for server.ts
+export {
+  gracefulShutdown,
+  unhandledRejectionHandler,
+  uncaughtExceptionHandler
+};
