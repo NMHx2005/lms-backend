@@ -98,6 +98,12 @@ export const securityHeadersMiddleware = (req: Request, res: Response, next: Nex
 
 // Request validation middleware
 export const requestValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  // Allow basic routes without strict validation
+  const basicRoutes = ['/', '/health', '/api'];
+  if (basicRoutes.includes(req.path)) {
+    return next();
+  }
+
   // Validate Content-Type for POST/PUT requests
   if ((req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') && req.headers['content-type']) {
     const contentType = req.headers['content-type'].toLowerCase();
@@ -118,8 +124,8 @@ export const requestValidationMiddleware = (req: Request, res: Response, next: N
     }
   }
   
-  // Validate Accept header
-  if (req.headers.accept && !req.headers.accept.includes('application/json')) {
+  // Validate Accept header for API routes only
+  if (req.path.startsWith('/api/') && req.headers.accept && !req.headers.accept.includes('application/json')) {
     return res.status(406).json({
       success: false,
       error: {
