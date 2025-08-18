@@ -26,9 +26,8 @@ dotenv.config();
 
 const app = express();
 
-// Connect to database
-connectDB();
-reloadAllSchedules(scheduleRunner);
+// Connect to database (async initialization will be handled in server.ts)
+// Database-dependent services will be initialized after connection
 
 // Request ID middleware (must be first)
 app.use(requestIdMiddleware);

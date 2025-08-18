@@ -40,6 +40,11 @@
       "key": "new_section_id",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "announcement_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "auth": {
@@ -5096,12 +5101,397 @@
               }
             }
           ]
+        },
+        {
+          "name": "Announcements",
+          "item": [
+            {
+              "name": "Create Announcement",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"title\":\"New Announcement\",\"content\":\"This is announcement content\",\"type\":\"general\",\"target\":{\"type\":\"all\"},\"priority\":\"medium\",\"displayOptions\":{\"requireAcknowledgment\":false,\"showIcon\":true,\"autoHide\":false},\"tags\":[\"general\"]}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements"]
+                }
+              }
+            },
+            {
+              "name": "Get All Announcements",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements?page=1&limit=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Announcement Stats",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "stats"]
+                }
+              }
+            },
+            {
+              "name": "Get Announcement by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/{{announcement_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "{{announcement_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Update Announcement",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"title\":\"Updated Announcement\",\"content\":\"Updated content\"}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/{{announcement_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "{{announcement_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Announcement",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/{{announcement_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "{{announcement_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Publish Announcement",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"publishedAt\":\"2024-01-01T00:00:00.000Z\"}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/{{announcement_id}}/publish",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "{{announcement_id}}", "publish"]
+                }
+              }
+            },
+            {
+              "name": "Cancel Announcement",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/{{announcement_id}}/cancel",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "{{announcement_id}}", "cancel"]
+                }
+              }
+            },
+            {
+              "name": "Get Announcement Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/{{announcement_id}}/analytics",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "{{announcement_id}}", "analytics"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Publish Announcements",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"announcementIds\":[\"{{announcement_id}}\"]}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/bulk/publish",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "bulk", "publish"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Delete Announcements",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"announcementIds\":[\"{{announcement_id}}\"]}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/announcements/bulk/delete",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "announcements", "bulk", "delete"]
+                }
+              }
+            }
+          ]
         }
       ]
     },
     {
       "name": "Client",
-      "item": []
+      "item": [
+        {
+          "name": "Announcements",
+          "item": [
+            {
+              "name": "Get My Announcements",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements?page=1&limit=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements"],
+                  "query": [
+                    {"key": "page", "value": "1"},
+                    {"key": "limit", "value": "20"}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Announcement Summary",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/summary",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "summary"]
+                }
+              }
+            },
+            {
+              "name": "Get Urgent Announcements",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/urgent",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "urgent"]
+                }
+              }
+            },
+            {
+              "name": "Search Announcements",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/search?query=announcement",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "search"],
+                  "query": [
+                    {"key": "query", "value": "announcement"}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Course Announcements",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/course/{{course_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "course", "{{course_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Announcement by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/{{announcement_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "{{announcement_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Acknowledge Announcement",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/{{announcement_id}}/acknowledge",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "{{announcement_id}}", "acknowledge"]
+                }
+              }
+            },
+            {
+              "name": "Track Announcement Click",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/announcements/{{announcement_id}}/track-click",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "announcements", "{{announcement_id}}", "track-click"]
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

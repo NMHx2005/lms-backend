@@ -10,6 +10,9 @@ interface AuthenticatedRequest extends Request {
     email: string;
     roles: string[];
     isActive: boolean;
+    firstName: string;
+    lastName: string;
+    role: string;
   };
 }
 

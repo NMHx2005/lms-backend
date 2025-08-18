@@ -3,19 +3,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../../shared/models';
 import { AuthenticationError, AuthorizationError } from '../../shared/utils/errors';
 
-// Extend Express Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        roles: string[];
-        isActive: boolean;
-      };
-    }
-  }
-}
+// Note: Global Express interface extension is defined in shared/types/global.ts
 
 // JWT token interface
 interface JwtPayload {
@@ -113,7 +101,7 @@ export const authenticate = async (
     const decoded = verifyToken(token);
     
     // Check if user exists and is active
-    const user = await User.findById(decoded.userId).select('+isActive');
+    const user = await User.findById(decoded.userId).select('+isActive firstName lastName role');
     
     if (!user) {
       throw new AuthenticationError('User not found');
@@ -129,6 +117,9 @@ export const authenticate = async (
       email: user.email,
       roles: user.roles,
       isActive: user.isActive,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
     };
     
     next();
@@ -173,7 +164,7 @@ export const optionalAuth = async (
     
     if (token) {
       const decoded = verifyToken(token);
-      const user = await User.findById(decoded.userId).select('+isActive');
+      const user = await User.findById(decoded.userId).select('+isActive firstName lastName role');
       
       if (user && user.isActive) {
         req.user = {
@@ -181,6 +172,9 @@ export const optionalAuth = async (
           email: user.email,
           roles: user.roles,
           isActive: user.isActive,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
         };
       }
     }

@@ -6,6 +6,7 @@ import lessonRoutes from './lesson.routes';
 import userRoutes from './user.routes';
 import enrollmentRoutes from './enrollment.routes';
 import assignmentRoutes from './assignment.routes';
+import announcementRoutes from './announcement.routes';
 import paymentRoutes from './payment.routes';
 import clientAuthRoutes from './auth.routes';
 import analyticsRoutes from './analytics.routes';
@@ -22,6 +23,7 @@ router.use('/sections', authenticate, sectionRoutes);
 router.use('/lessons', authenticate, lessonRoutes);
 router.use('/enrollments', authenticate, enrollmentRoutes);
 router.use('/assignments', authenticate, assignmentRoutes);
+router.use('/announcements', authenticate, announcementRoutes);
 router.use('/payments', authenticate, paymentRoutes);
 router.use('/analytics', authenticate, analyticsRoutes);
 

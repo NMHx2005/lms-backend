@@ -1,5 +1,7 @@
 // Global type declarations for the LMS backend
 
+import { Request } from 'express';
+
 // Extend Express Request interface
 declare global {
   namespace Express {
@@ -9,10 +11,26 @@ declare global {
         email: string;
         roles: string[];
         isActive: boolean;
+        firstName: string;
+        lastName: string;
+        role: string;
       };
       file?: Express.Multer.File;
     }
   }
+}
+
+// Authenticated Request type
+export interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    email: string;
+    roles: string[];
+    isActive: boolean;
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
 }
 
 // MongoDB ObjectId type

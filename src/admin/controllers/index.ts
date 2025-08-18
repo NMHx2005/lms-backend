@@ -6,5 +6,6 @@ export * from './section.controller';
 export * from './lesson.controller';
 export * from './assignment.controller';
 export * from './submission.controller';
+export * from './announcement.controller';
 export * from './system.controller';
 export * from './support.controller';

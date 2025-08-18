@@ -6,8 +6,11 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  firstName: string;
+  lastName: string;
   avatar?: string;
   roles: ('student' | 'teacher' | 'admin')[];
+  role: 'student' | 'teacher' | 'admin';
   subscriptionPlan: 'free' | 'pro' | 'advanced';
   subscriptionExpiresAt?: Date;
   isActive: boolean;
@@ -74,6 +77,18 @@ const userSchema = new Schema<IUser>(
       trim: true,
       maxlength: [100, 'Name cannot exceed 100 characters'],
     },
+    firstName: {
+      type: String,
+      required: [true, 'First name is required'],
+      trim: true,
+      maxlength: [50, 'First name cannot exceed 50 characters'],
+    },
+    lastName: {
+      type: String,
+      required: [true, 'Last name is required'],
+      trim: true,
+      maxlength: [50, 'Last name cannot exceed 50 characters'],
+    },
     avatar: {
       type: String,
       default: null,
@@ -88,6 +103,11 @@ const userSchema = new Schema<IUser>(
         },
         message: 'User must have at least one role',
       },
+    },
+    role: {
+      type: String,
+      enum: ['student', 'teacher', 'admin'],
+      default: 'student',
     },
     subscriptionPlan: {
       type: String,
@@ -211,7 +231,7 @@ userSchema.index({ 'stats.averageScore': -1 });
 
 // Virtual for full name
 userSchema.virtual('fullName').get(function () {
-  return this.name;
+  return `${this.firstName} ${this.lastName}`;
 });
 
 // Virtual for subscription status
@@ -286,4 +306,6 @@ userSchema.statics.findByRole = function (role: string) {
 };
 
 // Export the model
-export default mongoose.model<IUser>('User', userSchema);
+const User = mongoose.model<IUser>('User', userSchema);
+export { User };
+export default User;

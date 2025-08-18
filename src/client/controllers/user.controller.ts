@@ -1,21 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service';
-import { asyncHandler } from '../../shared/middleware/errorHandler';
+import { asyncHandler } from '../../shared/utils/asyncHandler';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    roles: string[];
-    isActive: boolean;
-  };
-}
+// Import AuthenticatedRequest from shared types
+import { AuthenticatedRequest } from '../../shared/types/global';
 
 export class ClientUserController {
   /**
    * Get user profile
    */
-  static getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static getProfile = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const user = await UserService.getUserProfile(req.user!.id);
     
     res.json({
@@ -27,7 +21,7 @@ export class ClientUserController {
   /**
    * Update user profile
    */
-  static updateProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static updateProfile = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const updateData = req.body;
     const user = await UserService.updateUserProfile(req.user!.id, updateData);
     
@@ -41,7 +35,7 @@ export class ClientUserController {
   /**
    * Change password
    */
-  static changePassword = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static changePassword = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { currentPassword, newPassword } = req.body;
     
     await UserService.changePassword(req.user!.id, currentPassword, newPassword);
@@ -55,7 +49,7 @@ export class ClientUserController {
   /**
    * Request password reset
    */
-  static requestPasswordReset = asyncHandler(async (req: Request, res: Response) => {
+  static requestPasswordReset = asyncHandler(async (req, res) => {
     const { email } = req.body;
     
     await UserService.requestPasswordReset(email);
@@ -69,7 +63,7 @@ export class ClientUserController {
   /**
    * Reset password with token
    */
-  static resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  static resetPassword = asyncHandler(async (req, res) => {
     const { token, newPassword } = req.body;
     
     await UserService.resetPassword(token, newPassword);
@@ -83,7 +77,7 @@ export class ClientUserController {
   /**
    * Verify email with token
    */
-  static verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+  static verifyEmail = asyncHandler(async (req, res) => {
     const { token } = req.params;
     
     await UserService.verifyEmail(token);
@@ -97,7 +91,7 @@ export class ClientUserController {
   /**
    * Resend email verification
    */
-  static resendEmailVerification = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static resendEmailVerification = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     await UserService.resendEmailVerification(req.user!.id);
     
     res.json({
@@ -109,7 +103,7 @@ export class ClientUserController {
   /**
    * Update user preferences
    */
-  static updatePreferences = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static updatePreferences = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { preferences } = req.body;
     
     const user = await UserService.updateUserPreferences(req.user!.id, preferences);
@@ -124,7 +118,7 @@ export class ClientUserController {
   /**
    * Update notification settings
    */
-  static updateNotificationSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static updateNotificationSettings = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { notifications } = req.body;
     
     const user = await UserService.updateNotificationSettings(req.user!.id, notifications);
@@ -139,7 +133,7 @@ export class ClientUserController {
   /**
    * Get user learning statistics
    */
-  static getLearningStats = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static getLearningStats = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const stats = await UserService.getUserLearningStats(req.user!.id);
     
     res.json({
@@ -151,7 +145,7 @@ export class ClientUserController {
   /**
    * Get user activity log
    */
-  static getActivityLog = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static getActivityLog = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     
     const activities = await UserService.getUserActivityLog(
@@ -169,7 +163,7 @@ export class ClientUserController {
   /**
    * Get user activity summary
    */
-  static getActivitySummary = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static getActivitySummary = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const days = Number((req.query?.days as any) || 30);
     const data = await (UserService as any).getUserActivitySummary(req.user!.id, days);
     res.json({ success: true, data });
@@ -178,7 +172,7 @@ export class ClientUserController {
   /**
    * Update user avatar
    */
-  static updateAvatar = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static updateAvatar = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -198,7 +192,7 @@ export class ClientUserController {
   /**
    * Delete user account
    */
-  static deleteAccount = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static deleteAccount = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { password } = req.body;
     
     await UserService.deleteUserAccount(req.user!.id, password);
@@ -212,7 +206,7 @@ export class ClientUserController {
   /**
    * Get user subscription info
    */
-  static getSubscriptionInfo = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static getSubscriptionInfo = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const subscription = await UserService.getUserSubscriptionInfo(req.user!.id);
     
     res.json({
@@ -224,7 +218,7 @@ export class ClientUserController {
   /**
    * Update user social links
    */
-  static updateSocialLinks = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  static updateSocialLinks = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { socialLinks } = req.body;
     
     const user = await UserService.updateUserSocialLinks(req.user!.id, socialLinks);
