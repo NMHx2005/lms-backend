@@ -1,176 +1,68 @@
-import express from 'express';
-import { Assignment, Submission, Course, Lesson } from '../../shared/models';
+import { Router } from 'express';
+import { ClientAssignmentController } from '../controllers/assignment.controller';
+import { authenticate, requireStudent } from '../../shared/middleware/auth';
+import { validateRequest } from '../../shared/middleware/validation';
+import { clientAssignmentValidation } from '../validators/assignment.validator';
 
-const router = express.Router();
+const router = Router();
+const assignmentController = new ClientAssignmentController();
 
-// Get assignments for enrolled courses
-router.get('/', async (req: any, res) => {
-  try {
-    const { page = 1, limit = 10, courseId, status } = req.query;
-    
-    // This would typically query assignments for courses the user is enrolled in
-    // For now, return mock data
-    const mockAssignments = [
-      {
-        id: '1',
-        title: 'JavaScript Fundamentals Quiz',
-        description: 'Test your knowledge of JavaScript basics',
-        type: 'quiz',
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        maxScore: 100,
-        courseId: 'course123',
-        courseTitle: 'JavaScript Fundamentals',
-        lessonId: 'lesson123',
-        lessonTitle: 'Introduction to JavaScript',
-        status: 'pending'
-      }
-    ];
+// Apply authentication and authorization middleware to all routes
+router.use(authenticate);
+router.use(requireStudent);
 
-    res.json({
-      success: true,
-      data: mockAssignments,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: 1,
-        pages: 1
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+// Assignment access
+router.get('/:id', 
+  validateRequest(clientAssignmentValidation.assignmentId),
+  assignmentController.getAssignmentById
+);
 
-// Get assignment by ID
-router.get('/:id', async (req: any, res) => {
-  try {
-    // This would typically query an assignment collection
-    const mockAssignment = {
-      id: req.params.id,
-      title: 'JavaScript Fundamentals Quiz',
-      description: 'Test your knowledge of JavaScript basics',
-      instructions: 'Answer all questions to the best of your ability',
-      type: 'quiz',
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      maxScore: 100,
-      timeLimit: 60,
-      attempts: 3,
-      isRequired: true,
-      isGraded: true,
-      gradingCriteria: [
-        'Correct answers',
-        'Complete responses',
-        'On-time submission'
-      ],
-      quizQuestions: [
-        {
-          id: '1',
-          question: 'What is JavaScript?',
-          type: 'multiple-choice',
-          options: [
-            'A programming language',
-            'A markup language',
-            'A styling language',
-            'A database'
-          ],
-          correctAnswer: 'A programming language',
-          points: 20,
-          required: true
-        }
-      ]
-    };
+router.get('/lesson/:lessonId', 
+  validateRequest(clientAssignmentValidation.getAssignmentsByLesson),
+  assignmentController.getAssignmentsByLesson
+);
 
-    res.json({
-      success: true,
-      data: mockAssignment
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+router.get('/course/:courseId', 
+  validateRequest(clientAssignmentValidation.getAssignmentsByCourse),
+  assignmentController.getAssignmentsByCourse
+);
 
-// Submit assignment
-router.post('/:id/submit', async (req: any, res) => {
-  try {
-    const { answers, fileUrl, textAnswer } = req.body;
-    
-    // This would typically create a submission in a submissions collection
-    // For now, just return success
-    
-    res.json({
-      success: true,
-      message: 'Assignment submitted successfully',
-      data: {
-        assignmentId: req.params.id,
-        submittedAt: new Date(),
-        status: 'submitted'
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+// Assignment progress and submission
+router.get('/:assignmentId/progress', 
+  validateRequest(clientAssignmentValidation.getAssignmentProgress),
+  assignmentController.getAssignmentProgress
+);
 
-// Get submission history
-router.get('/:id/submissions', async (req: any, res) => {
-  try {
-    // This would typically query a submissions collection
-    const mockSubmissions = [
-      {
-        id: '1',
-        submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        score: 85,
-        feedback: 'Good work! Consider reviewing closures.',
-        status: 'graded',
-        attemptNumber: 1
-      }
-    ];
+router.post('/submit', 
+  validateRequest(clientAssignmentValidation.submitAssignment),
+  assignmentController.submitAssignment
+);
 
-    res.json({
-      success: true,
-      data: mockSubmissions
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+// Student submissions
+router.get('/submissions', 
+  validateRequest(clientAssignmentValidation.getStudentSubmissions),
+  assignmentController.getStudentSubmissions
+);
 
-// Get upcoming assignments
-router.get('/upcoming', async (req: any, res) => {
-  try {
-    // This would typically query assignments with upcoming due dates
-    const mockUpcoming = [
-      {
-        id: '1',
-        title: 'JavaScript Fundamentals Quiz',
-        courseTitle: 'JavaScript Fundamentals',
-        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        daysLeft: 3
-      }
-    ];
+router.get('/submissions/:id', 
+  validateRequest(clientAssignmentValidation.getSubmissionById),
+  assignmentController.getSubmissionById
+);
 
-    res.json({
-      success: true,
-      data: mockUpcoming
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+// Assignment management
+router.get('/upcoming', 
+  validateRequest(clientAssignmentValidation.getUpcomingAssignments),
+  assignmentController.getUpcomingAssignments
+);
+
+router.get('/search', 
+  validateRequest(clientAssignmentValidation.searchAssignments),
+  assignmentController.searchAssignments
+);
+
+router.get('/stats', 
+  validateRequest(clientAssignmentValidation.getStudentAssignmentStats),
+  assignmentController.getStudentAssignmentStats
+);
 
 export default router;

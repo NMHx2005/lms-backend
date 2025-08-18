@@ -4,5 +4,7 @@ export * from './user.controller';
 export * from './course.controller';
 export * from './section.controller';
 export * from './lesson.controller';
+export * from './assignment.controller';
+export * from './submission.controller';
 export * from './system.controller';
 export * from './support.controller';

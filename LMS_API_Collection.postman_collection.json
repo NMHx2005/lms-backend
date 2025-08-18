@@ -63,8 +63,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/",
-              "host": ["{{base_url}}"],
-              "path": [""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
             }
           }
         },
@@ -75,8 +79,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
           }
         },
@@ -87,8 +95,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api",
-              "host": ["{{base_url}}"],
-              "path": ["api"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api"
+              ]
             }
           }
         }
@@ -113,8 +125,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -134,8 +152,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -155,8 +179,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/refresh",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "refresh"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
             }
           }
         },
@@ -172,8 +202,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
             }
           }
         },
@@ -189,8 +225,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/auth/me",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "me"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
             }
           }
         },
@@ -210,8 +252,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/validate-token",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "validate-token"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "validate-token"
+              ]
             }
           }
         },
@@ -231,8 +279,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -252,8 +307,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/client/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "client", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "client",
+                "auth",
+                "login"
+              ]
             }
           }
         }
@@ -272,8 +334,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/dashboard",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "dashboard"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "dashboard"
+                  ]
                 }
               }
             }
@@ -289,8 +357,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users?page=1&limit=10&role=student&search=john",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -328,8 +402,14 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/users",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users"
+                  ]
                 }
               }
             },
@@ -340,8 +420,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -361,8 +448,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -373,8 +467,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -385,8 +486,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1/activate",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1", "activate"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "activate"
+                  ]
                 }
               }
             },
@@ -397,8 +506,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/64f1a2b3c4d5e6f7a8b9c0d1/deactivate",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "64f1a2b3c4d5e6f7a8b9c0d1", "deactivate"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "deactivate"
+                  ]
                 }
               }
             },
@@ -418,8 +535,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/bulk-status",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "bulk-status"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "bulk-status"
+                  ]
                 }
               }
             },
@@ -439,8 +563,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/bulk-roles",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "bulk-roles"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "bulk-roles"
+                  ]
                 }
               }
             },
@@ -451,8 +582,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/search?q=john&limit=10",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "search"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "search"
+                  ],
                   "query": [
                     {
                       "key": "q",
@@ -473,8 +611,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/users/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "users", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "stats"
+                  ]
                 }
               }
             }
@@ -490,8 +635,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -520,8 +671,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -541,8 +699,14 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses"
+                  ]
                 }
               }
             },
@@ -562,8 +726,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -574,8 +745,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -586,8 +764,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "stats"
+                  ]
                 }
               }
             },
@@ -607,8 +792,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/approve",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "approve"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "approve"
+                  ]
                 }
               }
             },
@@ -628,8 +820,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/bulk-status",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "bulk-status"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "bulk-status"
+                  ]
                 }
               }
             },
@@ -640,8 +839,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/search?q=javascript&limit=10",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "search"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "search"
+                  ],
                   "query": [
                     {
                       "key": "q",
@@ -662,8 +868,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/pending-approvals?page=1&limit=20",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "pending-approvals"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "pending-approvals"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -693,8 +906,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/{{course_id}}/feature",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "{{course_id}}", "feature"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "{{course_id}}",
+                    "feature"
+                  ]
                 }
               }
             },
@@ -705,8 +926,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/{{course_id}}/enrollment-stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "{{course_id}}", "enrollment-stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "{{course_id}}",
+                    "enrollment-stats"
+                  ]
                 }
               }
             },
@@ -717,8 +946,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/courses/{{course_id}}/analytics?period=30d",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "courses", "{{course_id}}", "analytics"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "courses",
+                    "{{course_id}}",
+                    "analytics"
+                  ],
                   "query": [
                     {
                       "key": "period",
@@ -745,8 +982,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "course", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "course",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -762,8 +1007,17 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "course", "{{course_id}}", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "course",
+                    "{{course_id}}",
+                    "stats"
+                  ]
                 }
               }
             },
@@ -787,8 +1041,14 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections"
+                  ]
                 }
               }
             },
@@ -804,8 +1064,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/{{section_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "{{section_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "{{section_id}}"
+                  ]
                 }
               }
             },
@@ -829,8 +1096,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/{{section_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "{{section_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "{{section_id}}"
+                  ]
                 }
               }
             },
@@ -846,8 +1120,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/{{section_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "{{section_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "{{section_id}}"
+                  ]
                 }
               }
             },
@@ -871,8 +1152,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}/reorder",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "course", "{{course_id}}", "reorder"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "course",
+                    "{{course_id}}",
+                    "reorder"
+                  ]
                 }
               }
             },
@@ -896,8 +1186,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/{{section_id}}/visibility",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "{{section_id}}", "visibility"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "{{section_id}}",
+                    "visibility"
+                  ]
                 }
               }
             },
@@ -921,8 +1219,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}/bulk-update",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "sections", "course", "{{course_id}}", "bulk-update"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "sections",
+                    "course",
+                    "{{course_id}}",
+                    "bulk-update"
+                  ]
                 }
               }
             }
@@ -943,8 +1250,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/section/{{section_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "section", "{{section_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "section",
+                    "{{section_id}}"
+                  ]
                 }
               }
             },
@@ -960,8 +1275,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/course/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "course", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "course",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -977,8 +1300,17 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/course/{{course_id}}/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "course", "{{course_id}}", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "course",
+                    "{{course_id}}",
+                    "stats"
+                  ]
                 }
               }
             },
@@ -998,8 +1330,14 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons"
+                  ]
                 }
               }
             },
@@ -1015,8 +1353,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}"
+                  ]
                 }
               }
             },
@@ -1040,8 +1385,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}"
+                  ]
                 }
               }
             },
@@ -1057,8 +1409,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}"
+                  ]
                 }
               }
             },
@@ -1082,8 +1441,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/section/{{section_id}}/reorder",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "section", "{{section_id}}", "reorder"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "section",
+                    "{{section_id}}",
+                    "reorder"
+                  ]
                 }
               }
             },
@@ -1107,8 +1475,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/preview",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "preview"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "preview"
+                  ]
                 }
               }
             },
@@ -1132,8 +1508,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/required",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "required"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "required"
+                  ]
                 }
               }
             },
@@ -1157,8 +1541,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/attachments",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "attachments"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "attachments"
+                  ]
                 }
               }
             },
@@ -1174,8 +1566,17 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/attachments/0",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "attachments", "0"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "attachments",
+                    "0"
+                  ]
                 }
               }
             },
@@ -1199,8 +1600,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/section/{{section_id}}/bulk-update",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "section", "{{section_id}}", "bulk-update"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "section",
+                    "{{section_id}}",
+                    "bulk-update"
+                  ]
                 }
               }
             },
@@ -1224,8 +1634,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/move",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "move"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "move"
+                  ]
                 }
               }
             }
@@ -1241,8 +1659,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/analytics/dashboard",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "analytics", "dashboard"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "analytics",
+                    "dashboard"
+                  ]
                 }
               }
             },
@@ -1253,8 +1678,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/analytics/users?period=30d",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "analytics", "users"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "analytics",
+                    "users"
+                  ],
                   "query": [
                     {
                       "key": "period",
@@ -1271,8 +1703,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/analytics/courses?period=30d",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "analytics", "courses"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "analytics",
+                    "courses"
+                  ],
                   "query": [
                     {
                       "key": "period",
@@ -1289,8 +1728,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/analytics/revenue?period=30d",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "analytics", "revenue"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "analytics",
+                    "revenue"
+                  ],
                   "query": [
                     {
                       "key": "period",
@@ -1307,8 +1753,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/analytics/enrollments?period=30d",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "analytics", "enrollments"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "analytics",
+                    "enrollments"
+                  ],
                   "query": [
                     {
                       "key": "period",
@@ -1330,8 +1783,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/overview",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "overview"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "overview"
+                  ]
                 }
               }
             },
@@ -1342,8 +1802,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/refunds?status=pending",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "refunds"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "refunds"
+                  ],
                   "query": [
                     {
                       "key": "status",
@@ -1369,8 +1836,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/refunds/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "refunds", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "refunds",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -1381,8 +1856,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/logs?level=error&limit=50",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "logs"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "logs"
+                  ],
                   "query": [
                     {
                       "key": "level",
@@ -1403,8 +1885,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/settings",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "settings"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "settings"
+                  ]
                 }
               }
             },
@@ -1424,8 +1913,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/settings",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "settings"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "settings"
+                  ]
                 }
               }
             },
@@ -1436,8 +1932,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/system/backup/status",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "system", "backup", "status"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "system",
+                    "backup",
+                    "status"
+                  ]
                 }
               }
             }
@@ -1453,8 +1957,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/tickets?status=open&priority=high",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "tickets"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "tickets"
+                  ],
                   "query": [
                     {
                       "key": "status",
@@ -1475,8 +1986,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "tickets",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -1496,8 +2015,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1/assign",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1", "assign"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "tickets",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "assign"
+                  ]
                 }
               }
             },
@@ -1517,8 +2045,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1/status",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1", "status"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "tickets",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "status"
+                  ]
                 }
               }
             },
@@ -1538,8 +2075,17 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/tickets/64f1a2b3c4d5e6f7a8b9c0d1/notes",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "tickets", "64f1a2b3c4d5e6f7a8b9c0d1", "notes"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "tickets",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "notes"
+                  ]
                 }
               }
             },
@@ -1550,8 +2096,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/staff",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "staff"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "staff"
+                  ]
                 }
               }
             },
@@ -1562,8 +2115,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/admin/support/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "admin", "support", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "support",
+                    "stats"
+                  ]
                 }
               }
             }
@@ -1584,8 +2144,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/dashboard",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "dashboard"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "dashboard"
+                  ]
                 }
               }
             }
@@ -1601,8 +2167,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses?page=1&limit=12&domain=programming&level=beginner&search=javascript&sort=popular",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -1639,8 +2211,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -1651,8 +2230,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/64f1a2b3c4d5e6f7a8b9c0d1/content",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "64f1a2b3c4d5e6f7a8b9c0d1", "content"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "content"
+                  ]
                 }
               }
             },
@@ -1663,8 +2250,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/64f1a2b3c4d5e6f7a8b9c0d1/content",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "64f1a2b3c4d5e6f7a8b9c0d1", "content"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "content"
+                  ]
                 }
               }
             },
@@ -1675,8 +2270,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/categories",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "categories"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "categories"
+                  ]
                 }
               }
             },
@@ -1687,8 +2289,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/search?q=javascript&domain=programming&level=beginner",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "search"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "search"
+                  ],
                   "query": [
                     {
                       "key": "q",
@@ -1718,8 +2327,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/profile",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "profile"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "profile"
+                  ]
                 }
               }
             },
@@ -1739,8 +2355,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/profile",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "profile"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "profile"
+                  ]
                 }
               }
             },
@@ -1766,8 +2389,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/avatar",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "avatar"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "avatar"
+                  ]
                 }
               }
             },
@@ -1787,8 +2417,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/password",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "password"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "password"
+                  ]
                 }
               }
             },
@@ -1808,8 +2445,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/password/reset-request",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "password", "reset-request"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "password",
+                    "reset-request"
+                  ]
                 }
               }
             },
@@ -1829,8 +2474,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/password/reset",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "password", "reset"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "password",
+                    "reset"
+                  ]
                 }
               }
             },
@@ -1841,8 +2494,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/verify-email/verification_token_here",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "verify-email", "verification_token_here"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "verify-email",
+                    "verification_token_here"
+                  ]
                 }
               }
             },
@@ -1853,8 +2514,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/verify-email/resend",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "verify-email", "resend"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "verify-email",
+                    "resend"
+                  ]
                 }
               }
             },
@@ -1865,8 +2534,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/dashboard",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "dashboard"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "dashboard"
+                  ]
                 }
               }
             },
@@ -1877,8 +2553,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/progress",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "progress"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "progress"
+                  ]
                 }
               }
             },
@@ -1889,8 +2572,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/certificates",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "certificates"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "certificates"
+                  ]
                 }
               }
             },
@@ -1901,8 +2591,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/achievements",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "achievements"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "achievements"
+                  ]
                 }
               }
             },
@@ -1913,8 +2610,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/schedule",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "schedule"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "schedule"
+                  ]
                 }
               }
             },
@@ -1925,8 +2629,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/goals",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "goals"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "goals"
+                  ]
                 }
               }
             },
@@ -1946,8 +2657,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/preferences",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "preferences"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "preferences"
+                  ]
                 }
               }
             },
@@ -1967,8 +2685,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/notifications",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "notifications"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "notifications"
+                  ]
                 }
               }
             },
@@ -1988,8 +2713,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/social-links",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "social-links"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "social-links"
+                  ]
                 }
               }
             },
@@ -2000,8 +2732,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "stats"
+                  ]
                 }
               }
             },
@@ -2012,8 +2751,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/activity?limit=20&page=1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "activity"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "activity"
+                  ],
                   "query": [
                     {
                       "key": "limit",
@@ -2034,8 +2780,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/user/subscription",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "subscription"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "subscription"
+                  ]
                 }
               }
             },
@@ -2055,8 +2808,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/user/account",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "user", "account"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "user",
+                    "account"
+                  ]
                 }
               }
             }
@@ -2077,8 +2837,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/sections/course/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "sections", "course", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "sections",
+                    "course",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -2094,8 +2862,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/sections/{{section_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "sections", "{{section_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "sections",
+                    "{{section_id}}"
+                  ]
                 }
               }
             },
@@ -2111,8 +2886,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/sections/{{section_id}}/progress",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "sections", "{{section_id}}", "progress"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "sections",
+                    "{{section_id}}",
+                    "progress"
+                  ]
                 }
               }
             },
@@ -2128,8 +2911,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/sections/{{section_id}}/next",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "sections", "{{section_id}}", "next"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "sections",
+                    "{{section_id}}",
+                    "next"
+                  ]
                 }
               }
             },
@@ -2145,8 +2936,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/sections/{{section_id}}/previous",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "sections", "{{section_id}}", "previous"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "sections",
+                    "{{section_id}}",
+                    "previous"
+                  ]
                 }
               }
             },
@@ -2162,8 +2961,17 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/sections/course/{{course_id}}/overview",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "sections", "course", "{{course_id}}", "overview"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "sections",
+                    "course",
+                    "{{course_id}}",
+                    "overview"
+                  ]
                 }
               }
             }
@@ -2184,8 +2992,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}"
+                  ]
                 }
               }
             },
@@ -2201,8 +3016,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/section/{{section_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "section", "{{section_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "section",
+                    "{{section_id}}"
+                  ]
                 }
               }
             },
@@ -2218,8 +3041,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/content",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "content"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "content"
+                  ]
                 }
               }
             },
@@ -2235,8 +3066,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/progress",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "progress"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "progress"
+                  ]
                 }
               }
             },
@@ -2252,8 +3091,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/next",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "next"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "next"
+                  ]
                 }
               }
             },
@@ -2269,8 +3116,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/previous",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "previous"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "previous"
+                  ]
                 }
               }
             },
@@ -2294,8 +3149,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/complete",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "complete"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "complete"
+                  ]
                 }
               }
             },
@@ -2311,8 +3174,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/attachments",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "attachments"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "attachments"
+                  ]
                 }
               }
             },
@@ -2328,8 +3199,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/navigation",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "navigation"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "navigation"
+                  ]
                 }
               }
             },
@@ -2345,8 +3224,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/summary",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "lessons", "{{lesson_id}}", "summary"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "lessons",
+                    "{{lesson_id}}",
+                    "summary"
+                  ]
                 }
               }
             }
@@ -2362,8 +3249,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments?status=active&page=1&limit=10",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments"
+                  ],
                   "query": [
                     {
                       "key": "status",
@@ -2397,8 +3290,14 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments"
+                  ]
                 }
               }
             },
@@ -2409,8 +3308,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -2430,8 +3336,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1/progress",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1", "progress"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "progress"
+                  ]
                 }
               }
             },
@@ -2451,8 +3365,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1/complete-lesson",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1", "complete-lesson"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "complete-lesson"
+                  ]
                 }
               }
             },
@@ -2463,8 +3385,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -2475,8 +3404,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/enrollments/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "enrollments", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "enrollments",
+                    "stats"
+                  ]
                 }
               }
             }
@@ -2492,8 +3428,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/assignments?courseId=64f1a2b3c4d5e6f7a8b9c0d1&status=pending",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "assignments"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments"
+                  ],
                   "query": [
                     {
                       "key": "courseId",
@@ -2514,8 +3456,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/assignments/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "assignments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -2535,8 +3484,16 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/assignments/64f1a2b3c4d5e6f7a8b9c0d1/submit",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "assignments", "64f1a2b3c4d5e6f7a8b9c0d1", "submit"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "submit"
+                  ]
                 }
               }
             },
@@ -2547,8 +3504,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/assignments/64f1a2b3c4d5e6f7a8b9c0d1/submissions",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "assignments", "64f1a2b3c4d5e6f7a8b9c0d1", "submissions"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1",
+                    "submissions"
+                  ]
                 }
               }
             },
@@ -2559,13 +3524,156 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/assignments/upcoming?limit=10",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "assignments", "upcoming"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "upcoming"
+                  ],
                   "query": [
                     {
                       "key": "limit",
                       "value": "10"
                     }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Assignments by Lesson",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/lesson/{{lesson_id}}?page=1&limit=20",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "lesson",
+                    "{{lesson_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Assignments by Course",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/course/{{course_id}}?page=1&limit=20",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "course",
+                    "{{course_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Assignment Progress",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/{{assignment_id}}/progress",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "{{assignment_id}}",
+                    "progress"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Submit Assignment",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/submit",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "submit"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"assignmentId\": \"{{assignment_id}}\",\n  \"courseId\": \"{{course_id}}\",\n  \"fileUrl\": \"https://example.com/ans.pdf\"\n}"
+                }
+              }
+            },
+            {
+              "name": "My Submissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/submissions?page=1&limit=20",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "submissions"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Submission By Id (Me)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/submissions/{{submission_id}}",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "submissions",
+                    "{{submission_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Assignments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/search?query=home&page=1&limit=10",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "search"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "My Assignment Stats",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/client/assignments/stats?courseId={{course_id}}",
+                  "path": [
+                    "api",
+                    "client",
+                    "assignments",
+                    "stats"
                   ]
                 }
               }
@@ -2582,8 +3690,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/payments?page=1&limit=10&status=completed",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -2608,8 +3722,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/payments/64f1a2b3c4d5e6f7a8b9c0d1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments",
+                    "64f1a2b3c4d5e6f7a8b9c0d1"
+                  ]
                 }
               }
             },
@@ -2629,8 +3750,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/payments/create",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments", "create"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments",
+                    "create"
+                  ]
                 }
               }
             },
@@ -2650,8 +3778,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/payments/callback",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments", "callback"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments",
+                    "callback"
+                  ]
                 }
               }
             },
@@ -2671,8 +3806,15 @@
                 },
                 "url": {
                   "raw": "{{base_url}}/api/client/payments/refund",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments", "refund"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments",
+                    "refund"
+                  ]
                 }
               }
             },
@@ -2683,8 +3825,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/payments/methods",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments", "methods"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments",
+                    "methods"
+                  ]
                 }
               }
             },
@@ -2695,8 +3844,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/payments/stats",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "payments", "stats"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "payments",
+                    "stats"
+                  ]
                 }
               }
             }
@@ -2712,8 +3868,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses?page=1&limit=12&sortBy=createdAt&sortOrder=desc",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -2742,8 +3904,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/{{course_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "{{course_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "{{course_id}}"
+                  ]
                 }
               }
             },
@@ -2754,8 +3923,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/search?q=javascript&limit=10",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "search"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "search"
+                  ],
                   "query": [
                     {
                       "key": "q",
@@ -2776,8 +3952,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/categories",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "categories"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "categories"
+                  ]
                 }
               }
             },
@@ -2788,8 +3971,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/featured?limit=6",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "featured"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "featured"
+                  ],
                   "query": [
                     {
                       "key": "limit",
@@ -2806,8 +3996,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/popular?limit=8",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "popular"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "popular"
+                  ],
                   "query": [
                     {
                       "key": "limit",
@@ -2824,8 +4021,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/instructor/{{instructor_id}}?page=1&limit=10",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "instructor", "{{instructor_id}}"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "instructor",
+                    "{{instructor_id}}"
+                  ],
                   "query": [
                     {
                       "key": "page",
@@ -2846,8 +4051,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/{{course_id}}/related?limit=4",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "{{course_id}}", "related"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "{{course_id}}",
+                    "related"
+                  ],
                   "query": [
                     {
                       "key": "limit",
@@ -2869,8 +4082,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/{{course_id}}/content",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "{{course_id}}", "content"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "{{course_id}}",
+                    "content"
+                  ]
                 }
               }
             },
@@ -2886,8 +4107,16 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/{{course_id}}/progress",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "{{course_id}}", "progress"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "{{course_id}}",
+                    "progress"
+                  ]
                 }
               }
             },
@@ -2903,8 +4132,17 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/{{course_id}}/lessons/{{lesson_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "{{course_id}}", "lessons", "{{lesson_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "{{course_id}}",
+                    "lessons",
+                    "{{lesson_id}}"
+                  ]
                 }
               }
             },
@@ -2920,8 +4158,15 @@
                 ],
                 "url": {
                   "raw": "{{base_url}}/api/client/courses/recommendations?limit=6",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "client", "courses", "recommendations"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "client",
+                    "courses",
+                    "recommendations"
+                  ],
                   "query": [
                     {
                       "key": "limit",
@@ -2934,7 +4179,387 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Admin - Assignments",
+      "item": [
+        {
+          "name": "Create Assignment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments",
+              "path": [
+                "api",
+                "admin",
+                "assignments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonId\": \"{{lesson_id}}\",\n  \"courseId\": \"{{course_id}}\",\n  \"title\": \"Homework 1\",\n  \"type\": \"file\",\n  \"dueDate\": \"2025-12-31T23:59:59.000Z\",\n  \"maxScore\": 100,\n  \"isRequired\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Assignment By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/{{assignment_id}}",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "{{assignment_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List by Lesson",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/lesson/{{lesson_id}}?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "lesson",
+                "{{lesson_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List by Course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/course/{{course_id}}?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "course",
+                "{{course_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Toggle Required",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/{{assignment_id}}/required",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "{{assignment_id}}",
+                "required"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"isRequired\": true }"
+            }
+          }
+        },
+        {
+          "name": "Assignment Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/{{assignment_id}}/stats",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "{{assignment_id}}",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Overdue Assignments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/overdue?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "overdue"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bulk Update by Course",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/course/{{course_id}}/bulk-update",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "course",
+                "{{course_id}}",
+                "bulk-update"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updates\": [\n    { \"assignmentId\": \"{{assignment_id}}\", \"updates\": { \"maxScore\": 80 } }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Attachment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/{{assignment_id}}/attachments",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "{{assignment_id}}",
+                "attachments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"file.pdf\",\n  \"fileUrl\": \"https://example.com/file.pdf\",\n  \"fileSize\": 12345,\n  \"fileType\": \"application/pdf\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Attachment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/{{assignment_id}}/attachments/0",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "{{assignment_id}}",
+                "attachments",
+                "0"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Assignments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/assignments/search?query=homework&page=1&limit=10",
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "search"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Submissions",
+      "item": [
+        {
+          "name": "Get Submission By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/{{submission_id}}",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "{{submission_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List by Assignment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/assignment/{{assignment_id}}?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "assignment",
+                "{{assignment_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List by Course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/course/{{course_id}}?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "course",
+                "{{course_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pending Submissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/pending?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "pending"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Late Submissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/late?page=1&limit=20",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "late"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Grade Submission",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/{{submission_id}}/grade",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "{{submission_id}}",
+                "grade"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"score\": 88, \"feedback\": \"Well done\", \"gradedBy\": \"{{admin_user_id}}\" }"
+            }
+          }
+        },
+        {
+          "name": "Bulk Grade Submissions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/bulk-grade",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "bulk-grade"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gradingData\": [\n    { \"submissionId\": \"{{submission_id}}\", \"score\": 75, \"feedback\": \"OK\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Submission Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/stats?assignmentId={{assignment_id}}",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submission Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/analytics?courseId={{course_id}}",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "analytics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Submissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/submissions/search?query=john&page=1&limit=10",
+              "path": [
+                "api",
+                "admin",
+                "submissions",
+                "search"
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
-

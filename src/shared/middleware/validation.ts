@@ -13,10 +13,10 @@ export const validateRequest = (validations: any[]) => {
     await Promise.all(validations.map(validation => validation.run(req)));
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorMessages = errors.array().map(error => ({
-        field: error.type === 'field' ? (error as any).path : 'unknown',
-        message: error.msg,
-        value: (error as any).value,
+      const errorMessages = errors.array().map((err: any) => ({
+        field: err?.param ?? err?.path ?? 'unknown',
+        message: err?.msg,
+        value: err?.value,
       }));
       return next(new ValidationError('Validation failed', errorMessages));
     }
@@ -92,10 +92,10 @@ export const validateQuery = (validations: any[]) => {
     await Promise.all(validations.map(validation => validation.run(req)));
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorMessages = errors.array().map(error => ({
-        field: error.type === 'field' ? (error as any).path : 'unknown',
-        message: error.msg,
-        value: (error as any).value,
+      const errorMessages = errors.array().map((err: any) => ({
+        field: err?.param ?? err?.path ?? 'unknown',
+        message: err?.msg,
+        value: err?.value,
       }));
       return next(new ValidationError('Query parameter validation failed', errorMessages));
     }
@@ -113,10 +113,10 @@ export const validateParams = (validations: any[]) => {
     await Promise.all(validations.map(validation => validation.run(req)));
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorMessages = errors.array().map(error => ({
-        field: error.type === 'field' ? (error as any).path : 'unknown',
-        message: error.msg,
-        value: (error as any).value,
+      const errorMessages = errors.array().map((err: any) => ({
+        field: err?.param ?? err?.path ?? 'unknown',
+        message: err?.msg,
+        value: err?.value,
       }));
       return next(new ValidationError('Path parameter validation failed', errorMessages));
     }
@@ -134,10 +134,10 @@ export const validateBody = (validations: any[]) => {
     await Promise.all(validations.map(validation => validation.run(req)));
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const errorMessages = errors.array().map(error => ({
-        field: error.type === 'field' ? (error as any).path : 'unknown',
-        message: error.msg,
-        value: (error as any).value,
+      const errorMessages = errors.array().map((err: any) => ({
+        field: err?.param ?? err?.path ?? 'unknown',
+        message: err?.msg,
+        value: err?.value,
       }));
       return next(new ValidationError('Request body validation failed', errorMessages));
     }

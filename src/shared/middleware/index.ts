@@ -1,10 +1,24 @@
 export { validateRequest, handleValidationErrors } from './validation';
+
+// Authentication and authorization middleware
+export {
+  authenticate,
+  optionalAuth,
+  requireAdmin,
+  requireTeacher,
+  requireStudent,
+  requirePermission,
+  requireOwnership,
+  requireCourseOwnership,
+  requireEnrollment,
+  generateToken,
+  generateRefreshToken,
+  verifyToken,
+  verifyRefreshToken
+} from './auth';
+
 export { 
   hasPermission, 
-  requirePermission, 
-  requireOwnership, 
-  requireCourseOwnership, 
-  requireEnrollment,
   roleBasedRateLimit,
   auditLog,
   ROLE_PERMISSIONS,
