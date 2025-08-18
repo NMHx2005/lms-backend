@@ -1,6 +1,8 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth';
 import courseRoutes from './course.routes';
+import sectionRoutes from './section.routes';
+import lessonRoutes from './lesson.routes';
 import userRoutes from './user.routes';
 import enrollmentRoutes from './enrollment.routes';
 import assignmentRoutes from './assignment.routes';
@@ -15,6 +17,8 @@ router.use('/courses', courseRoutes);
 // Protected routes (authentication required)
 router.use('/auth', clientAuthRoutes);
 router.use('/user', authenticate, userRoutes);
+router.use('/sections', authenticate, sectionRoutes);
+router.use('/lessons', authenticate, lessonRoutes);
 router.use('/enrollments', authenticate, enrollmentRoutes);
 router.use('/assignments', authenticate, assignmentRoutes);
 router.use('/payments', authenticate, paymentRoutes);

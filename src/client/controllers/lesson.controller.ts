@@ -1,0 +1,285 @@
+import { Request, Response } from 'express';
+import { ClientLessonService } from '../services/lesson.service';
+
+export class ClientLessonController {
+  // Get lesson by ID (for enrolled students)
+  static async getLessonById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const lesson = await ClientLessonService.getLessonById(id, userId);
+      
+      res.json({
+        success: true,
+        data: lesson
+      });
+    } catch (error: any) {
+      console.error('Get lesson by ID error:', error);
+      res.status(404).json({
+        success: false,
+        error: error.message || 'Lesson not found'
+      });
+    }
+  }
+
+  // Get lessons by section (for enrolled students)
+  static async getLessonsBySection(req: Request, res: Response) {
+    try {
+      const { sectionId } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const lessons = await ClientLessonService.getLessonsBySection(sectionId, userId);
+      
+      res.json({
+        success: true,
+        data: lessons
+      });
+    } catch (error: any) {
+      console.error('Get lessons by section error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get lessons'
+      });
+    }
+  }
+
+  // Get lesson content (for enrolled students)
+  static async getLessonContent(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const content = await ClientLessonService.getLessonContent(id, userId);
+      
+      res.json({
+        success: true,
+        data: content
+      });
+    } catch (error: any) {
+      console.error('Get lesson content error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get lesson content'
+      });
+    }
+  }
+
+  // Get lesson progress
+  static async getLessonProgress(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const progress = await ClientLessonService.getLessonProgress(id, userId);
+      
+      res.json({
+        success: true,
+        data: progress
+      });
+    } catch (error: any) {
+      console.error('Get lesson progress error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get lesson progress'
+      });
+    }
+  }
+
+  // Get next lesson (for navigation)
+  static async getNextLesson(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const nextLesson = await ClientLessonService.getNextLesson(id, userId);
+      
+      res.json({
+        success: true,
+        data: nextLesson
+      });
+    } catch (error: any) {
+      console.error('Get next lesson error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get next lesson'
+      });
+    }
+  }
+
+  // Get previous lesson (for navigation)
+  static async getPreviousLesson(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const previousLesson = await ClientLessonService.getPreviousLesson(id, userId);
+      
+      res.json({
+        success: true,
+        data: previousLesson
+      });
+    } catch (error: any) {
+      console.error('Get previous lesson error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get previous lesson'
+      });
+    }
+  }
+
+  // Mark lesson as completed
+  static async markLessonCompleted(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const result = await ClientLessonService.markLessonCompleted(id, userId);
+      
+      res.json({
+        success: true,
+        message: 'Lesson marked as completed',
+        data: result
+      });
+    } catch (error: any) {
+      console.error('Mark lesson completed error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to mark lesson as completed'
+      });
+    }
+  }
+
+  // Get lesson attachments
+  static async getLessonAttachments(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const attachments = await ClientLessonService.getLessonAttachments(id, userId);
+      
+      res.json({
+        success: true,
+        data: attachments
+      });
+    } catch (error: any) {
+      console.error('Get lesson attachments error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get lesson attachments'
+      });
+    }
+  }
+
+  // Get lesson navigation (previous/next)
+  static async getLessonNavigation(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const navigation = await ClientLessonService.getLessonNavigation(id, userId);
+      
+      res.json({
+        success: true,
+        data: navigation
+      });
+    } catch (error: any) {
+      console.error('Get lesson navigation error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get lesson navigation'
+      });
+    }
+  }
+
+  // Get lesson summary
+  static async getLessonSummary(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?._id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const summary = await ClientLessonService.getLessonSummary(id, userId);
+      
+      res.json({
+        success: true,
+        data: summary
+      });
+    } catch (error: any) {
+      console.error('Get lesson summary error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to get lesson summary'
+      });
+    }
+  }
+}
