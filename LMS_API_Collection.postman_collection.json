@@ -20,6 +20,26 @@
       "key": "client_token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "course_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "section_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lesson_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_section_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "auth": {
@@ -705,6 +725,507 @@
                       "value": "30d"
                     }
                   ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📚 Section Management",
+          "item": [
+            {
+              "name": "Get Sections by Course",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "course", "{{course_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Section Statistics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "course", "{{course_id}}", "stats"]
+                }
+              }
+            },
+            {
+              "name": "Create New Section",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"courseId\": \"{{course_id}}\",\n  \"title\": \"Introduction to Course\",\n  \"description\": \"This section provides an overview of the course content\",\n  \"order\": 1,\n  \"isVisible\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections"]
+                }
+              }
+            },
+            {
+              "name": "Get Section by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/{{section_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "{{section_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Update Section",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Section Title\",\n  \"description\": \"Updated section description\",\n  \"order\": 2,\n  \"isVisible\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/{{section_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "{{section_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Section",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/{{section_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "{{section_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Reorder Sections",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionOrders\": [\n    {\n      \"sectionId\": \"{{section_id}}\",\n      \"order\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}/reorder",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "course", "{{course_id}}", "reorder"]
+                }
+              }
+            },
+            {
+              "name": "Toggle Section Visibility",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isVisible\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/{{section_id}}/visibility",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "{{section_id}}", "visibility"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Update Sections",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"updates\": [\n    {\n      \"sectionId\": \"{{section_id}}\",\n      \"updates\": {\n        \"title\": \"Updated Title\",\n        \"isVisible\": true\n      }\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/sections/course/{{course_id}}/bulk-update",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "sections", "course", "{{course_id}}", "bulk-update"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📖 Lesson Management",
+          "item": [
+            {
+              "name": "Get Lessons by Section",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/section/{{section_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "section", "{{section_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Lessons by Course",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/course/{{course_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "course", "{{course_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Statistics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/course/{{course_id}}/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "course", "{{course_id}}", "stats"]
+                }
+              }
+            },
+            {
+              "name": "Create New Lesson",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{section_id}}\",\n  \"courseId\": \"{{course_id}}\",\n  \"title\": \"Introduction Lesson\",\n  \"content\": \"This is the lesson content\",\n  \"type\": \"text\",\n  \"order\": 1,\n  \"isRequired\": true,\n  \"isPreview\": false,\n  \"estimatedTime\": 30\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Update Lesson",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Lesson Title\",\n  \"content\": \"Updated lesson content\",\n  \"order\": 2,\n  \"isRequired\": true,\n  \"isPreview\": false,\n  \"estimatedTime\": 45\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Lesson",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Reorder Lessons",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lessonOrders\": [\n    {\n      \"lessonId\": \"{{lesson_id}}\",\n      \"order\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/section/{{section_id}}/reorder",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "section", "{{section_id}}", "reorder"]
+                }
+              }
+            },
+            {
+              "name": "Toggle Lesson Preview",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isPreview\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/preview",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "preview"]
+                }
+              }
+            },
+            {
+              "name": "Toggle Lesson Required",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isRequired\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/required",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "required"]
+                }
+              }
+            },
+            {
+              "name": "Add Lesson Attachment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Lesson Document\",\n  \"url\": \"https://example.com/document.pdf\",\n  \"type\": \"document\",\n  \"size\": 1024000\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/attachments",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "attachments"]
+                }
+              }
+            },
+            {
+              "name": "Remove Lesson Attachment",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/attachments/0",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "attachments", "0"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Update Lessons",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"updates\": [\n    {\n      \"lessonId\": \"{{lesson_id}}\",\n      \"updates\": {\n        \"title\": \"Updated Title\",\n        \"isRequired\": true\n      }\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/section/{{section_id}}/bulk-update",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "section", "{{section_id}}", "bulk-update"]
+                }
+              }
+            },
+            {
+              "name": "Move Lesson to Different Section",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newSectionId\": \"{{new_section_id}}\",\n  \"newOrder\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/admin/lessons/{{lesson_id}}/move",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "admin", "lessons", "{{lesson_id}}", "move"]
                 }
               }
             }
@@ -1536,6 +2057,296 @@
                   "raw": "{{base_url}}/api/client/user/account",
                   "host": ["{{base_url}}"],
                   "path": ["api", "client", "user", "account"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📚 Section Access",
+          "item": [
+            {
+              "name": "Get Sections by Course",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/sections/course/{{course_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "sections", "course", "{{course_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Section by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/sections/{{section_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "sections", "{{section_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Section Progress",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/sections/{{section_id}}/progress",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "sections", "{{section_id}}", "progress"]
+                }
+              }
+            },
+            {
+              "name": "Get Next Section",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/sections/{{section_id}}/next",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "sections", "{{section_id}}", "next"]
+                }
+              }
+            },
+            {
+              "name": "Get Previous Section",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/sections/{{section_id}}/previous",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "sections", "{{section_id}}", "previous"]
+                }
+              }
+            },
+            {
+              "name": "Get Section Overview",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/sections/course/{{course_id}}/overview",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "sections", "course", "{{course_id}}", "overview"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📖 Lesson Access",
+          "item": [
+            {
+              "name": "Get Lesson by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Lessons by Section",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/section/{{section_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "section", "{{section_id}}"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Content",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/content",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "content"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Progress",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/progress",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "progress"]
+                }
+              }
+            },
+            {
+              "name": "Get Next Lesson",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/next",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "next"]
+                }
+              }
+            },
+            {
+              "name": "Get Previous Lesson",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/previous",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "previous"]
+                }
+              }
+            },
+            {
+              "name": "Mark Lesson as Completed",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"timeSpent\": 45,\n  \"completionDate\": \"2025-08-18T10:00:00Z\",\n  \"notes\": \"Great lesson!\",\n  \"rating\": 5,\n  \"feedback\": \"Very informative content\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/complete",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "complete"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Attachments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/attachments",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "attachments"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Navigation",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/navigation",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "navigation"]
+                }
+              }
+            },
+            {
+              "name": "Get Lesson Summary",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/client/lessons/{{lesson_id}}/summary",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "client", "lessons", "{{lesson_id}}", "summary"]
                 }
               }
             }
