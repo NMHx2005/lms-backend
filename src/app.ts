@@ -7,7 +7,8 @@ import connectDB from './shared/config/database';
 import { applySecurityMiddleware } from './shared/middleware/security';
 import adminRoutes from './admin/routes/index.route';
 import clientRoutes from './client/routes/index.route';
-import { authRoutes, uploadRoutes } from './shared/routes';
+import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes } from './shared/routes';
+import crypto from 'crypto';
 
 // Import error handling middleware
 import {
@@ -118,6 +119,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/client', clientRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/cart', cartRoutes);
+
 
 // 404 handler
 app.use(notFoundHandler);

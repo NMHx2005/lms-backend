@@ -4560,6 +4560,183 @@
           }
         }
       ]
+    },
+    {
+      "name": "Payments - VNPay (Sandbox)",
+      "item": [
+        {
+          "name": "Create Payment (VNPay)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/vnpay/create",
+              "path": [
+                "api",
+                "payments",
+                "vnpay",
+                "create"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"ORD-{{timestamp}}\",\n  \"amount\": 100000,\n  \"orderInfo\": \"Test VNPay\",\n  \"ipAddr\": \"127.0.0.1\"\n}"
+            }
+          }
+        },
+        {
+          "name": "VNPay Return (Debug)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/vnpay/return",
+              "path": [
+                "api",
+                "payments",
+                "vnpay",
+                "return"
+              ]
+            }
+          }
+        },
+        {
+          "name": "VNPay IPN (GET debug)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/vnpay/ipn",
+              "path": [
+                "api",
+                "payments",
+                "vnpay",
+                "ipn"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payment History (auth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/history",
+              "path": [
+                "api",
+                "payments",
+                "history"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice by Id (auth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/invoices/{{invoice_id}}",
+              "path": [
+                "api",
+                "payments",
+                "invoices",
+                "{{invoice_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "VNPay QueryDR (auth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/vnpay/querydr?txnRef=ORD-{{timestamp}}",
+              "path": [
+                "api",
+                "payments",
+                "vnpay",
+                "querydr"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart (Shared)",
+      "item": [
+        {
+          "name": "Get Cart (auth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/cart",
+              "path": [
+                "api",
+                "cart"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Item (auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/items",
+              "path": [
+                "api",
+                "cart",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Course A\",\n  \"price\": 100000,\n  \"quantity\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Item (auth)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cart/items/0",
+              "path": [
+                "api",
+                "cart",
+                "items",
+                "0"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"quantity\":2}"
+            }
+          }
+        }
+      ]
     }
   ]
 }
