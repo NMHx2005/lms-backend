@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { User as UserModel } from '../../shared/models';
+import { User as UserModel, UserActivityLog as ActivityLogModel } from '../../shared/models';
 import { 
   UpdateProfileRequest, 
   ChangePasswordRequest,
@@ -249,34 +249,29 @@ export class UserService {
    * Get user activity log
    */
   static async getUserActivityLog(userId: string, page: number = 1, limit: number = 20): Promise<UserActivityLog> {
-    // This would typically come from a separate ActivityLog model
-    // For now, return mock data
-    const activities = [
-      {
-        id: '1',
-        type: 'course_enrolled',
-        description: 'Enrolled in Advanced JavaScript Course',
-        timestamp: new Date(),
-        metadata: { courseId: 'course123', courseName: 'Advanced JavaScript' }
-      },
-      {
-        id: '2',
-        type: 'lesson_completed',
-        description: 'Completed Lesson 5: Async/Await',
-        timestamp: new Date(Date.now() - 86400000),
-        metadata: { lessonId: 'lesson456', lessonName: 'Async/Await' }
-      }
-    ];
-
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      (ActivityLogModel as any).find({ userId }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      (ActivityLogModel as any).countDocuments({ userId })
+    ]);
+    const activities = items.map((i: any) => ({
+      id: String(i._id),
+      type: i.action,
+      description: `${i.action} ${i.resource}`,
+      timestamp: i.createdAt,
+      metadata: { resource: i.resource, resourceId: i.resourceId, courseId: i.courseId, lessonId: i.lessonId, duration: i.duration }
+    }));
     return {
       activities,
-      pagination: {
-        page,
-        limit,
-        total: activities.length,
-        pages: Math.ceil(activities.length / limit)
-      }
-    };
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    } as any;
+  }
+
+  static async getUserActivitySummary(userId: string, days: number = 30) {
+    const end = new Date();
+    const start = new Date(Date.now() - days * 24 * 3600 * 1000);
+    const summary = await (ActivityLogModel as any).getUserActivitySummary(userId as any, start, end);
+    return { range: { start, end }, summary } as any;
   }
 
   /**

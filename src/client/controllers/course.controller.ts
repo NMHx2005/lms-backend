@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ClientCourseService } from '../services/course.service';
+import { UserActivityLog } from '../../shared/models';
 
 export class ClientCourseController {
   // Get all published courses with pagination and filters
@@ -61,6 +62,10 @@ export class ClientCourseController {
     try {
       const { id } = req.params;
       const course = await ClientCourseService.getCourseById(id);
+      const userId = (req as any).user?._id;
+      if (userId) {
+        UserActivityLog.create({ userId, action: 'course_view', resource: 'course', resourceId: id, courseId: id });
+      }
       
       res.json({
         success: true,
@@ -89,6 +94,7 @@ export class ClientCourseController {
       }
 
       const content = await ClientCourseService.getCourseContent(id, userId);
+      UserActivityLog.create({ userId, action: 'course_view', resource: 'course', resourceId: id, courseId: id });
       
       res.json({
         success: true,

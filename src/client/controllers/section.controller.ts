@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ClientSectionService } from '../services/section.service';
+import { UserActivityLog } from '../../shared/models';
 
 export class ClientSectionController {
   // Get sections by course (for enrolled students)
@@ -16,6 +17,7 @@ export class ClientSectionController {
       }
 
       const sections = await ClientSectionService.getSectionsByCourse(courseId, userId);
+      UserActivityLog.create({ userId, action: 'section_view', resource: 'section', courseId });
       
       res.json({
         success: true,
@@ -44,6 +46,7 @@ export class ClientSectionController {
       }
 
       const section = await ClientSectionService.getSectionById(id, userId);
+      UserActivityLog.create({ userId, action: 'section_view', resource: 'section', resourceId: id, courseId: (section as any).courseId });
       
       res.json({
         success: true,

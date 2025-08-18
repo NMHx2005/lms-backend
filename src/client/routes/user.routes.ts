@@ -32,6 +32,7 @@ router.put('/social-links', validateRequest(clientUserValidation.updateSocialLin
 // Learning Statistics and Activity
 router.get('/stats', ClientUserController.getLearningStats);
 router.get('/activity', validateRequest(clientUserValidation.getActivityLog), ClientUserController.getActivityLog);
+router.get('/activity/summary', ClientUserController.getActivitySummary);
 
 // Subscription Information
 router.get('/subscription', ClientUserController.getSubscriptionInfo);

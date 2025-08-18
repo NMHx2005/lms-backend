@@ -1,4 +1,4 @@
-import { Lesson as LessonModel, Section as SectionModel, Enrollment as EnrollmentModel } from '../../shared/models';
+import { Lesson as LessonModel, Section as SectionModel, Enrollment as EnrollmentModel, LessonProgress as LessonProgressModel } from '../../shared/models';
 import { ILesson } from '../../shared/models/core/Lesson';
 
 export class ClientLessonService {
@@ -244,17 +244,34 @@ export class ClientLessonService {
       throw new Error('You must be enrolled to access this lesson');
     }
 
-    // This would typically update a lesson completion tracking system
-    // For now, we'll just return success
-    // In a real implementation, you'd have a LessonCompletion model
-    
-    return {
-      lessonId,
-      userId,
-      completed: true,
-      completedAt: new Date(),
-      message: 'Lesson marked as completed'
-    };
+    // Upsert lesson progress and mark completed
+    await LessonProgressModel.findOneAndUpdate(
+      { studentId: userId, lessonId, courseId: lesson.courseId, sectionId: lesson.sectionId },
+      { $setOnInsert: { firstAccessedAt: new Date() }, $set: { isCompleted: true, lastAccessedAt: new Date() } },
+      { upsert: true }
+    );
+
+    return { lessonId, userId, completed: true, completedAt: new Date(), message: 'Lesson marked as completed' };
+  }
+
+  // Add time spent on a lesson (seconds)
+  static async addTimeSpent(lessonId: string, userId: string, seconds: number) {
+    const lesson = await LessonModel.findById(lessonId);
+    if (!lesson) throw new Error('Lesson not found');
+
+    const enrollment = await EnrollmentModel.findOne({ courseId: lesson.courseId, studentId: userId, isActive: true });
+    if (!enrollment) throw new Error('You must be enrolled to access this lesson');
+
+    const progress = await LessonProgressModel.findOneAndUpdate(
+      { studentId: userId, lessonId, courseId: lesson.courseId, sectionId: lesson.sectionId },
+      { $setOnInsert: { firstAccessedAt: new Date() }, $set: { lastAccessedAt: new Date() }, $inc: { timeSpentSeconds: Math.max(0, seconds || 0) } },
+      { upsert: true, new: true }
+    );
+
+    // update enrollment aggregate time
+    await EnrollmentModel.updateOne({ _id: enrollment._id }, { $inc: { totalTimeSpent: Math.max(0, seconds || 0) }, $set: { lastActivityAt: new Date(), currentLesson: lesson._id, currentSection: lesson.sectionId } });
+
+    return { lessonId, userId, addedSeconds: Math.max(0, seconds || 0), totalTimeSpent: progress?.timeSpentSeconds || 0 };
   }
 
   // Get lesson attachments
@@ -317,18 +334,10 @@ export class ClientLessonService {
 
   // Helper method to calculate lesson progress
   private static async calculateLessonProgress(lessonId: string, userId: string) {
-    // This would typically check the user's lesson completion status
-    // For now, we'll simulate this - in a real implementation, you'd have a lesson completion table
-    
-    const isCompleted = false; // Placeholder - implement actual lesson completion tracking
-    const timeSpent = 0; // Placeholder - implement actual time tracking
-    const lastAccessed = null; // Placeholder - implement actual access tracking
-
-    return {
-      isCompleted,
-      timeSpent,
-      lastAccessed,
-      percentage: isCompleted ? 100 : 0
-    };
+    const progress = await LessonProgressModel.findOne({ studentId: userId, lessonId });
+    const isCompleted = !!progress?.isCompleted;
+    const timeSpent = progress?.timeSpentSeconds || 0;
+    const lastAccessed = progress?.lastAccessedAt || null;
+    return { isCompleted, timeSpent, lastAccessed, percentage: isCompleted ? 100 : 0 };
   }
 }

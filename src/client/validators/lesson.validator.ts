@@ -157,6 +157,11 @@ export const clientLessonValidation = {
       .isLength({ max: 500 })
       .withMessage('Feedback must be less than 500 characters'),
   ],
+  // Track time spent on lesson
+  addTime: [
+    param('id').notEmpty().withMessage('Lesson ID is required').isMongoId().withMessage('Lesson ID must be a valid MongoDB ObjectId'),
+    body('seconds').notEmpty().withMessage('seconds is required').isInt({ min: 1, max: 86400 }).withMessage('seconds must be between 1 and 86400')
+  ],
 
   // Get lesson attachments validation
   getLessonAttachments: [

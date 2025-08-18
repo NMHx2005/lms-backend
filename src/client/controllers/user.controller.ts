@@ -167,6 +167,15 @@ export class ClientUserController {
   });
 
   /**
+   * Get user activity summary
+   */
+  static getActivitySummary = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const days = Number((req.query?.days as any) || 30);
+    const data = await (UserService as any).getUserActivitySummary(req.user!.id, days);
+    res.json({ success: true, data });
+  });
+
+  /**
    * Update user avatar
    */
   static updateAvatar = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {

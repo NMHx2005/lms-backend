@@ -1,4 +1,4 @@
-import { Section as SectionModel, Lesson as LessonModel, Enrollment as EnrollmentModel } from '../../shared/models';
+import { Section as SectionModel, Lesson as LessonModel, Enrollment as EnrollmentModel, LessonProgress as LessonProgressModel } from '../../shared/models';
 import { ISection } from '../../shared/models/core/Section';
 
 export class ClientSectionService {
@@ -255,15 +255,17 @@ export class ClientSectionService {
       };
     }
 
-    // Get user's completed lessons (this would typically come from a progress tracking system)
-    // For now, we'll simulate this - in a real implementation, you'd have a lesson completion table
-    const completedLessons = 0; // Placeholder - implement actual lesson completion tracking
-    const totalLessons = lessons.filter((lesson: any) => lesson.isRequired).length;
+    // Count completed required lessons using LessonProgress
+    const lessonIds = lessons.filter((l: any) => l.isRequired).map((l: any) => l._id);
+    const totalLessons = lessonIds.length;
+    const completedLessons = totalLessons
+      ? await LessonProgressModel.countDocuments({ studentId: userId, lessonId: { $in: lessonIds }, isCompleted: true })
+      : 0;
     const percentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
     // Calculate estimated time
     const estimatedTime = lessons.reduce((sum: number, lesson: any) => sum + (lesson.estimatedTime || 0), 0);
-    const remainingTime = estimatedTime * (1 - completedLessons / totalLessons);
+    const remainingTime = totalLessons > 0 ? estimatedTime * (1 - completedLessons / totalLessons) : estimatedTime;
 
     return {
       totalLessons,

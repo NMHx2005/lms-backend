@@ -58,16 +58,23 @@ export class ClientAuthService extends BaseAuthService {
       .sort({ enrolledAt: -1 })
       .limit(5);
 
-    // Get recent activity (placeholder - would integrate with activity log)
-    const recentActivity = [
-      { type: 'course_enrolled', message: 'Enrolled in new course', timestamp: new Date() },
-      { type: 'lesson_completed', message: 'Completed lesson', timestamp: new Date() },
-    ];
+    // Recent activity: lấy từ enrollment và gần đây (đơn giản hoá)
+    const recentActivity = enrollments.map((e: any) => ({
+      type: 'course_enrolled',
+      message: `Enrolled in ${(e.courseId as any).name || (e.courseId as any).title || 'Course'}`,
+      timestamp: e.enrolledAt,
+      courseId: e.courseId?._id || e.courseId
+    }));
 
-    // Get upcoming assignments (placeholder - would integrate with assignment system)
-    const upcomingAssignments = [
-      { title: 'Assignment 1', dueDate: new Date(), course: 'Course Name' },
-    ];
+    // Upcoming assignments: trong 14 ngày tới theo course đã ghi danh
+    const courseIds = enrollments.map((e: any) => e.courseId?._id || e.courseId);
+    const now = new Date();
+    const in14 = new Date(Date.now() + 14*24*3600*1000);
+    const upcomingAssignments = await (await import('../../shared/models')).Assignment.find({
+      courseId: { $in: courseIds },
+      dueDate: { $gte: now, $lte: in14 },
+      isActive: true
+    }).select('title dueDate courseId');
 
     // Get course progress
     const courseProgress = enrollments.map(enrollment => ({

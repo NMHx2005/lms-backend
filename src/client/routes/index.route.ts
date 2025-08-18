@@ -8,6 +8,7 @@ import enrollmentRoutes from './enrollment.routes';
 import assignmentRoutes from './assignment.routes';
 import paymentRoutes from './payment.routes';
 import clientAuthRoutes from './auth.routes';
+import analyticsRoutes from './analytics.routes';
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.use('/lessons', authenticate, lessonRoutes);
 router.use('/enrollments', authenticate, enrollmentRoutes);
 router.use('/assignments', authenticate, assignmentRoutes);
 router.use('/payments', authenticate, paymentRoutes);
+router.use('/analytics', authenticate, analyticsRoutes);
 
 // Client dashboard overview
 router.get('/dashboard', authenticate, async (req: any, res) => {

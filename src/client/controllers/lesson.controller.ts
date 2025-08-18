@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ClientLessonService } from '../services/lesson.service';
+import { UserActivityLog } from '../../shared/models';
 
 export class ClientLessonController {
   // Get lesson by ID (for enrolled students)
@@ -7,26 +8,14 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          error: 'Authentication required'
-        });
-      }
-
+      if (!userId) return res.status(401).json({ success: false, error: 'Authentication required' });
       const lesson = await ClientLessonService.getLessonById(id, userId);
-      
-      res.json({
-        success: true,
-        data: lesson
-      });
+      // log view
+      UserActivityLog.create({ userId, action: 'lesson_view', resource: 'lesson', resourceId: id, lessonId: id, courseId: (lesson as any).courseId });
+      res.json({ success: true, data: lesson });
     } catch (error: any) {
       console.error('Get lesson by ID error:', error);
-      res.status(404).json({
-        success: false,
-        error: error.message || 'Lesson not found'
-      });
+      res.status(404).json({ success: false, error: error.message || 'Lesson not found' });
     }
   }
 
@@ -175,27 +164,30 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          error: 'Authentication required'
-        });
-      }
-
+      if (!userId) return res.status(401).json({ success: false, error: 'Authentication required' });
       const result = await ClientLessonService.markLessonCompleted(id, userId);
-      
-      res.json({
-        success: true,
-        message: 'Lesson marked as completed',
-        data: result
-      });
+      // log complete
+      UserActivityLog.create({ userId, action: 'lesson_complete', resource: 'lesson', resourceId: id, lessonId: id, courseId: (result as any).courseId });
+      res.json({ success: true, message: 'Lesson marked as completed', data: result });
     } catch (error: any) {
       console.error('Mark lesson completed error:', error);
-      res.status(400).json({
-        success: false,
-        error: error.message || 'Failed to mark lesson as completed'
-      });
+      res.status(400).json({ success: false, error: error.message || 'Failed to mark lesson as completed' });
+    }
+  }
+
+  // Track/add time spent on lesson
+  static async addTimeSpent(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { seconds } = req.body || {};
+      const userId = (req as any).user?._id;
+      if (!userId) return res.status(401).json({ success: false, error: 'Authentication required' });
+      const added = await ClientLessonService.addTimeSpent(id, userId, Number(seconds) || 0);
+      // log time
+      UserActivityLog.create({ userId, action: 'lesson_pause', resource: 'lesson', resourceId: id, lessonId: id, duration: Number(seconds) || 0 });
+      res.json({ success: true, data: added });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message || 'Failed to track time' });
     }
   }
 

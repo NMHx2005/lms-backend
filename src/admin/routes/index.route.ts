@@ -8,6 +8,7 @@ import assignmentRoutes from './assignment.routes';
 import submissionRoutes from './submission.routes';
 import analyticsRoutes from './analytics.routes';
 import systemRoutes from './system.routes';
+import activityRoutes from './activity.routes';
 import supportRoutes from './support.routes';
 import adminAuthRoutes from './auth.routes';
 
@@ -28,6 +29,7 @@ router.use('/submissions', submissionRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/system', systemRoutes);
 router.use('/support', supportRoutes);
+router.use('/activity', activityRoutes);
 
 // Admin dashboard overview
 router.get('/dashboard', async (req, res) => {

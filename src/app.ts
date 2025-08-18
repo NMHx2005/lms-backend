@@ -7,8 +7,10 @@ import connectDB from './shared/config/database';
 import { applySecurityMiddleware } from './shared/middleware/security';
 import adminRoutes from './admin/routes/index.route';
 import clientRoutes from './client/routes/index.route';
-import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes } from './shared/routes';
+import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes } from './shared/routes';
+import { metricsMiddleware } from './shared/controllers/metrics.controller';
 import crypto from 'crypto';
+import { reloadAllSchedules, scheduleRunner } from './shared/services/reports/schedule.service';
 
 // Import error handling middleware
 import {
@@ -26,9 +28,12 @@ const app = express();
 
 // Connect to database
 connectDB();
+reloadAllSchedules(scheduleRunner);
 
 // Request ID middleware (must be first)
 app.use(requestIdMiddleware);
+// Global API metrics collection
+app.use(metricsMiddleware);
 
 // Apply all security middleware
 applySecurityMiddleware(app);
@@ -121,6 +126,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/metrics', metricsRoutes);
 
 
 // 404 handler

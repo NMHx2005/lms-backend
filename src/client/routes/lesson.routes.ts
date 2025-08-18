@@ -30,6 +30,9 @@ router.get('/:id/previous', validateRequest(clientLessonValidation.lessonId), Cl
 // Mark lesson as completed
 router.post('/:id/complete', validateRequest(clientLessonValidation.lessonId), ClientLessonController.markLessonCompleted);
 
+// Track time spent on lesson
+router.post('/:id/time', validateRequest(clientLessonValidation.addTime), ClientLessonController.addTimeSpent);
+
 // Get lesson attachments
 router.get('/:id/attachments', validateRequest(clientLessonValidation.lessonId), ClientLessonController.getLessonAttachments);
 

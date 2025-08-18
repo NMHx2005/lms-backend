@@ -1,5 +1,5 @@
 import express from 'express';
-import { Enrollment, Course, User } from '../../shared/models';
+import { Enrollment, Course, User, UserActivityLog } from '../../shared/models';
 
 const router = express.Router();
 
@@ -93,6 +93,8 @@ router.post('/', async (req: any, res) => {
     });
 
     await enrollment.save();
+    // activity log
+    UserActivityLog.create({ userId: req.user.id, action: 'course_enroll', resource: 'enrollment', resourceId: enrollment._id, courseId: courseId });
 
     // Update course enrollment count
     await Course.findByIdAndUpdate(courseId, {
@@ -181,6 +183,8 @@ router.put('/:id/progress', async (req: any, res) => {
       enrollment.isCompleted = true;
       enrollment.completedAt = new Date();
       await enrollment.save();
+      // activity log
+      UserActivityLog.create({ userId: req.user.id, action: 'course_complete', resource: 'course', resourceId: enrollment.courseId, courseId: enrollment.courseId });
 
       // Update user stats
       await User.findByIdAndUpdate(req.user.id, {
@@ -245,6 +249,7 @@ router.delete('/:id', async (req: any, res) => {
       $inc: { totalStudents: -1 },
       $pull: { enrolledStudents: req.user.id }
     });
+    UserActivityLog.create({ userId: req.user.id, action: 'course_unenroll', resource: 'enrollment', resourceId: enrollment._id, courseId: enrollment.courseId });
 
     res.json({
       success: true,
