@@ -2,19 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError, ErrorFactory } from '../utils/errors';
 import CloudinaryService, { FileUploadResult, BatchUploadResult } from '../services/cloudinaryService';
 import { asyncHandler } from '../middleware/errorHandler';
-
-// Extend Request interface to include user
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    roles: string[];
-    isActive: boolean;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-}
+import { AuthenticatedRequest } from '../types/global';
 
 // Upload controller
 export class UploadController {

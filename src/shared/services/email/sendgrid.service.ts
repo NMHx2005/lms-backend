@@ -7,7 +7,7 @@ export class SendGridService {
   private isInitialized = false;
 
   constructor() {
-    this.initialize();
+    // Don't initialize immediately - do it lazily
   }
 
   static getInstance(): SendGridService {
@@ -18,6 +18,8 @@ export class SendGridService {
   }
 
   private initialize(): void {
+    if (this.isInitialized) return; // Already initialized
+    
     const apiKey = process.env.SENDGRID_API_KEY;
     if (!apiKey) {
       console.warn('⚠️ SendGrid API key not provided. Email functionality will be disabled.');
@@ -30,6 +32,7 @@ export class SendGridService {
   }
 
   async sendEmail(emailData: EmailData): Promise<boolean> {
+    this.initialize(); // Lazy initialize on first use
     if (!this.isInitialized) {
       console.warn('⚠️ SendGrid not initialized. Skipping email send.');
       return false;
@@ -65,6 +68,7 @@ export class SendGridService {
   }
 
   async sendBulkEmails(emailsData: EmailData[]): Promise<{ success: number; failed: number }> {
+    this.initialize(); // Lazy initialize on first use
     if (!this.isInitialized) {
       console.warn('⚠️ SendGrid not initialized. Skipping bulk email send.');
       return { success: 0, failed: emailsData.length };
@@ -90,6 +94,7 @@ export class SendGridService {
   }
 
   async verifyConnection(): Promise<boolean> {
+    this.initialize(); // Lazy initialize on first use
     if (!this.isInitialized) {
       return false;
     }
@@ -111,6 +116,7 @@ export class SendGridService {
 
   // Template methods
   async uploadTemplate(templateData: { name: string; subject: string; html: string }): Promise<string | null> {
+    this.initialize(); // Lazy initialize on first use
     if (!this.isInitialized) return null;
 
     try {

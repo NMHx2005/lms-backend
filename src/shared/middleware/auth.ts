@@ -170,7 +170,7 @@ export const requireAdmin = (
     throw new AuthenticationError('Authentication required');
   }
   
-  if (!req.user.roles.includes('admin')) {
+  if (!(req.user as any).roles.includes('admin')) {
     throw new AuthorizationError('Admin access required');
   }
   
@@ -186,7 +186,7 @@ export const requireTeacher = (
     throw new AuthenticationError('Authentication required');
   }
   
-  if (!req.user.roles.includes('teacher') && !req.user.roles.includes('admin')) {
+  if (!(req.user as any).roles.includes('teacher') && !(req.user as any).roles.includes('admin')) {
     throw new AuthorizationError('Teacher access required');
   }
   
@@ -202,7 +202,7 @@ export const requireStudent = (
     throw new AuthenticationError('Authentication required');
   }
   
-  if (!req.user.roles.includes('student') && !req.user.roles.includes('teacher') && !req.user.roles.includes('admin')) {
+  if (!(req.user as any).roles.includes('student') && !(req.user as any).roles.includes('teacher') && !(req.user as any).roles.includes('admin')) {
     throw new AuthorizationError('Student access required');
   }
   
@@ -219,7 +219,7 @@ export const requirePermission = (resource: string, action: string) => {
     // Import from rbac middleware
     const { hasPermission } = require('./rbac');
     
-    if (!hasPermission(req.user.roles, resource, action)) {
+    if (!hasPermission((req.user as any).roles, resource, action)) {
       throw new AuthorizationError(
         `Access denied. Required permission: ${resource}:${action}`
       );
@@ -244,7 +244,7 @@ export const requireOwnership = (resourceModel: any, resourceIdParam: string = '
     }
     
     // Check if user owns the resource or is admin
-    if (resource.userId?.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+    if (resource.userId?.toString() !== (req.user as any).id && !(req.user as any).roles.includes('admin')) {
       throw new AuthorizationError('Access denied to this resource');
     }
     
@@ -268,7 +268,7 @@ export const requireCourseOwnership = (courseIdParam: string = 'courseId') => {
     }
     
     // Check if user owns the course or is admin
-    if (course.instructorId?.toString() !== req.user.id && !req.user.roles.includes('admin')) {
+    if (course.instructorId?.toString() !== (req.user as any).id && !(req.user as any).roles.includes('admin')) {
       throw new AuthorizationError('Access denied to this course');
     }
     
@@ -286,12 +286,12 @@ export const requireEnrollment = (courseIdParam: string = 'courseId') => {
     const courseId = req.params[courseIdParam];
     const Enrollment = require('../models').Enrollment;
     const enrollment = await Enrollment.findOne({
-      studentId: req.user.id,
+      studentId: (req.user as any).id,
       courseId,
       isActive: true
     });
     
-    if (!enrollment && !req.user.roles.includes('admin') && !req.user.roles.includes('teacher')) {
+    if (!enrollment && !(req.user as any).roles.includes('admin') && !(req.user as any).roles.includes('teacher')) {
       throw new AuthorizationError('Enrollment required for this course');
     }
     

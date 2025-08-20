@@ -7,11 +7,16 @@ import lessonRoutes from './lesson.routes';
 import assignmentRoutes from './assignment.routes';
 import submissionRoutes from './submission.routes';
 import announcementRoutes from './announcement.routes';
+import aiEvaluationRoutes from './ai-evaluation.routes';
+import reviewModerationRoutes from './review-moderation.routes';
 import analyticsRoutes from './analytics.routes';
 import systemRoutes from './system.routes';
 import activityRoutes from './activity.routes';
 import supportRoutes from './support.routes';
 import adminAuthRoutes from './auth.routes';
+import certificateRoutes from './certificate.routes';
+import teacherManagementRoutes from './teacher-management.routes';
+import commentModerationRoutes from './comment-moderation.routes';
 
 const router = express.Router();
 
@@ -28,10 +33,15 @@ router.use('/lessons', lessonRoutes);
 router.use('/assignments', assignmentRoutes);
 router.use('/submissions', submissionRoutes);
 router.use('/announcements', announcementRoutes);
+router.use('/ai-evaluations', aiEvaluationRoutes);
+router.use('/reviews', reviewModerationRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/system', systemRoutes);
 router.use('/support', supportRoutes);
 router.use('/activity', activityRoutes);
+router.use('/certificates', certificateRoutes);
+router.use('/teacher-management', teacherManagementRoutes);
+router.use('/comments', commentModerationRoutes);
 
 // Admin dashboard overview
 router.get('/dashboard', async (req, res) => {

@@ -135,7 +135,7 @@ export const authorize = (...allowedRoles: string[]) => {
       throw new AuthenticationError('Authentication required');
     }
     
-    const hasRole = req.user.roles.some(role => allowedRoles.includes(role));
+    const hasRole = (req.user as any).roles.some((role: string) => allowedRoles.includes(role));
     
     if (!hasRole) {
       throw new AuthorizationError(
@@ -194,7 +194,7 @@ export const checkOwnership = (resourceUserIdField: string = 'userId') => {
     }
     
     // Admin can access everything
-    if (req.user.roles.includes('admin')) {
+    if ((req.user as any).roles.includes('admin')) {
       return next();
     }
     
@@ -205,7 +205,7 @@ export const checkOwnership = (resourceUserIdField: string = 'userId') => {
       throw new AuthorizationError('Resource user ID not found');
     }
     
-    if (req.user.id !== resourceUserId) {
+    if ((req.user as any).id !== resourceUserId) {
       throw new AuthorizationError('Access denied. You can only access your own resources');
     }
     

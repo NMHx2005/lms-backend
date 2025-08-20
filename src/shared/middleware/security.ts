@@ -257,9 +257,9 @@ export const auditLoggingMiddleware = (req: Request, res: Response, next: NextFu
       url: req.originalUrl,
       ip: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent'),
-      userId: req.user?.id || 'anonymous',
-      userEmail: req.user?.email || 'anonymous',
-      userRoles: req.user?.roles || [],
+      userId: (req.user as any)?.id || 'anonymous',
+      userEmail: (req.user as any)?.email || 'anonymous',
+      userRoles: (req.user as any)?.roles || [],
       requestBody: req.method !== 'GET' ? req.body : undefined,
       queryParams: Object.keys(req.query).length > 0 ? req.query : undefined,
     };

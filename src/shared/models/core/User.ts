@@ -15,6 +15,52 @@ export interface IUser extends Document {
   subscriptionExpiresAt?: Date;
   isActive: boolean;
   emailVerified: boolean;
+  isEmailVerified: boolean;
+  emailVerifiedAt?: Date;
+  authProvider?: 'local' | 'google' | 'facebook' | 'github';
+  registrationMethod?: 'email' | 'google_oauth' | 'facebook_oauth' | 'github_oauth';
+  socialAccounts?: {
+    google?: {
+      id: string;
+      email: string;
+      accessToken: string;
+      refreshToken: string;
+      profile: any;
+      linkedAt: Date;
+      lastLogin: Date;
+    };
+    facebook?: {
+      id: string;
+      email: string;
+      accessToken: string;
+      profile: any;
+      linkedAt: Date;
+      lastLogin: Date;
+    };
+    github?: {
+      id: string;
+      email: string;
+      accessToken: string;
+      profile: any;
+      linkedAt: Date;
+      lastLogin: Date;
+    };
+  };
+  refreshTokens?: Array<{
+    token: string;
+    createdAt: Date;
+    expiresAt: Date;
+    userAgent?: string;
+    ipAddress?: string;
+  }>;
+  loginAttempts?: number;
+  accountLockedUntil?: Date;
+  accountSettings?: {
+    twoFactorEnabled: boolean;
+    emailNotifications: boolean;
+    marketingEmails: boolean;
+    smsNotifications: boolean;
+  };
   phone?: string;
   dateOfBirth?: Date;
   country?: string;
@@ -125,6 +171,72 @@ const userSchema = new Schema<IUser>(
     emailVerified: {
       type: Boolean,
       default: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerifiedAt: {
+      type: Date,
+      default: null,
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google', 'facebook', 'github'],
+      default: 'local',
+    },
+    registrationMethod: {
+      type: String,
+      enum: ['email', 'google_oauth', 'facebook_oauth', 'github_oauth'],
+      default: 'email',
+    },
+    socialAccounts: {
+      google: {
+        id: String,
+        email: String,
+        accessToken: String,
+        refreshToken: String,
+        profile: Schema.Types.Mixed,
+        linkedAt: Date,
+        lastLogin: Date,
+      },
+      facebook: {
+        id: String,
+        email: String,
+        accessToken: String,
+        profile: Schema.Types.Mixed,
+        linkedAt: Date,
+        lastLogin: Date,
+      },
+      github: {
+        id: String,
+        email: String,
+        accessToken: String,
+        profile: Schema.Types.Mixed,
+        linkedAt: Date,
+        lastLogin: Date,
+      },
+    },
+    refreshTokens: [{
+      token: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now },
+      expiresAt: { type: Date, required: true },
+      userAgent: String,
+      ipAddress: String,
+    }],
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    accountLockedUntil: {
+      type: Date,
+      default: null,
+    },
+    accountSettings: {
+      twoFactorEnabled: { type: Boolean, default: false },
+      emailNotifications: { type: Boolean, default: true },
+      marketingEmails: { type: Boolean, default: true },
+      smsNotifications: { type: Boolean, default: false },
     },
     phone: {
       type: String,

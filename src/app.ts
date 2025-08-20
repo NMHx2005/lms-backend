@@ -2,15 +2,20 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import passport from 'passport';
 // mongoose import removed as it's not used
 import connectDB from './shared/config/database';
 import { applySecurityMiddleware } from './shared/middleware/security';
 import adminRoutes from './admin/routes/index.route';
 import clientRoutes from './client/routes/index.route';
-import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes } from './shared/routes';
+import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes, verificationRoutes, googleOAuthRoutes, commentRoutes, enhancedCourseRoutes } from './shared/routes';
 import { metricsMiddleware } from './shared/controllers/metrics.controller';
 import crypto from 'crypto';
 import { reloadAllSchedules, scheduleRunner } from './shared/services/reports/schedule.service';
+import { createOAuthSessionMiddleware } from './shared/middleware/session';
+
+// Import Passport configuration to initialize it
+import { initializePassport } from './shared/config/passport';
 
 // Import error handling middleware
 import {
@@ -36,6 +41,12 @@ app.use(metricsMiddleware);
 
 // Apply all security middleware
 applySecurityMiddleware(app);
+
+// Initialize Passport middleware
+app.use(passport.initialize());
+
+// Initialize Passport strategies
+initializePassport();
 
 // Basic middleware
 app.use(morgan('dev'));
@@ -120,6 +131,7 @@ app.get('/api', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth/google', createOAuthSessionMiddleware(), googleOAuthRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/client', clientRoutes);
@@ -127,6 +139,9 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/metrics', metricsRoutes);
+app.use('/api/verify', verificationRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/courses', enhancedCourseRoutes);
 
 
 // 404 handler

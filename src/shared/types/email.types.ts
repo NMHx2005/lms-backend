@@ -37,6 +37,7 @@ export type EmailType =
   | 'email_verification'
   | 'course_update'
   | 'announcement'
+  | 'course_evaluation'
   | 'weekly_digest'
   | 'monthly_report'
   | 'billing_reminder'

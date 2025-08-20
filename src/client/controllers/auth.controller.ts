@@ -7,7 +7,7 @@ export class ClientAuthController {
    */
   static async getDashboardData(req: Request, res: Response, next: NextFunction) {
     try {
-      const dashboardData = await ClientAuthService.getDashboardData(req.user!.id);
+      const dashboardData = await ClientAuthService.getDashboardData((req.user as any)!.id);
 
       res.json({
         success: true,
@@ -23,7 +23,7 @@ export class ClientAuthController {
    */
   static async updateProfile(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await ClientAuthService.updateProfile(req.user!.id, req.body);
+      const result = await ClientAuthService.updateProfile((req.user as any)!.id, req.body);
 
       res.json({
         success: true,
@@ -48,7 +48,7 @@ export class ClientAuthController {
       if (category) filters.category = category as string;
 
       const result = await ClientAuthService.getEnrolledCourses(
-        req.user!.id,
+        (req.user as any)!.id,
         parseInt(page as string),
         parseInt(limit as string),
         filters
@@ -69,7 +69,7 @@ export class ClientAuthController {
   static async getCourseProgress(req: Request, res: Response, next: NextFunction) {
     try {
       const progress = await ClientAuthService.getCourseProgress(
-        req.user!.id,
+        (req.user as any)!.id,
         req.params.courseId
       );
 
@@ -87,7 +87,7 @@ export class ClientAuthController {
    */
   static async getLearningStatistics(req: Request, res: Response, next: NextFunction) {
     try {
-      const statistics = await ClientAuthService.getLearningStatistics(req.user!.id);
+      const statistics = await ClientAuthService.getLearningStatistics((req.user as any)!.id);
 
       res.json({
         success: true,
@@ -105,7 +105,7 @@ export class ClientAuthController {
     try {
       const { limit = 10 } = req.query;
       const activity = await ClientAuthService.getRecentActivity(
-        req.user!.id,
+        (req.user as any)!.id,
         parseInt(limit as string)
       );
 
@@ -123,7 +123,7 @@ export class ClientAuthController {
    */
   static async getCertificates(req: Request, res: Response, next: NextFunction) {
     try {
-      const certificates = await ClientAuthService.getCertificates(req.user!.id);
+      const certificates = await ClientAuthService.getCertificates((req.user as any)!.id);
 
       res.json({
         success: true,
@@ -139,7 +139,7 @@ export class ClientAuthController {
    */
   static async getAchievements(req: Request, res: Response, next: NextFunction) {
     try {
-      const achievements = await ClientAuthService.getAchievements(req.user!.id);
+      const achievements = await ClientAuthService.getAchievements((req.user as any)!.id);
 
       res.json({
         success: true,
@@ -155,7 +155,7 @@ export class ClientAuthController {
    */
   static async getStudySchedule(req: Request, res: Response, next: NextFunction) {
     try {
-      const schedule = await ClientAuthService.getStudySchedule(req.user!.id);
+      const schedule = await ClientAuthService.getStudySchedule((req.user as any)!.id);
 
       res.json({
         success: true,
@@ -171,7 +171,7 @@ export class ClientAuthController {
    */
   static async getLearningGoals(req: Request, res: Response, next: NextFunction) {
     try {
-      const goals = await ClientAuthService.getLearningGoals(req.user!.id);
+      const goals = await ClientAuthService.getLearningGoals((req.user as any)!.id);
 
       res.json({
         success: true,
@@ -187,7 +187,7 @@ export class ClientAuthController {
    */
   static async getProfile(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await ClientAuthService.getUserById(req.user!.id);
+      const user = await ClientAuthService.getUserById((req.user as any)!.id);
 
       if (!user) {
         return res.status(404).json({

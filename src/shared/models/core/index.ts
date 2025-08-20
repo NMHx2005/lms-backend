@@ -10,6 +10,7 @@ export { default as LessonProgress } from './LessonProgress';
 export { default as Bill } from './Bill';
 export { default as RefundRequest } from './RefundRequest';
 export { default as CourseRating } from './CourseRating';
+export { default as CourseReview } from './CourseReview';
 
 // Export model interfaces
 export type { IUser } from './User';
@@ -23,6 +24,7 @@ export type { ILessonProgress } from './LessonProgress';
 export type { IBill } from './Bill';
 export type { IRefundRequest } from './RefundRequest';
 export type { ICourseRating } from './CourseRating';
+export type { ICourseReview } from './CourseReview';
 
 // Export Extended Models
 export { default as Wishlist } from '../extended/Wishlist';

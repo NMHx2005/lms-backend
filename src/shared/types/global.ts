@@ -2,35 +2,20 @@
 
 import { Request } from 'express';
 
-// Extend Express Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        roles: string[];
-        isActive: boolean;
-        firstName: string;
-        lastName: string;
-        role: string;
-      };
-      file?: Express.Multer.File;
-    }
-  }
+// Define custom user type for LMS
+export interface LMSUser {
+  id: string;
+  email: string;
+  roles: string[];
+  isActive: boolean;
+  firstName: string;
+  lastName: string;
+  role: string;
 }
 
-// Authenticated Request type
+// Authenticated Request type that extends Express Request
 export interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    roles: string[];
-    isActive: boolean;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
+  user: LMSUser;
 }
 
 // MongoDB ObjectId type

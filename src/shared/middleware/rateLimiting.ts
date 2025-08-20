@@ -35,12 +35,12 @@ export const dynamicRateLimiting = (req: Request, res: Response, next: NextFunct
   }
   
   // Admin users get higher limits
-  if (user.roles.includes('admin')) {
+  if ((user as any).roles.includes('admin')) {
     return rateLimitConfig.admin(req, res, next);
   }
   
   // Teacher users get moderate limits
-  if (user.roles.includes('teacher')) {
+  if ((user as any).roles.includes('teacher')) {
     return rateLimitConfig.api(req, res, next);
   }
   

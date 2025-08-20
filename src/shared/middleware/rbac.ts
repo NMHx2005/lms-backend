@@ -86,7 +86,7 @@ export const requirePermission = (resource: string, action: string) => {
       throw new AuthenticationError('Authentication required');
     }
     
-    if (!hasPermission(req.user.roles, resource, action)) {
+    if (!hasPermission((req.user as any).roles, resource, action)) {
       throw new AuthorizationError(
         `Access denied. Required permission: ${resource}:${action}`
       );
@@ -106,7 +106,7 @@ export const requireOwnership = (resourceUserIdField: string = 'userId') => {
     }
     
     // Admin can access everything
-    if (req.user.roles.includes('admin')) {
+    if ((req.user as any).roles.includes('admin')) {
       return next();
     }
     
@@ -117,7 +117,7 @@ export const requireOwnership = (resourceUserIdField: string = 'userId') => {
       throw new AuthorizationError('Resource user ID not found');
     }
     
-    if (req.user.id !== resourceUserId) {
+    if ((req.user as any).id !== resourceUserId) {
       throw new AuthorizationError('Access denied. You can only access your own resources');
     }
     
@@ -135,7 +135,7 @@ export const requireCourseOwnership = () => {
     }
     
     // Admin can access everything
-    if (req.user.roles.includes('admin')) {
+    if ((req.user as any).roles.includes('admin')) {
       return next();
     }
     
@@ -145,14 +145,14 @@ export const requireCourseOwnership = () => {
     }
     
     // For teachers, check if they own the course
-    if (req.user.roles.includes('teacher')) {
+    if ((req.user as any).roles.includes('teacher')) {
       // This would typically query the database to check course ownership
       // For now, we'll allow teachers to access courses
       return next();
     }
     
     // Students can only access courses they're enrolled in
-    if (req.user.roles.includes('student')) {
+    if ((req.user as any).roles.includes('student')) {
       // This would typically query the enrollment collection
       // For now, we'll allow students to access courses
       return next();
@@ -172,7 +172,7 @@ export const requireEnrollment = () => {
     }
     
     // Admin and teachers can access everything
-    if (req.user.roles.includes('admin') || req.user.roles.includes('teacher')) {
+    if ((req.user as any).roles.includes('admin') || (req.user as any).roles.includes('teacher')) {
       return next();
     }
     
@@ -182,7 +182,7 @@ export const requireEnrollment = () => {
     }
     
     // For students, check if they're enrolled in the course
-    if (req.user.roles.includes('student')) {
+    if ((req.user as any).roles.includes('student')) {
       // This would typically query the enrollment collection
       // For now, we'll allow students to access courses
       return next();
@@ -203,7 +203,7 @@ export const roleBasedRateLimit = (limits: Record<string, { windowMs: number; ma
     }
     
     // Apply role-based rate limits
-    for (const role of req.user.roles) {
+    for (const role of (req.user as any).roles) {
       if (limits[role]) {
         // This would typically integrate with a rate limiting library
         // For now, we'll just pass through
@@ -223,7 +223,7 @@ export const auditLog = (action: string, resource: string) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     // This would typically log the action to an audit log collection
     const auditData = {
-      userId: req.user?.id,
+      userId: (req.user as any)?.id,
       action,
       resource,
       timestamp: new Date(),

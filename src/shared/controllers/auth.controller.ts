@@ -109,7 +109,7 @@ export class AuthController {
    */
   static async logout(req: Request, res: Response, next: NextFunction) {
     try {
-      await AuthService.logout(req.user!.id);
+      await AuthService.logout((req.user as any)!.id);
 
       // Clear refresh token cookie
       res.clearCookie('refreshToken');
@@ -140,7 +140,7 @@ export class AuthController {
         });
       }
 
-      await AuthService.changePassword(req.user!.id, currentPassword, newPassword);
+      await AuthService.changePassword((req.user as any)!.id, currentPassword, newPassword);
 
       res.json({
         success: true,
@@ -184,7 +184,7 @@ export class AuthController {
    */
   static async getCurrentUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.getUserById(req.user!.id);
+      const user = await AuthService.getUserById((req.user as any)!.id);
 
       if (!user) {
         return res.status(404).json({

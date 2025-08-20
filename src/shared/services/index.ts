@@ -6,3 +6,16 @@ export type {
   AuthResponse,
   RefreshTokenResponse,
 } from './auth.service';
+
+// Certificate Services
+export {
+  CertificateService,
+  PDFGeneratorService,
+  QRGeneratorService
+} from './certificates';
+export type {
+  CertificatePDFData,
+  QRCodeOptions,
+  CertificateGenerationOptions,
+  CertificateVerificationResult
+} from './certificates';

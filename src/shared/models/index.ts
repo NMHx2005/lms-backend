@@ -5,3 +5,5 @@ export * from './extended';
 export * from './admin-extended';
 export * from './analytics';
 export * from './payment';
+export * from './communication';
+export * from './ai';
