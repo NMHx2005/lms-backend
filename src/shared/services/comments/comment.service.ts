@@ -209,7 +209,7 @@ export class CommentService {
     try {
       return await Comment.findById(commentId)
         .populate('author', 'firstName lastName email avatar')
-        .populate('content')
+        .populate('contentRef')
         .populate('replies')
         .lean();
     } catch (error) {
@@ -237,7 +237,7 @@ export class CommentService {
       }
 
       await comment.editContent(data.content, data.reason);
-      return comment.populate(['author', 'content']);
+      return comment.populate(['author', 'contentRef']);
     } catch (error) {
       if (error instanceof AppError) throw error;
       throw new AppError('Failed to update comment', 500);

@@ -238,8 +238,8 @@ commentSchema.virtual('author', {
   justOne: true
 });
 
-// Virtual for content
-commentSchema.virtual('content', {
+// Virtual for referenced content (renamed to avoid conflict with real 'content' field)
+commentSchema.virtual('contentRef', {
   refPath: 'contentType',
   localField: 'contentId',
   foreignField: '_id',
