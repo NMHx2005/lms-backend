@@ -66,6 +66,11 @@ export class AnnouncementService {
   }
 
   constructor() {
+    // Defer scheduler initialization until DB connection is ready
+  }
+
+  // Public initializer to be called after DB connects
+  public initializeSchedulers(): void {
     this.initializeScheduler();
   }
 
@@ -75,16 +80,19 @@ export class AnnouncementService {
 
     // Check for scheduled announcements every minute
     cron.schedule('* * * * *', async () => {
+      if (mongoose.connection.readyState !== 1) return; // skip if not connected
       await this.processScheduledAnnouncements();
     });
 
     // Expire old announcements every hour
     cron.schedule('0 * * * *', async () => {
+      if (mongoose.connection.readyState !== 1) return; // skip if not connected
       await this.expireOldAnnouncements();
     });
 
     // Send expiry reminders daily at 9 AM
     cron.schedule('0 9 * * *', async () => {
+      if (mongoose.connection.readyState !== 1) return; // skip if not connected
       await this.sendExpiryReminders();
     });
 
@@ -498,19 +506,17 @@ export class AnnouncementService {
             <hr>
             <p style="color: #666; font-size: 12px;">
               Thông báo từ ${announcement.createdBy.name} (${announcement.createdBy.role})<br>
-              Ngày: ${announcement.publishedAt?.toLocaleDateString('vi-VN')}
+              Hệ thống LMS
             </p>
-          `,
-          type: 'announcement' as any,
-          userId: user._id,
-          categories: ['announcement', announcement.type]
-        };
+          `
+        } as const;
 
-        return emailNotificationService.sendBulkEmails([emailData as any], 'announcement', {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          userName: `${user.firstName} ${user.lastName}`,
-          userEmail: user.email
+        return emailNotificationService.sendEmail({
+          type: 'announcement',
+          priority: 'normal',
+          to: emailData.to,
+          subject: emailData.subject,
+          html: emailData.html
         });
       });
 
@@ -520,34 +526,35 @@ export class AnnouncementService {
     }
   }
 
-  // Get target users for announcement
-  private async getTargetUsers(announcement: IAnnouncement): Promise<any[]> {
-    const { target } = announcement;
+  // Helper: get target users
+  private async getTargetUsers(announcement: IAnnouncement): Promise<Array<{ _id: any; email: string }>> {
+    const target = announcement.target;
 
-    switch (target.type) {
-      case 'all':
-        return await User.find({ isActive: true });
-      
-      case 'role':
-        return await User.find({ role: target.value, isActive: true });
-      
-      case 'course':
-        const enrollments = await Enrollment.find({ 
-          courseId: target.value, 
-          status: 'active' 
-        }).populate('studentId');
-        return enrollments.map((enrollment: any) => enrollment.studentId).filter(Boolean);
-      
-      case 'user':
-        const userIds = Array.isArray(target.value) ? target.value : [target.value];
-        return await User.find({ 
-          _id: { $in: userIds.map(id => new mongoose.Types.ObjectId(id)) },
-          isActive: true 
-        });
-      
-      default:
-        return [];
+    if (target.type === 'all') {
+      const users = await User.find({}, 'email');
+      return users as any;
     }
+
+    if (target.type === 'role') {
+      const users = await User.find({ role: target.value }, 'email');
+      return users as any;
+    }
+
+    if (target.type === 'course') {
+      const courseIds = Array.isArray(target.value) ? target.value : [target.value];
+      const enrollments = await Enrollment.find({ courseId: { $in: courseIds } }, 'studentId').lean();
+      const userIds = enrollments.map((e) => e.studentId);
+      const users = await User.find({ _id: { $in: userIds } }, 'email');
+      return users as any;
+    }
+
+    if (target.type === 'user') {
+      const ids = Array.isArray(target.value) ? target.value : [target.value];
+      const users = await User.find({ _id: { $in: ids } }, 'email');
+      return users as any;
+    }
+
+    return [];
   }
 
   // Calculate target user count
@@ -556,46 +563,39 @@ export class AnnouncementService {
     return targetUsers.length;
   }
 
-  // Build query for filtering
+  // Build query for admin listing
   private buildQuery(filter: AnnouncementFilter): any {
     const query: any = {};
 
     if (filter.status?.length) {
       query.status = { $in: filter.status };
     }
-
     if (filter.type?.length) {
       query.type = { $in: filter.type };
     }
-
     if (filter.priority?.length) {
       query.priority = { $in: filter.priority };
     }
-
     if (filter.targetType?.length) {
       query['target.type'] = { $in: filter.targetType };
     }
-
     if (filter.createdBy) {
-      query['createdBy.userId'] = new mongoose.Types.ObjectId(filter.createdBy);
+      query['createdBy.userId'] = filter.createdBy;
     }
-
     if (filter.tags?.length) {
       query.tags = { $in: filter.tags };
     }
-
-    if (filter.dateRange) {
+    if (filter.dateRange?.start && filter.dateRange?.end) {
       query.createdAt = {
         $gte: filter.dateRange.start,
         $lte: filter.dateRange.end
       };
     }
-
     if (filter.searchTerm) {
       query.$or = [
         { title: { $regex: filter.searchTerm, $options: 'i' } },
         { content: { $regex: filter.searchTerm, $options: 'i' } },
-        { tags: { $regex: filter.searchTerm, $options: 'i' } }
+        { tags: { $in: [filter.searchTerm] } }
       ];
     }
 

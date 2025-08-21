@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { webSocketService } from './shared/services/websocket/websocket.service';
 import connectDB from './shared/config/database';
 import { reloadAllSchedules, scheduleRunner } from './shared/services/reports/schedule.service';
+import { announcementService } from './shared/services/communication/announcement.service';
 
 dotenv.config();
 
@@ -22,6 +23,13 @@ async function startServer() {
       console.log('📅 Scheduled reports initialized');
     } catch (error) {
       console.warn('⚠️ Failed to initialize scheduled reports:', (error as Error).message);
+    }
+
+    // Initialize announcement schedulers after DB connection
+    try {
+      announcementService.initializeSchedulers();
+    } catch (error) {
+      console.warn('⚠️ Failed to initialize announcement schedulers:', (error as Error).message);
     }
 
     // Create HTTP server
