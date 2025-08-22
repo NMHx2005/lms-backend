@@ -119,14 +119,11 @@ export class AuthService {
       throw new ValidationError('User with this email already exists');
     }
 
-    // Hash password
-    const hashedPassword = await this.hashPassword(data.password);
-
     // Create user with default role if not specified
     const userData = {
       ...data,
       email: data.email.toLowerCase(),
-      password: hashedPassword,
+      password: data.password,
       roles: data.roles || ['student'],
       isActive: true,
     };
@@ -276,12 +273,8 @@ export class AuthService {
       throw new ValidationError('Current password is incorrect');
     }
 
-    // Hash new password
-    const hashedNewPassword = await this.hashPassword(newPassword);
-
-    // Update password
-    user.password = hashedNewPassword;
-    user.updatedAt = new Date();
+    // Update password; model pre-save will hash
+    user.password = newPassword;
     await user.save();
   }
 
@@ -294,12 +287,8 @@ export class AuthService {
       throw new AuthenticationError('User not found');
     }
 
-    // Hash new password
-    const hashedPassword = await this.hashPassword(newPassword);
-
-    // Update password
-    user.password = hashedPassword;
-    user.updatedAt = new Date();
+    // Update password; model pre-save will hash
+    user.password = newPassword;
     await user.save();
   }
 

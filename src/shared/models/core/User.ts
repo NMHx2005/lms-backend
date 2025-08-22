@@ -346,6 +346,34 @@ userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
+// Helper to split Vietnamese full name into lastName (family) and firstName (given)
+function splitVNName(fullName: string): { firstName: string; lastName: string } {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: '', lastName: '' };
+  if (parts.length === 1) return { firstName: parts[0], lastName: parts[0] };
+  const firstName = parts[parts.length - 1];
+  const lastName = parts[0];
+  return { firstName, lastName };
+}
+
+// Ensure firstName/lastName are populated if only name is provided (e.g., during registration)
+userSchema.pre('validate', function (next) {
+  // If name is provided but first/last missing, derive them
+  if (this.name && (!this.firstName || !this.lastName)) {
+    const derived = splitVNName(this.name);
+    if (!this.firstName) this.firstName = derived.firstName;
+    if (!this.lastName) this.lastName = derived.lastName;
+  }
+
+  // If name is missing but first/last exist, reconstruct name
+  if (!this.name && (this.firstName || this.lastName)) {
+    const left = this.lastName || '';
+    const right = this.firstName || '';
+    this.name = `${left} ${right}`.trim();
+  }
+  next();
+});
+
 // Virtual for subscription status
 userSchema.virtual('subscriptionStatus').get(function () {
   if (!this.subscriptionExpiresAt) return 'active';

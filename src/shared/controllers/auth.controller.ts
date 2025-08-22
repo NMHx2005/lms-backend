@@ -59,6 +59,7 @@ export class AuthController {
         data: {
           user: result.user,
           accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
           expiresIn: result.expiresIn,
         },
       });
@@ -72,9 +73,19 @@ export class AuthController {
    */
   static async refreshToken(req: Request, res: Response, next: NextFunction) {
     try {
-      const { refreshToken } = req.body;
+      // Prefer body.refreshToken; fallback to cookie header parsing
+      let refreshToken: string | undefined = req.body?.refreshToken;
+      if (!refreshToken && req.headers.cookie) {
+        try {
+          const cookiePairs = req.headers.cookie.split(';').map((c) => c.trim().split('='));
+          const cookieMap = Object.fromEntries(cookiePairs);
+          refreshToken = cookieMap['refreshToken'];
+        } catch (_) {
+          // ignore parse errors; will handle missing token below
+        }
+      }
 
-      if (!refreshToken) {
+      if (!refreshToken || typeof refreshToken !== 'string') {
         return res.status(400).json({
           success: false,
           error: 'Refresh token is required',

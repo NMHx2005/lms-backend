@@ -70,8 +70,10 @@ export const verifyRefreshToken = (token: string): JwtPayload => {
 
 // Extract token from request
 const extractToken = (req: Request): string | null => {
+
   // Check Authorization header
   const authHeader = req.headers.authorization;
+  
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
@@ -101,12 +103,14 @@ export const authenticate = async (
     const decoded = verifyToken(token);
     
     // Check if user exists and is active
-    const user = await User.findById(decoded.userId).select('+isActive firstName lastName role');
+    const user = await User.findById(decoded.userId).select('+isActive firstName lastName role isActive');
     
     if (!user) {
       throw new AuthenticationError('User not found');
     }
     
+    // Check if user is active (default to true if undefined)
+    console.log(user);
     if (!user.isActive) {
       throw new AuthenticationError('User account is deactivated');
     }
