@@ -668,10 +668,11 @@ courseSchema.index({ isPublished: 1, isApproved: 1 });
 courseSchema.index({ price: 1 });
 courseSchema.index({ createdAt: -1 });
 courseSchema.index({ submittedAt: -1 });
-courseSchema.index(
-  { title: 'text', description: 'text', tags: 'text' },
-  { default_language: 'none', language_override: 'textLanguage' }
-);
+// Text index temporarily disabled due to language override issues
+// courseSchema.index(
+//   { title: 'text', description: 'text', tags: 'text', category: 'text', subcategory: 'text' },
+//   { weights: { title: 10, description: 5, tags: 3, category: 8, subcategory: 4 } }
+// );
 courseSchema.index({ isFeatured: 1, isPublished: 1, isApproved: 1 });
 courseSchema.index({ enrolledStudents: 1 });
 courseSchema.index({ averageRating: -1, totalRatings: -1 });
