@@ -106,17 +106,24 @@ export class QRGeneratorService {
    * Generate unique certificate ID
    */
   public generateCertificateId(): string {
-    // Generate a unique ID with timestamp and random string
-    const timestamp = Date.now().toString(36);
-    const randomString = nanoid(8);
-    return `CERT-${timestamp}-${randomString}`.toUpperCase();
+    // ✅ Khớp chính xác với cách tạo trong seed script:
+    // certificateId: `CERT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substr(2, 9);
+    return `CERT_${timestamp}_${randomString}`;
   }
 
   /**
    * Validate certificate ID format
    */
   public validateCertificateId(certificateId: string): boolean {
-    const pattern = /^CERT-[A-Z0-9]+-[A-Z0-9]{8}$/;
+    // ✅ Khớp chính xác với cách tạo trong seed script:
+    // certificateId: `CERT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    // 1. CERT_ (cố định)
+    // 2. [0-9]+ (timestamp - chỉ số)
+    // 3. _ (dấu gạch dưới)
+    // 4. [a-z0-9]{9} (9 ký tự alphanumeric, có thể chữ thường)
+    const pattern = /^CERT_[0-9]+_[a-z0-9]{9}$/;
     return pattern.test(certificateId);
   }
 

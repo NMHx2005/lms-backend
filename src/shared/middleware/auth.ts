@@ -170,7 +170,23 @@ export const requireAdmin = (
     throw new AuthenticationError('Authentication required');
   }
   
-  if (!(req.user as any).roles.includes('admin')) {
+  // ✅ Kiểm tra cả role (string) và roles (array)
+  const userRole = (req.user as any).role;
+  const userRoles = (req.user as any).roles;
+  
+  let isAdmin = false;
+  
+  // Kiểm tra role (string)
+  if (userRole === 'admin') {
+    isAdmin = true;
+  }
+  
+  // Kiểm tra roles (array) nếu có
+  if (!isAdmin && userRoles && Array.isArray(userRoles)) {
+    isAdmin = userRoles.includes('admin');
+  }
+  
+  if (!isAdmin) {
     throw new AuthorizationError('Admin access required');
   }
   
@@ -186,7 +202,13 @@ export const requireTeacher = (
     throw new AuthenticationError('Authentication required');
   }
   
-  if (!(req.user as any).roles.includes('teacher') && !(req.user as any).roles.includes('admin')) {
+  // ✅ Kiểm tra an toàn: roles phải tồn tại và là array
+  const userRoles = (req.user as any).roles;
+  if (!userRoles || !Array.isArray(userRoles)) {
+    throw new AuthorizationError('User roles not found or invalid');
+  }
+  
+  if (!userRoles.includes('teacher') && !userRoles.includes('admin')) {
     throw new AuthorizationError('Teacher access required');
   }
   
@@ -202,7 +224,13 @@ export const requireStudent = (
     throw new AuthenticationError('Authentication required');
   }
   
-  if (!(req.user as any).roles.includes('student') && !(req.user as any).roles.includes('teacher') && !(req.user as any).roles.includes('admin')) {
+  // ✅ Kiểm tra an toàn: roles phải tồn tại và là array
+  const userRoles = (req.user as any).roles;
+  if (!userRoles || !Array.isArray(userRoles)) {
+    throw new AuthorizationError('User roles not found or invalid');
+  }
+  
+  if (!userRoles.includes('student') && !userRoles.includes('teacher') && !userRoles.includes('admin')) {
     throw new AuthorizationError('Student access required');
   }
   
@@ -216,10 +244,16 @@ export const requirePermission = (resource: string, action: string) => {
       throw new AuthenticationError('Authentication required');
     }
     
+    // ✅ Kiểm tra an toàn: roles phải tồn tại và là array
+    const userRoles = (req.user as any).roles;
+    if (!userRoles || !Array.isArray(userRoles)) {
+      throw new AuthorizationError('User roles not found or invalid');
+    }
+    
     // Import from rbac middleware
     const { hasPermission } = require('./rbac');
     
-    if (!hasPermission((req.user as any).roles, resource, action)) {
+    if (!hasPermission(userRoles, resource, action)) {
       throw new AuthorizationError(
         `Access denied. Required permission: ${resource}:${action}`
       );
@@ -243,8 +277,14 @@ export const requireOwnership = (resourceModel: any, resourceIdParam: string = '
       throw new AuthorizationError('Resource not found');
     }
     
+    // ✅ Kiểm tra an toàn: roles phải tồn tại và là array
+    const userRoles = (req.user as any).roles;
+    if (!userRoles || !Array.isArray(userRoles)) {
+      throw new AuthorizationError('User roles not found or invalid');
+    }
+    
     // Check if user owns the resource or is admin
-    if (resource.userId?.toString() !== (req.user as any).id && !(req.user as any).roles.includes('admin')) {
+    if (resource.userId?.toString() !== (req.user as any).id && !userRoles.includes('admin')) {
       throw new AuthorizationError('Access denied to this resource');
     }
     
@@ -267,8 +307,14 @@ export const requireCourseOwnership = (courseIdParam: string = 'courseId') => {
       throw new AuthorizationError('Course not found');
     }
     
+    // ✅ Kiểm tra an toàn: roles phải tồn tại và là array
+    const userRoles = (req.user as any).roles;
+    if (!userRoles || !Array.isArray(userRoles)) {
+      throw new AuthorizationError('User roles not found or invalid');
+    }
+    
     // Check if user owns the course or is admin
-    if (course.instructorId?.toString() !== (req.user as any).id && !(req.user as any).roles.includes('admin')) {
+    if (course.instructorId?.toString() !== (req.user as any).id && !userRoles.includes('admin')) {
       throw new AuthorizationError('Access denied to this course');
     }
     
@@ -291,7 +337,13 @@ export const requireEnrollment = (courseIdParam: string = 'courseId') => {
       isActive: true
     });
     
-    if (!enrollment && !(req.user as any).roles.includes('admin') && !(req.user as any).roles.includes('teacher')) {
+    // ✅ Kiểm tra an toàn: roles phải tồn tại và là array
+    const userRoles = (req.user as any).roles;
+    if (!userRoles || !Array.isArray(userRoles)) {
+      throw new AuthorizationError('User roles not found or invalid');
+    }
+    
+    if (!enrollment && !userRoles.includes('admin') && !userRoles.includes('teacher')) {
       throw new AuthorizationError('Enrollment required for this course');
     }
     

@@ -37,6 +37,7 @@ export class CertificateService {
   private readonly emailService: typeof EmailNotificationService;
 
   private constructor() {
+    // ✅ Import instances, không phải classes
     this.pdfService = PDFGeneratorService;
     this.qrService = QRGeneratorService;
     this.emailService = EmailNotificationService;
@@ -379,29 +380,39 @@ export class CertificateService {
    * Verify certificate
    */
   public async verifyCertificate(certificateId: string): Promise<CertificateVerificationResult> {
+    console.log('🔍 CertificateService.verifyCertificate called with:', certificateId);
+    
     try {
       // Validate certificate ID format
+      console.log('🔍 Validating certificate ID format...');
       if (!this.qrService.validateCertificateId(certificateId)) {
+        console.log('❌ Certificate ID format validation failed');
         return {
           isValid: false,
           message: 'Invalid certificate ID format'
         };
       }
+      console.log('✅ Certificate ID format validation passed');
 
       // Find certificate
+      console.log('🔍 Searching for certificate in database...');
       const certificate = await Certificate.findOne({ certificateId })
         .populate('studentId')
         .populate('courseId');
 
       if (!certificate) {
+        console.log('❌ Certificate not found in database');
         return {
           isValid: false,
           message: 'Certificate not found'
         };
       }
+      console.log('✅ Certificate found in database');
 
       // Check certificate status
+      console.log('🔍 Checking certificate status...');
       if (certificate.status === 'revoked') {
+        console.log('❌ Certificate has been revoked');
         return {
           isValid: false,
           certificate,
@@ -410,6 +421,7 @@ export class CertificateService {
       }
 
       if (certificate.status === 'expired') {
+        console.log('❌ Certificate has expired');
         return {
           isValid: false,
           certificate,
@@ -417,6 +429,7 @@ export class CertificateService {
         };
       }
 
+      console.log('✅ Certificate verification successful');
       return {
         isValid: true,
         certificate,
@@ -425,7 +438,7 @@ export class CertificateService {
         message: 'Certificate is valid'
       };
     } catch (error) {
-      console.error('Error verifying certificate:', error);
+      console.error('❌ Error in verifyCertificate:', error);
       return {
         isValid: false,
         message: 'Error verifying certificate'

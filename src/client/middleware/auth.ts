@@ -135,7 +135,21 @@ export const authorize = (...allowedRoles: string[]) => {
       throw new AuthenticationError('Authentication required');
     }
     
-    const hasRole = (req.user as any).roles.some((role: string) => allowedRoles.includes(role));
+    // ✅ Kiểm tra cả role (string) và roles (array)
+    const userRole = (req.user as any).role;
+    const userRoles = (req.user as any).roles;
+    
+    let hasRole = false;
+    
+    // Kiểm tra role (string)
+    if (userRole && allowedRoles.includes(userRole)) {
+      hasRole = true;
+    }
+    
+    // Kiểm tra roles (array) nếu có
+    if (!hasRole && userRoles && Array.isArray(userRoles)) {
+      hasRole = userRoles.some((role: string) => allowedRoles.includes(role));
+    }
     
     if (!hasRole) {
       throw new AuthorizationError(
