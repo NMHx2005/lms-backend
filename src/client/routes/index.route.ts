@@ -16,6 +16,7 @@ import analyticsRoutes from './analytics.routes';
 import certificateRoutes from './certificate.routes';
 import teacherRatingRoutes from './teacher-rating.routes';
 import teacherDashboardRoutes from './teacher-dashboard.routes';
+import teacherPackageRoutes from './teacher-package.routes';
 
 const router = express.Router();
 
@@ -38,6 +39,7 @@ router.use('/teacher-dashboard', teacherDashboardRoutes);
 router.use('/course-submissions', courseSubmissionRoutes);
 router.use('/ratings', courseRatingRoutes);
 router.use('/teacher-responses', teacherResponseRoutes);
+router.use('/teacher-packages', authenticate, teacherPackageRoutes);
 
 // Client dashboard overview
 router.get('/dashboard', authenticate, async (req: any, res) => {

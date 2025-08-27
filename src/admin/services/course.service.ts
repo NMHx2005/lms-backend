@@ -1,4 +1,5 @@
 import { Course as CourseModel, User as UserModel, Enrollment as EnrollmentModel, Bill as BillModel } from '../../shared/models';
+import { TeacherPackageSubscription } from '../../shared/models/extended/TeacherPackage';
 import { 
   CreateCourseRequest, 
   UpdateCourseRequest, 
@@ -21,6 +22,25 @@ export class CourseService {
     // Check if instructor has teacher role
     if (!instructor.roles.includes('teacher')) {
       throw new Error('User must have teacher role to create courses');
+    }
+
+    // Enforce package quota for teacher
+    const now = new Date();
+    const activeSubscription = await TeacherPackageSubscription.findOne({
+      teacherId: instructor._id,
+      status: 'active',
+      endAt: { $gt: now }
+    }).sort({ endAt: -1 });
+
+    if (!activeSubscription) {
+      throw new Error('No active package subscription for instructor');
+    }
+
+    const existingCoursesCount = await CourseModel.countDocuments({ instructorId: instructor._id });
+    const maxAllowed = activeSubscription.snapshot?.maxCourses ?? 0;
+
+    if (existingCoursesCount >= maxAllowed) {
+      throw new Error('Course creation quota exceeded for current package');
     }
 
     // Create course

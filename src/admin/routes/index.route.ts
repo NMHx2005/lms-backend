@@ -17,6 +17,7 @@ import adminAuthRoutes from './auth.routes';
 import certificateRoutes from './certificate.routes';
 import teacherManagementRoutes from './teacher-management.routes';
 import commentModerationRoutes from './comment-moderation.routes';
+import packageRoutes from './package.routes';
 
 const router = express.Router();
 
@@ -42,6 +43,7 @@ router.use('/activity', activityRoutes);
 router.use('/certificates', certificateRoutes);
 router.use('/teacher-management', teacherManagementRoutes);
 router.use('/comments', commentModerationRoutes);
+router.use('/packages-management', packageRoutes);
 
 // Admin dashboard overview
 router.get('/dashboard', async (req, res) => {
