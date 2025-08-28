@@ -273,13 +273,7 @@ export const linkGoogleAccount = asyncHandler(async (req: GoogleOAuthRequest, re
     throw new AppError('Google account already linked to this user', 400);
   }
 
-  // Store user ID in session for linking after OAuth
-  (req.session as any).linkAccount = {
-    userId: userId,
-    provider: 'google'
-  };
-
-  // Generate state for linking
+  // Generate state for linking without using session
   const state = Buffer.from(JSON.stringify({
     action: 'link',
     userId: userId,
@@ -374,11 +368,14 @@ export const refreshGoogleProfile = asyncHandler(async (req: GoogleOAuthRequest,
   }
 
   const user = await User.findById(userId);
-  if (!user?.socialAccounts?.google) {
-    throw new AppError('No Google account linked', 400);
+  if (!user) {
+    throw new AppError('User not found', 404);
   }
 
-  // Get fresh profile data from Google
+  if (!user.socialAccounts?.google) {
+    throw new AppError('No Google account linked to this user', 400);
+  }
+
   const profileData = await getGoogleProfile(userId);
   
   if (!profileData) {
@@ -447,7 +444,8 @@ export const handleOAuthError = asyncHandler(async (req: Request, res: Response)
   
   console.error('OAuth Error:', { error, error_description });
   
-  const returnUrl = (req.session as any).oauth?.returnUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+  // Use FRONTEND_URL directly instead of session
+  const returnUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   
   const errorParams = new URLSearchParams({
     error: error as string || 'oauth_error',
