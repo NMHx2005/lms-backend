@@ -31,16 +31,30 @@ export class ClientAuthService extends BaseAuthService {
       throw new NotFoundError('User not found');
     }
 
-    // Update fields
+    // Update basic name
     if (data.name !== undefined) user.name = data.name;
+
+    // Update nested profile fields and sync to top-level schema fields
     if (data.profile) {
+      const { avatar, phone, address, country, bio } = data.profile;
+
+      // Preserve any existing nested object if present (future-proof)
       (user as any).profile = { ...(user as any).profile, ...data.profile };
+
+      if (avatar !== undefined) user.avatar = avatar;
+      if (phone !== undefined) (user as any).phone = phone;
+      if (address !== undefined) (user as any).address = address;
+      if (country !== undefined) (user as any).country = country;
+      if (bio !== undefined) (user as any).bio = bio;
     }
 
     user.updatedAt = new Date();
     await user.save();
 
-    return user;
+    // Return sanitized user (without password)
+    const safe = user.toObject();
+    if (safe.password) delete (safe as any).password;
+    return safe;
   }
 
   /**

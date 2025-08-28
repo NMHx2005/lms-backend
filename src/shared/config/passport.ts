@@ -8,7 +8,7 @@ const GOOGLE_CONFIG = {
   clientID: process.env.GOOGLE_CLIENT_ID || '',
   clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
   callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
-  scope: ['profile', 'email']
+  scope: ['openid', 'profile', 'email']
 };
 
 export interface GoogleProfile {
@@ -119,12 +119,15 @@ function extractUserData(
  */
 async function findOrCreateUser(userData: OAuthUserData): Promise<IUser> {
   try {
+    console.log(`[OAUTH] Processing user: ${userData.email} (Google ID: ${userData.googleId})`);
+    
     // First, try to find user by Google ID
     let user = await User.findOne({ 
       'socialAccounts.google.id': userData.googleId 
     });
 
     if (user) {
+      console.log(`[OAUTH] Found existing Google user: ${user.email}`);
       // Update existing Google user
       return await updateExistingGoogleUser(user, userData);
     }
@@ -133,10 +136,12 @@ async function findOrCreateUser(userData: OAuthUserData): Promise<IUser> {
     user = await User.findOne({ email: userData.email });
 
     if (user) {
+      console.log(`[OAUTH] Found existing user by email: ${user.email}, linking Google account`);
       // Link Google account to existing user
       return await linkGoogleToExistingUser(user, userData);
     }
 
+    console.log(`[OAUTH] Creating new user with Google account: ${userData.email}`);
     // Create new user with Google account
     return await createNewGoogleUser(userData);
 
@@ -150,6 +155,8 @@ async function findOrCreateUser(userData: OAuthUserData): Promise<IUser> {
  * Update existing Google user
  */
 async function updateExistingGoogleUser(user: IUser, userData: OAuthUserData): Promise<IUser> {
+  console.log(`[OAUTH] Updating existing Google user: ${user.email}`);
+  
   // Update Google account data
   const googleAccount = user.socialAccounts?.google;
   if (googleAccount) {
@@ -176,6 +183,7 @@ async function updateExistingGoogleUser(user: IUser, userData: OAuthUserData): P
   user.accountLockedUntil = undefined;
 
   await user.save();
+  console.log(`[OAUTH] Successfully updated existing Google user: ${user.email}`);
   return user;
 }
 
@@ -183,6 +191,8 @@ async function updateExistingGoogleUser(user: IUser, userData: OAuthUserData): P
  * Link Google account to existing user
  */
 async function linkGoogleToExistingUser(user: IUser, userData: OAuthUserData): Promise<IUser> {
+  console.log(`[OAUTH] Linking Google account to existing user: ${user.email}`);
+  
   // Initialize socialAccounts if not exists
   if (!user.socialAccounts) {
     user.socialAccounts = {
@@ -192,16 +202,27 @@ async function linkGoogleToExistingUser(user: IUser, userData: OAuthUserData): P
     };
   }
 
-  // Add Google account data
-  user.socialAccounts.google = {
-    id: userData.googleId,
-    email: userData.email,
-    accessToken: userData.providerData.accessToken,
-    refreshToken: userData.providerData.refreshToken,
-    profile: userData.providerData.profile,
-    linkedAt: new Date(),
-    lastLogin: new Date()
-  };
+  // Check if Google account is already linked
+  if (user.socialAccounts.google) {
+    console.log(`[OAUTH] User already has Google account linked, updating tokens`);
+    // Update existing Google account
+    user.socialAccounts.google.accessToken = userData.providerData.accessToken;
+    user.socialAccounts.google.refreshToken = userData.providerData.refreshToken;
+    user.socialAccounts.google.lastLogin = new Date();
+    user.socialAccounts.google.profile = userData.providerData.profile;
+  } else {
+    console.log(`[OAUTH] Adding new Google account link`);
+    // Add Google account data
+    user.socialAccounts.google = {
+      id: userData.googleId,
+      email: userData.email,
+      accessToken: userData.providerData.accessToken,
+      refreshToken: userData.providerData.refreshToken,
+      profile: userData.providerData.profile,
+      linkedAt: new Date(),
+      lastLogin: new Date()
+    };
+  }
 
   // Update avatar if user doesn't have one
   if (!user.avatar && userData.avatar) {
@@ -220,6 +241,7 @@ async function linkGoogleToExistingUser(user: IUser, userData: OAuthUserData): P
   user.accountLockedUntil = undefined;
 
   await user.save();
+  console.log(`[OAUTH] Successfully linked Google account to user: ${user.email}`);
   return user;
 }
 
@@ -355,7 +377,7 @@ export function initializePassport(): void {
  * Get Google OAuth URL for frontend
  */
 export function getGoogleAuthURL(state?: string): string {
-  const baseURL = 'https://accounts.google.com/o/oauth2/auth';
+  const baseURL = 'https://accounts.google.com/o/oauth2/v2/auth';
   const params = new URLSearchParams({
     client_id: GOOGLE_CONFIG.clientID,
     redirect_uri: GOOGLE_CONFIG.callbackURL,
@@ -363,7 +385,8 @@ export function getGoogleAuthURL(state?: string): string {
     response_type: 'code',
     access_type: 'offline',
     prompt: 'consent',
-    ...(state && { state })
+    include_granted_scopes: 'true',
+    ...(state && { state }) as any
   });
 
   return `${baseURL}?${params.toString()}`;

@@ -124,6 +124,12 @@ export const requestValidationMiddleware = (req: Request, res: Response, next: N
     }
   }
   
+  // Skip Accept validation for OAuth browser redirects
+  const oauthPaths = ['/api/auth/google/start', '/api/auth/google/callback'];
+  if (oauthPaths.includes(req.path)) {
+    return next();
+  }
+  
   // Validate Accept header for API routes only
   if (req.path.startsWith('/api/') && req.headers.accept && !req.headers.accept.includes('application/json')) {
     return res.status(406).json({
@@ -235,7 +241,7 @@ export const errorLoggingMiddleware = (req: Request, res: Response, next: NextFu
   if (securityConfig.security.logging.enableErrorLogging) {
     const originalSend = res.send;
     
-    res.send = function(data) {
+    res.send = function(data: any) {
       if (res.statusCode >= 400) {
         console.error(`[${new Date().toISOString()}] [${req.headers['x-request-id'] || 'unknown'}] ERROR: ${req.method} ${req.originalUrl} - ${res.statusCode} - ${data}`);
       }
@@ -255,7 +261,7 @@ export const auditLoggingMiddleware = (req: Request, res: Response, next: NextFu
       requestId: req.headers['x-request-id'] || 'unknown',
       method: req.method,
       url: req.originalUrl,
-      ip: req.ip || req.connection.remoteAddress,
+      ip: req.ip || (req as any).connection.remoteAddress,
       userAgent: req.get('User-Agent'),
       userId: (req.user as any)?.id || 'anonymous',
       userEmail: (req.user as any)?.email || 'anonymous',

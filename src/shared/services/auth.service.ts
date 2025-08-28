@@ -109,17 +109,93 @@ export class AuthService {
     }
   }
 
+  private static calculateExpirationTime(expiresIn: string): number {
+    const match = expiresIn.match(/^(\d+)([smhd])$/);
+    if (!match) {
+      return 86400; // Default to 1 day
+    }
+
+    const value = parseInt(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+      case 's':
+        return value;
+      case 'm':
+        return value * 60;
+      case 'h':
+        return value * 3600;
+      case 'd':
+        return value * 86400;
+      default:
+        return 86400;
+    }
+  }
+
+  private static calculateExpiryDateFromEnv(expiresIn: string): Date {
+    const seconds = this.calculateExpirationTime(expiresIn);
+    return new Date(Date.now() + seconds * 1000);
+  }
+
+  private static async whitelistRefreshToken(user: any, plainRefreshToken: string): Promise<void> {
+    const hash = await bcrypt.hash(plainRefreshToken, this.SALT_ROUNDS);
+    const expiresAt = this.calculateExpiryDateFromEnv(this.REFRESH_TOKEN_EXPIRES_IN);
+
+    const tokenRecord = {
+      token: hash,
+      createdAt: new Date(),
+      expiresAt,
+    } as any;
+
+    if (!Array.isArray(user.refreshTokens)) {
+      user.refreshTokens = [] as any;
+    }
+
+    user.refreshTokens.push(tokenRecord);
+    // optional: cap number of sessions (e.g., keep last 5)
+    if (user.refreshTokens.length > 5) {
+      user.refreshTokens = user.refreshTokens.slice(-5);
+    }
+  }
+
+  private static async revokeRefreshToken(user: any, plainRefreshToken: string): Promise<boolean> {
+    if (!Array.isArray(user.refreshTokens) || user.refreshTokens.length === 0) return false;
+
+    const remaining: any[] = [];
+    let removed = false;
+    for (const rec of user.refreshTokens) {
+      const match = await bcrypt.compare(plainRefreshToken, rec.token).catch(() => false);
+      if (match) {
+        removed = true; // drop this
+        continue;
+      }
+      remaining.push(rec);
+    }
+    user.refreshTokens = remaining;
+    return removed;
+  }
+
+  private static async findValidRefreshToken(user: any, plainRefreshToken: string): Promise<boolean> {
+    if (!Array.isArray(user.refreshTokens) || user.refreshTokens.length === 0) return false;
+    const now = new Date();
+    for (const rec of user.refreshTokens) {
+      const notExpired = rec.expiresAt && new Date(rec.expiresAt) > now;
+      if (!notExpired) continue;
+      const match = await bcrypt.compare(plainRefreshToken, rec.token).catch(() => false);
+      if (match) return true;
+    }
+    return false;
+  }
+
   /**
    * User registration
    */
   static async register(data: RegisterData): Promise<AuthResponse> {
-    // Check if user already exists
     const existingUser = await User.findOne({ email: data.email.toLowerCase() });
     if (existingUser) {
       throw new ValidationError('User with this email already exists');
     }
 
-    // Create user with default role if not specified
     const userData = {
       ...data,
       email: data.email.toLowerCase(),
@@ -131,7 +207,6 @@ export class AuthService {
     const user = new User(userData);
     await user.save();
 
-    // Generate tokens
     const accessToken = this.generateAccessToken({
       userId: user._id.toString(),
       email: user.email,
@@ -144,7 +219,9 @@ export class AuthService {
       roles: user.roles,
     });
 
-    // Calculate expiration time
+    await this.whitelistRefreshToken(user, refreshToken);
+    await user.save();
+
     const expiresIn = this.calculateExpirationTime(this.ACCESS_TOKEN_EXPIRES_IN);
 
     return {
@@ -167,24 +244,28 @@ export class AuthService {
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { email, password } = credentials;
 
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password refreshTokens password isActive');
     if (!user) {
+      console.warn('[AUTH][LOGIN] user not found for email:', email.toLowerCase());
       throw new AuthenticationError('Invalid email or password');
     }
 
-    // Check if user is active
     if (!user.isActive) {
+      console.warn('[AUTH][LOGIN] user inactive:', user._id.toString());
       throw new AuthenticationError('Account is deactivated');
     }
 
-    // Verify password
-    const isPasswordValid = await this.comparePassword(password, user.password);
-    if (!isPasswordValid) {
+    if (!user.password) {
+      console.warn('[AUTH][LOGIN] missing password hash for user:', user._id.toString());
       throw new AuthenticationError('Invalid email or password');
     }
 
-    // Generate tokens
+    const isPasswordValid = await this.comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      console.warn('[AUTH][LOGIN] password mismatch for user:', user._id.toString());
+      throw new AuthenticationError('Invalid email or password');
+    }
+
     const accessToken = this.generateAccessToken({
       userId: user._id.toString(),
       email: user.email,
@@ -197,11 +278,10 @@ export class AuthService {
       roles: user.roles,
     });
 
-    // Update last login
     user.lastLoginAt = new Date();
+    await this.whitelistRefreshToken(user, refreshToken);
     await user.save();
 
-    // Calculate expiration time
     const expiresIn = this.calculateExpirationTime(this.ACCESS_TOKEN_EXPIRES_IN);
 
     return {
@@ -219,32 +299,39 @@ export class AuthService {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token (rotate refresh token)
    */
   static async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
-    // Verify refresh token
     const decoded = this.verifyRefreshToken(refreshToken);
 
-    // Check if user exists and is active
-    const user = await User.findById(decoded.userId).select('isActive');
+    const user = await User.findById(decoded.userId).select('isActive email roles refreshTokens');
     if (!user || !user.isActive) {
       throw new AuthenticationError('User not found or inactive');
     }
 
-    // Generate new tokens
+    const exists = await this.findValidRefreshToken(user, refreshToken);
+    if (!exists) {
+      throw new AuthenticationError('Refresh token invalid or revoked');
+    }
+
+    // Rotate: revoke old and issue new
+    await this.revokeRefreshToken(user, refreshToken);
+
     const newAccessToken = this.generateAccessToken({
       userId: user._id.toString(),
-      email: decoded.email,
-      roles: decoded.roles,
+      email: user.email,
+      roles: user.roles,
     });
 
     const newRefreshToken = this.generateRefreshToken({
       userId: user._id.toString(),
-      email: decoded.email,
-      roles: decoded.roles,
+      email: user.email,
+      roles: user.roles,
     });
 
-    // Calculate expiration time
+    await this.whitelistRefreshToken(user, newRefreshToken);
+    await user.save();
+
     const expiresIn = this.calculateExpirationTime(this.ACCESS_TOKEN_EXPIRES_IN);
 
     return {
@@ -267,15 +354,30 @@ export class AuthService {
       throw new AuthenticationError('User not found');
     }
 
-    // Verify current password
     const isCurrentPasswordValid = await this.comparePassword(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       throw new ValidationError('Current password is incorrect');
     }
 
-    // Update password; model pre-save will hash
-    user.password = newPassword;
+    user.password = newPassword; // pre-save hook will hash
     await user.save();
+  }
+
+  /**
+   * Logout (invalidate refresh token)
+   */
+  static async logout(userId: string, refreshToken?: string): Promise<void> {
+    const user = await User.findById(userId).select('refreshTokens');
+    if (!user) return;
+
+    if (refreshToken) {
+      await this.revokeRefreshToken(user, refreshToken);
+      await user.save();
+      return;
+    }
+
+    // If no token provided, simply update activity (legacy behavior)
+    await User.findByIdAndUpdate(userId, { lastActivityAt: new Date() });
   }
 
   /**
@@ -287,46 +389,8 @@ export class AuthService {
       throw new AuthenticationError('User not found');
     }
 
-    // Update password; model pre-save will hash
     user.password = newPassword;
     await user.save();
-  }
-
-  /**
-   * Logout (invalidate refresh token)
-   */
-  static async logout(userId: string): Promise<void> {
-    // In a real application, you might want to blacklist the refresh token
-    // For now, we'll just update the last activity
-    await User.findByIdAndUpdate(userId, {
-      lastActivityAt: new Date(),
-    });
-  }
-
-  /**
-   * Calculate token expiration time in seconds
-   */
-  private static calculateExpirationTime(expiresIn: string): number {
-    const match = expiresIn.match(/^(\d+)([smhd])$/);
-    if (!match) {
-      return 86400; // Default to 1 day
-    }
-
-    const value = parseInt(match[1]);
-    const unit = match[2];
-
-    switch (unit) {
-      case 's':
-        return value;
-      case 'm':
-        return value * 60;
-      case 'h':
-        return value * 3600;
-      case 'd':
-        return value * 86400;
-      default:
-        return 86400;
-    }
   }
 
   /**
@@ -361,16 +425,10 @@ export class AuthService {
     };
   }
 
-  /**
-   * Get user by ID (for internal use)
-   */
   static async getUserById(userId: string) {
     return User.findById(userId).select('-password');
   }
 
-  /**
-   * Update user last activity
-   */
   static async updateLastActivity(userId: string): Promise<void> {
     await User.findByIdAndUpdate(userId, {
       lastActivityAt: new Date(),

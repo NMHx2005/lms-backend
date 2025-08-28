@@ -167,6 +167,14 @@
       "value": "",
       "type": "string",
       "description": "Report ID for testing"
+    },
+    {
+      "key": "package_id",
+      "value": "64b9f1e0example0000000001"
+    },
+    {
+      "key": "subscription_id",
+      "value": "64b9f1e0example0000000003"
     }
   ],
   "auth": {
@@ -6063,6 +6071,252 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Admin - Packages Management",
+      "item": [
+        {
+          "name": "List Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/packages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "packages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Package",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Basic\",\n  \"description\": \"Up to 5 courses\",\n  \"maxCourses\": 5,\n  \"price\": 99000,\n  \"billingCycle\": \"monthly\",\n  \"features\": [\"support:email\"],\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/packages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "packages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Package by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/packages/{{package_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "packages",
+                "{{package_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Package",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pro\",\n  \"maxCourses\": 20,\n  \"price\": 299000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/packages/{{package_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "packages",
+                "{{package_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete/Deactivate Package",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/packages/{{package_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "packages",
+                "{{package_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/subscriptions?teacherId={{teacher_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "subscriptions"
+              ],
+              "query": [
+                {
+                  "key": "teacherId",
+                  "value": "{{teacher_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription for Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": \"{{teacher_id}}\",\n  \"packageId\": \"{{package_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/subscriptions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "subscriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Subscription (cancel/renew/expire)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"renew\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/packages-management/subscriptions/{{subscription_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "packages-management",
+                "subscriptions",
+                "{{subscription_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Client - Teacher Packages",
+      "item": [
+        {
+          "name": "Get My Subscription & Quota",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/client/teacher-packages/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "client",
+                "teacher-packages",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Active Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/client/teacher-packages/packages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "client",
+                "teacher-packages",
+                "packages"
+              ]
+            }
+          }
         }
       ]
     }

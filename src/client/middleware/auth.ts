@@ -101,7 +101,7 @@ export const authenticate = async (
     const decoded = verifyToken(token);
     
     // Check if user exists and is active
-    const user = await User.findById(decoded.userId).select('+isActive firstName lastName role');
+    const user = await User.findById(decoded.userId).select('+isActive firstName lastName role isActive');
     
     if (!user) {
       throw new AuthenticationError('User not found');

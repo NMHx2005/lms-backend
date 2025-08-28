@@ -5,6 +5,7 @@ import { AppError } from '../utils/appError';
 import { getGoogleAuthURL, validateOAuthConfig } from '../config/passport';
 import { EmailNotificationService } from '../services/email/email-notification.service';
 import User from '../models/core/User';
+import { AuthService } from '../services/auth.service';
 
 // Helper functions for Google OAuth operations
 async function revokeGoogleTokens(userId: string): Promise<boolean> {
@@ -125,9 +126,8 @@ export interface GoogleOAuthRequest extends Request {
  * Initiate Google OAuth login
  */
 export const initiateGoogleAuth = asyncHandler(async (req: Request, res: Response) => {
-  const { returnUrl, userType } = req.query;
+  const { returnUrl, userType, redirect } = req.query as { [key: string]: string };
   
-  // Validate configuration
   const configValidation = validateOAuthConfig();
   if (!configValidation.isValid) {
     throw new AppError(
@@ -136,24 +136,23 @@ export const initiateGoogleAuth = asyncHandler(async (req: Request, res: Respons
     );
   }
 
-  // Store return URL and user type in session for callback
-  if (returnUrl) {
-    (req.session as any).oauth = {
-      returnUrl: returnUrl as string,
-      userType: userType as string || 'student'
-    };
-  }
-
-  // Generate state parameter for security
+  // Encode returnUrl and userType inside state; avoid using server-side session
   const state = Buffer.from(JSON.stringify({
     timestamp: Date.now(),
     userType: userType || 'student',
     returnUrl: returnUrl || process.env.FRONTEND_URL
   })).toString('base64');
 
-  // Get Google OAuth URL
   const authUrl = getGoogleAuthURL(state);
 
+  // If browser navigates directly or redirect=true is provided, send 302 redirect
+  const accept = (req.get('Accept') || '').toLowerCase();
+  const wantsRedirect = redirect === 'true' || accept.includes('text/html');
+  if (wantsRedirect) {
+    return res.redirect(authUrl);
+  }
+
+  // Default: API returns JSON for XHR/fetch consumers
   res.json({
     success: true,
     data: {
@@ -178,7 +177,6 @@ export const handleGoogleCallback = (req: Request, res: Response, next: NextFunc
       return redirectWithError(res, req, 'Authentication failed - no user data');
     }
 
-    // Authentication successful
     handleSuccessfulAuth(req, res, user);
   })(req, res, next);
 };
@@ -188,14 +186,10 @@ export const handleGoogleCallback = (req: Request, res: Response, next: NextFunc
  */
 async function handleSuccessfulAuth(req: Request, res: Response, user: any) {
   try {
-    // Get return URL from session or query
-    const oauthData = (req.session as any).oauth;
     const { state } = req.query;
-    
     let returnUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     let userType = 'student';
 
-    // Parse state parameter
     if (state) {
       try {
         const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
@@ -206,56 +200,40 @@ async function handleSuccessfulAuth(req: Request, res: Response, user: any) {
       }
     }
 
-    // Use session data as fallback
-    if (oauthData) {
-      returnUrl = oauthData.returnUrl || returnUrl;
-      userType = oauthData.userType || userType;
-    }
-
-    // Update user role if specified
     if (userType && userType !== 'student' && !user.roles.includes(userType)) {
       user.roles.push(userType);
       await user.save();
     }
 
-    // Send welcome email for new users
-    if (user.isNew || user.registrationMethod === 'google_oauth') {
-      await EmailNotificationService.getInstance().sendWelcomeEmail(user._id);
-    }
+    const accessToken = AuthService.generateAccessToken({
+      userId: user._id.toString(),
+      email: user.email,
+      roles: user.roles,
+    });
+    const refreshToken = AuthService.generateRefreshToken({
+      userId: user._id.toString(),
+      email: user.email,
+      roles: user.roles,
+    });
+    await (AuthService as any).whitelistRefreshToken(user, refreshToken);
+    await user.save();
 
-    // Prepare success response data
-    const responseData = {
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar,
-        roles: user.roles,
-        isEmailVerified: user.isEmailVerified,
-        authProvider: 'google'
-      },
-      tokens: user.tokens || {},
-      isNewUser: user.isNew || false,
-      loginMethod: 'google_oauth'
-    };
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-    // Clear OAuth session data
-    if ((req.session as any).oauth) {
-      delete (req.session as any).oauth;
-    }
-
-    // Build redirect URL with success data
     const urlParams = new URLSearchParams({
       success: 'true',
-      token: user.tokens?.accessToken || '',
-      refresh_token: user.tokens?.refreshToken || '',
+      token: accessToken,
+      refresh_token: refreshToken,
       user_id: user._id.toString(),
       auth_provider: 'google'
     });
 
     const finalRedirectUrl = `${returnUrl}?${urlParams.toString()}`;
-
     res.redirect(finalRedirectUrl);
   } catch (error) {
     console.error('Error in handleSuccessfulAuth:', error);
@@ -264,17 +242,14 @@ async function handleSuccessfulAuth(req: Request, res: Response, user: any) {
 }
 
 /**
- * Redirect with error
+ * Redirect with error (no session dependency)
  */
 function redirectWithError(res: Response, req: Request, message: string) {
-  const oauthData = (req.session as any).oauth;
-  const returnUrl = oauthData?.returnUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
-  
+  const returnUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   const errorParams = new URLSearchParams({
     error: 'oauth_error',
     message: message
   });
-
   res.redirect(`${returnUrl}?${errorParams.toString()}`);
 }
 

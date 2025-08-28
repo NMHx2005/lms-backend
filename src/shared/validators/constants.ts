@@ -59,7 +59,8 @@ export const VALIDATION_CONSTANTS = {
   PATTERNS: {
     EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    PHONE: /^[\+]?[1-9][\d]{0,15}$/,
+    // Accept either local numbers starting with 0 (10-15 digits) or international format starting with non-zero digit, optional +
+    PHONE: /^(0\d{9,14}|\+?[1-9]\d{9,14})$/,
     URL: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
     MONGO_ID: /^[0-9a-fA-F]{24}$/,
   },

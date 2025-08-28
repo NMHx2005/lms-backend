@@ -3,6 +3,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { authenticate, requireAdmin } from '../../admin/middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { authValidation } from '../validators/auth.validator';
+import { getOAuthConfig, initiateGoogleAuth, handleGoogleCallback } from '../controllers/google-oauth.controller';
 
 const router = express.Router();
 
@@ -80,5 +81,12 @@ router.get('/me', authenticate, AuthController.getCurrentUser);
  * @access  Public
  */
 router.post('/validate-token', AuthController.validateToken);
+
+/**
+ * Google OAuth routes
+ */
+router.get('/google/config', getOAuthConfig as any);
+router.get('/google/start', initiateGoogleAuth as any);
+router.get('/google/callback', handleGoogleCallback as any);
 
 export default router;

@@ -68,9 +68,14 @@ export class CloudinaryService {
         resource_type: resourceType || uploadOptions.resource_type,
         folder: folder || uploadOptions.folder,
         public_id: finalPublicId,
-        overwrite: false,
+        overwrite: Boolean(publicId) || false,
         invalidate: true,
       };
+
+      // If caller provided a specific publicId, do not generate unique filename
+      if (publicId) {
+        uploadParams.unique_filename = false;
+      }
 
       // Add transformation if available and not raw resource type
       if (transformation && uploadOptions.resource_type !== 'raw') {

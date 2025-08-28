@@ -65,6 +65,7 @@ export interface IUser extends Document {
   dateOfBirth?: Date;
   country?: string;
   bio?: string;
+  address?: string;
   socialLinks?: {
     linkedin?: string;
     twitter?: string;
@@ -259,6 +260,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       maxlength: [500, 'Bio cannot exceed 500 characters'],
     },
+    address: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Address cannot exceed 200 characters'],
+    },
     socialLinks: {
       linkedin: String,
       twitter: String,
@@ -343,7 +349,9 @@ userSchema.index({ 'stats.averageScore': -1 });
 
 // Virtual for full name
 userSchema.virtual('fullName').get(function () {
-  return `${this.firstName} ${this.lastName}`;
+  if (!this.firstName && !this.lastName) return this.name;
+  if (this.firstName && this.lastName && this.firstName === this.lastName) return this.firstName;
+  return `${this.firstName} ${this.lastName}`.trim();
 });
 
 // Helper to split Vietnamese full name into lastName (family) and firstName (given)
@@ -356,13 +364,13 @@ function splitVNName(fullName: string): { firstName: string; lastName: string } 
   return { firstName, lastName };
 }
 
-// Ensure firstName/lastName are populated if only name is provided (e.g., during registration)
+// Ensure firstName/lastName are synchronized with name
 userSchema.pre('validate', function (next) {
-  // If name is provided but first/last missing, derive them
-  if (this.name && (!this.firstName || !this.lastName)) {
+  // If name provided or modified, always derive first/last from it
+  if (this.name) {
     const derived = splitVNName(this.name);
-    if (!this.firstName) this.firstName = derived.firstName;
-    if (!this.lastName) this.lastName = derived.lastName;
+    this.firstName = derived.firstName;
+    this.lastName = derived.lastName;
   }
 
   // If name is missing but first/last exist, reconstruct name
