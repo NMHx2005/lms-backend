@@ -13,7 +13,7 @@ const MONGODB_URI =
 // MongoDB connection options
 const mongoOptions = {
   maxPoolSize: 10, // Maintain up to 10 socket connections
-  serverSelectionTimeoutMS: 20000, // Try server selection for up to 20 seconds (increase to handle cold starts)
+  serverSelectionTimeoutMS: 30000, // Try server selection for up to 30 seconds
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
   // Note: bufferCommands is not a valid connect option; use mongoose.set above
   autoIndex: process.env.NODE_ENV === 'development', // Build indexes in development
@@ -22,13 +22,20 @@ const mongoOptions = {
 // MongoDB connection function
 export const connectDB = async (): Promise<void> => {
   try {
-    // console.log('🔄 Connecting to MongoDB...');
+    console.log('🔄 Connecting to MongoDB...');
+    console.log(`📍 URI: ${MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`);
 
     const conn = await mongoose.connect(MONGODB_URI, mongoOptions);
 
-    // console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    // Verify connection is actually ready
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error(`MongoDB connection not ready. State: ${mongoose.connection.readyState}`);
+    }
+
+    console.log(`✅ MongoDB Connected Successfully`);
     console.log(`📊 Database: ${conn.connection.name}`);
-    // console.log(`🔌 Port: ${conn.connection.port}`);
+    console.log(`🔌 Host: ${conn.connection.host}`);
+    console.log(`📡 Ready State: ${mongoose.connection.readyState} (1 = connected)`);
 
     // Handle connection events
     mongoose.connection.on('error', err => {
@@ -52,6 +59,11 @@ export const connectDB = async (): Promise<void> => {
     });
   } catch (error) {
     console.error('❌ MongoDB connection failed:', error);
+    console.error('🔍 Connection details:', {
+      readyState: mongoose.connection.readyState,
+      host: mongoose.connection.host,
+      name: mongoose.connection.name
+    });
     process.exit(1);
   }
 };
@@ -59,9 +71,15 @@ export const connectDB = async (): Promise<void> => {
 // Test database connection
 export const testConnection = async (): Promise<boolean> => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      console.log(`❌ DB not ready. State: ${mongoose.connection.readyState}`);
+      return false;
+    }
     await mongoose.connection.db.admin().ping();
+    console.log('✅ DB ping successful');
     return true;
   } catch (error) {
+    console.error('❌ DB ping failed:', error);
     return false;
   }
 };
