@@ -4,17 +4,20 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+// Disable Mongoose buffering globally to fail fast if not connected
+mongoose.set('bufferCommands', false);
+
 const MONGODB_URI =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/lms_database';
 
 // MongoDB connection options
 const mongoOptions = {
   maxPoolSize: 10, // Maintain up to 10 socket connections
-  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+  serverSelectionTimeoutMS: 20000, // Try server selection for up to 20 seconds (increase to handle cold starts)
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  bufferCommands: false, // Disable mongoose buffering
+  // Note: bufferCommands is not a valid connect option; use mongoose.set above
   autoIndex: process.env.NODE_ENV === 'development', // Build indexes in development
-};
+} as const;
 
 // MongoDB connection function
 export const connectDB = async (): Promise<void> => {
