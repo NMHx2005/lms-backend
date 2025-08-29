@@ -214,9 +214,8 @@ export const corsConfig = {
   // Production CORS config
   production: {
     origin: [
-      'https://superadmin.dev.musashino-rag.io.vn',
-      'https://apidev.superadmin.musashino-rag.io.vn',
       // Add other production domains here
+      'https://lms-frontend-mocha-eight.vercel.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
@@ -345,10 +344,10 @@ export const hppConfig = {
 export const securityConfig = {
   // Trust proxy configuration
   trustProxy: process.env.NODE_ENV === 'production',
-  
+
   // Request size limits
   requestSizeLimit: '10mb',
-  
+
   // Session configuration
   session: {
     secret: process.env.SESSION_SECRET || 'your-session-secret',
@@ -361,7 +360,7 @@ export const securityConfig = {
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     },
   },
-  
+
   // JWT configuration
   jwt: {
     secret: process.env.JWT_SECRET || 'your-jwt-secret',
@@ -369,7 +368,7 @@ export const securityConfig = {
     expiresIn: process.env.JWT_EXPIRES_IN || '15m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
-  
+
   // Password configuration
   password: {
     minLength: 8,
@@ -380,7 +379,7 @@ export const securityConfig = {
     maxAttempts: 5,
     lockoutDuration: 15 * 60 * 1000, // 15 minutes
   },
-  
+
   // File upload security
   fileUpload: {
     maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -396,7 +395,7 @@ export const securityConfig = {
     ],
     scanForViruses: process.env.NODE_ENV === 'production',
   },
-  
+
   // API security
   api: {
     enableRateLimiting: true,
@@ -407,7 +406,7 @@ export const securityConfig = {
     maxRequestSize: '10mb',
     timeout: 30000, // 30 seconds
   },
-  
+
   // Database security
   database: {
     enableQueryLogging: process.env.NODE_ENV === 'development',
@@ -416,7 +415,7 @@ export const securityConfig = {
     maxConnections: 10,
     connectionTimeout: 30000, // 30 seconds
   },
-  
+
   // Logging security
   logging: {
     enableRequestLogging: true,
@@ -432,7 +431,7 @@ export const securityConfig = {
 // Environment-specific configuration
 export const getSecurityConfig = () => {
   const env = process.env.NODE_ENV || 'development';
-  
+
   return {
     cors: corsConfig[env as keyof typeof corsConfig] || corsConfig.development,
     helmet: helmetConfig[env as keyof typeof helmetConfig] || helmetConfig.development,
