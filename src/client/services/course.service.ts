@@ -1,6 +1,6 @@
 import { Course as CourseModel, Enrollment as EnrollmentModel, User as UserModel, Bill as BillModel } from '../../shared/models';
-import { 
-  CourseListResponse, 
+import {
+  CourseListResponse,
   CourseSearchFilters,
   Course,
   EnrollmentRequest,
@@ -18,13 +18,13 @@ export class ClientCourseService {
     filters: CourseSearchFilters = {}
   ): Promise<CourseListResponse> {
     const skip = (page - 1) * limit;
-    
+
     // Build query for published and approved courses only
     const query: any = {
       isPublished: true,
       isApproved: true
     };
-    
+
     if (filters.search) {
       query.$or = [
         { title: { $regex: filters.search, $options: 'i' } },
@@ -33,39 +33,51 @@ export class ClientCourseService {
         { tags: { $in: [new RegExp(filters.search, 'i')] } }
       ];
     }
-    
+
     if (filters.domain) {
       query.domain = filters.domain;
     }
-    
+
     if (filters.level) {
       query.level = filters.level;
     }
-    
+
     if (filters.instructorId) {
       query.instructorId = filters.instructorId;
     }
-    
+
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
       query.price = {};
       if (filters.minPrice !== undefined) query.price.$gte = filters.minPrice;
       if (filters.maxPrice !== undefined) query.price.$lte = filters.maxPrice;
     }
-    
+
     if (filters.isFree !== undefined) {
       query.price = filters.isFree ? 0 : { $gt: 0 };
     }
-    
+
     if (filters.isFeatured !== undefined) {
       query.isFeatured = filters.isFeatured;
     }
-    
+
     if (filters.language) {
       query.language = filters.language;
     }
-    
+
     if (filters.certificate !== undefined) {
       query.certificate = filters.certificate;
+    }
+
+    // Handle rating filter
+    if (filters.minRating !== undefined) {
+      query.averageRating = { $gte: filters.minRating };
+    }
+
+    // Handle duration filter
+    if (filters.minDuration !== undefined || filters.maxDuration !== undefined) {
+      query.totalDuration = {};
+      if (filters.minDuration !== undefined) query.totalDuration.$gte = filters.minDuration;
+      if (filters.maxDuration !== undefined) query.totalDuration.$lte = filters.maxDuration;
     }
 
     // Build sort object
@@ -139,10 +151,10 @@ export class ClientCourseService {
       isPublished: true,
       isApproved: true
     })
-    .populate('instructorId', 'name email avatar bio')
-    .populate('sections')
-    .populate('lessons')
-    .populate('assignments');
+      .populate('instructorId', 'name email avatar bio')
+      .populate('sections')
+      .populate('lessons')
+      .populate('assignments');
 
     if (!course) {
       throw new Error('Course not found or not available');
@@ -184,7 +196,7 @@ export class ClientCourseService {
 
   // Search courses
   static async searchCourses(
-    searchTerm: string, 
+    searchTerm: string,
     limit: number = 10,
     filters: CourseSearchFilters = {}
   ) {
@@ -234,9 +246,9 @@ export class ClientCourseService {
       isApproved: true,
       isFeatured: true
     })
-    .populate('instructorId', 'name')
-    .sort({ totalStudents: -1, averageRating: -1 })
-    .limit(limit);
+      .populate('instructorId', 'name')
+      .sort({ totalStudents: -1, averageRating: -1 })
+      .limit(limit);
 
     return courses;
   }
@@ -247,9 +259,9 @@ export class ClientCourseService {
       isPublished: true,
       isApproved: true
     })
-    .populate('instructorId', 'name')
-    .sort({ totalStudents: -1, averageRating: -1 })
-    .limit(limit);
+      .populate('instructorId', 'name')
+      .sort({ totalStudents: -1, averageRating: -1 })
+      .limit(limit);
 
     return courses;
   }
@@ -257,17 +269,17 @@ export class ClientCourseService {
   // Get courses by instructor
   static async getCoursesByInstructor(instructorId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
-    
+
     const [courses, total] = await Promise.all([
       CourseModel.find({
         instructorId,
         isPublished: true,
         isApproved: true
       })
-      .populate('instructorId', 'name')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
+        .populate('instructorId', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
       CourseModel.countDocuments({
         instructorId,
         isPublished: true,
@@ -299,8 +311,8 @@ export class ClientCourseService {
       isPublished: true,
       isApproved: true
     })
-    .populate('instructorId', 'name')
-    .limit(limit);
+      .populate('instructorId', 'name')
+      .limit(limit);
 
     return relatedCourses;
   }

@@ -8,7 +8,7 @@ export interface IBill extends Document {
   currency: string;
   purpose: 'course_purchase' | 'subscription' | 'refund' | 'other';
   status: 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
-  paymentMethod: 'stripe' | 'paypal' | 'bank_transfer' | 'cash';
+  paymentMethod: 'stripe' | 'paypal' | 'bank_transfer' | 'cash' | 'vnpay';
   paymentGateway?: string;
   transactionId?: string;
   description: string;
@@ -68,7 +68,7 @@ const billSchema = new Schema<IBill>(
       type: String,
       required: [true, 'Payment method is required'],
       enum: {
-        values: ['stripe', 'paypal', 'bank_transfer', 'cash'],
+        values: ['stripe', 'paypal', 'bank_transfer', 'cash', 'vnpay'],
         message: 'Please select a valid payment method',
       },
     },

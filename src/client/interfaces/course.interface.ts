@@ -54,6 +54,9 @@ export interface CourseSearchFilters {
   isFeatured?: boolean;
   language?: string;
   certificate?: boolean;
+  minRating?: number;
+  minDuration?: number;
+  maxDuration?: number;
   createdAt?: {
     start: Date;
     end: Date;

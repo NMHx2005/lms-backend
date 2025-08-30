@@ -22,7 +22,7 @@ export interface ICourse extends Document {
   price: number;
   originalPrice?: number;
   discountPercentage?: number;
-  
+
   // Course Status and Approval Workflow
   status: 'draft' | 'submitted' | 'approved' | 'published' | 'rejected' | 'needs_revision' | 'delisted';
   isPublished: boolean;
@@ -30,7 +30,7 @@ export interface ICourse extends Document {
   isFeatured: boolean;
   submittedAt?: Date;
   submittedForReview?: boolean;
-  
+
   // Enhanced Course Fields
   category: string;
   subcategory?: string;
@@ -143,7 +143,7 @@ export interface ICourse extends Document {
       details: string;
     }>;
   };
-  
+
   // AI Evaluation
   aiEvaluation?: {
     evaluationId: mongoose.Types.ObjectId;
@@ -151,7 +151,7 @@ export interface ICourse extends Document {
     lastEvaluatedAt: Date;
     summary: string;
   };
-  
+
   upvotes: number;
   reports: number;
   enrolledStudents: mongoose.Types.ObjectId[];
@@ -172,13 +172,13 @@ export interface ICourse extends Document {
   approvedBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Virtual properties
   detailedStatus: string;
   canSubmitForReview: boolean;
   isInReview: boolean;
   needsAction: boolean;
-  
+
   // Instance methods
   submitForAIEvaluation(): Promise<void>;
   approve(adminId: mongoose.Types.ObjectId): Promise<void>;
@@ -523,7 +523,7 @@ const courseSchema = new Schema<ICourse>(
       type: Boolean,
       default: false
     },
-    
+
     // AI Evaluation
     aiEvaluation: {
       evaluationId: {
@@ -724,6 +724,30 @@ courseSchema.virtual('canEnroll').get(function () {
   if (!this.isPublished || !this.isApproved) return false;
   if (this.maxStudents && this.totalStudents >= this.maxStudents) return false;
   return true;
+});
+
+// Virtual for sections
+courseSchema.virtual('sections', {
+  ref: 'Section',
+  localField: '_id',
+  foreignField: 'courseId',
+  options: { sort: { order: 1 } },
+});
+
+// Virtual for lessons
+courseSchema.virtual('lessons', {
+  ref: 'Lesson',
+  localField: '_id',
+  foreignField: 'courseId',
+  options: { sort: { order: 1 } },
+});
+
+// Virtual for assignments
+courseSchema.virtual('assignments', {
+  ref: 'Assignment',
+  localField: '_id',
+  foreignField: 'courseId',
+  options: { sort: { createdAt: -1 } },
 });
 
 // Pre-save middleware to update timestamps

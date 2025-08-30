@@ -20,7 +20,10 @@ export class ClientCourseController {
         isFree,
         isFeatured,
         language,
-        certificate
+        certificate,
+        priceRange,
+        rating,
+        duration
       } = req.query;
 
       // Parse filters
@@ -35,6 +38,60 @@ export class ClientCourseController {
       if (isFeatured !== undefined) filters.isFeatured = isFeatured === 'true';
       if (language) filters.language = language as string;
       if (certificate !== undefined) filters.certificate = certificate === 'true';
+
+      // Handle price range filter
+      if (priceRange) {
+        switch (priceRange) {
+          case 'free':
+            filters.isFree = true;
+            break;
+          case '0-100000':
+            filters.minPrice = 0;
+            filters.maxPrice = 100000;
+            break;
+          case '100000-500000':
+            filters.minPrice = 100000;
+            filters.maxPrice = 500000;
+            break;
+          case '500000-1000000':
+            filters.minPrice = 500000;
+            filters.maxPrice = 1000000;
+            break;
+          case '1000000+':
+            filters.minPrice = 1000000;
+            break;
+        }
+      }
+
+      // Handle rating filter
+      if (rating) {
+        const ratingStr = rating.toString();
+        if (ratingStr.includes('+')) {
+          const minRating = parseFloat(ratingStr.replace('+', ''));
+          filters.minRating = minRating;
+        }
+      }
+
+      // Handle duration filter
+      if (duration) {
+        switch (duration) {
+          case '0-2':
+            filters.minDuration = 0;
+            filters.maxDuration = 2;
+            break;
+          case '2-5':
+            filters.minDuration = 2;
+            filters.maxDuration = 5;
+            break;
+          case '5-10':
+            filters.minDuration = 5;
+            filters.maxDuration = 10;
+            break;
+          case '10+':
+            filters.minDuration = 10;
+            break;
+        }
+      }
 
       const result = await ClientCourseService.getPublishedCourses(
         Number(page),
@@ -66,7 +123,7 @@ export class ClientCourseController {
       if (userId) {
         UserActivityLog.create({ userId, action: 'course_view', resource: 'course', resourceId: id, courseId: id });
       }
-      
+
       res.json({
         success: true,
         data: course
@@ -85,7 +142,7 @@ export class ClientCourseController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id; // From auth middleware
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -95,7 +152,7 @@ export class ClientCourseController {
 
       const content = await ClientCourseService.getCourseContent(id, userId);
       UserActivityLog.create({ userId, action: 'course_view', resource: 'course', resourceId: id, courseId: id });
-      
+
       res.json({
         success: true,
         data: content
@@ -113,7 +170,7 @@ export class ClientCourseController {
   static async searchCourses(req: Request, res: Response) {
     try {
       const { q, limit = 10, domain, level, isFree } = req.query;
-      
+
       if (!q || typeof q !== 'string') {
         return res.status(400).json({
           success: false,
@@ -127,7 +184,7 @@ export class ClientCourseController {
       if (isFree !== undefined) filters.isFree = isFree === 'true';
 
       const courses = await ClientCourseService.searchCourses(q, Number(limit), filters);
-      
+
       res.json({
         success: true,
         data: courses
@@ -145,7 +202,7 @@ export class ClientCourseController {
   static async getCourseCategories(req: Request, res: Response) {
     try {
       const categories = await ClientCourseService.getCourseCategories();
-      
+
       res.json({
         success: true,
         data: categories
@@ -164,7 +221,7 @@ export class ClientCourseController {
     try {
       const { limit = 6 } = req.query;
       const courses = await ClientCourseService.getFeaturedCourses(Number(limit));
-      
+
       res.json({
         success: true,
         data: courses
@@ -183,7 +240,7 @@ export class ClientCourseController {
     try {
       const { limit = 8 } = req.query;
       const courses = await ClientCourseService.getPopularCourses(Number(limit));
-      
+
       res.json({
         success: true,
         data: courses
@@ -202,13 +259,13 @@ export class ClientCourseController {
     try {
       const { instructorId } = req.params;
       const { page = 1, limit = 10 } = req.query;
-      
+
       const result = await ClientCourseService.getCoursesByInstructor(
         instructorId,
         Number(page),
         Number(limit)
       );
-      
+
       res.json({
         success: true,
         data: result
@@ -227,9 +284,9 @@ export class ClientCourseController {
     try {
       const { id } = req.params;
       const { limit = 4 } = req.query;
-      
+
       const courses = await ClientCourseService.getRelatedCourses(id, Number(limit));
-      
+
       res.json({
         success: true,
         data: courses
@@ -248,7 +305,7 @@ export class ClientCourseController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id; // From auth middleware
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -257,7 +314,7 @@ export class ClientCourseController {
       }
 
       const progress = await ClientCourseService.getCourseProgress(id, userId);
-      
+
       res.json({
         success: true,
         data: progress
@@ -276,7 +333,7 @@ export class ClientCourseController {
     try {
       const { limit = 6 } = req.query;
       const userId = (req as any).user?._id; // From auth middleware
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -285,7 +342,7 @@ export class ClientCourseController {
       }
 
       const recommendations = await ClientCourseService.getCourseRecommendations(userId, Number(limit));
-      
+
       res.json({
         success: true,
         data: recommendations
@@ -304,7 +361,7 @@ export class ClientCourseController {
     try {
       const { courseId, lessonId } = req.params;
       const userId = (req as any).user?._id; // From auth middleware
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -328,7 +385,7 @@ export class ClientCourseController {
 
       // Get lesson content
       const lesson = await (await import('../../shared/models')).Lesson.findById(lessonId);
-      
+
       if (!lesson) {
         return res.status(404).json({
           success: false,

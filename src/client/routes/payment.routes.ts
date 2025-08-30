@@ -7,12 +7,12 @@ const router = express.Router();
 router.get('/history', async (req: any, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
-    
+
     const filter: any = { studentId: req.user.id };
     if (status) filter.status = status;
 
     const skip = (Number(page) - 1) * Number(limit);
-    
+
     const bills = await Bill.find(filter)
       .populate('courseId', 'title thumbnail')
       .skip(skip)
@@ -71,7 +71,7 @@ router.post('/course/:courseId', async (req: any, res) => {
   try {
     const { courseId } = req.params;
     const { paymentMethod, amount } = req.body;
-    
+
     // Check if course exists
     const course = await Course.findOne({
       _id: courseId,
@@ -88,7 +88,7 @@ router.post('/course/:courseId', async (req: any, res) => {
 
     // Check if already enrolled
     // This would typically check enrollment collection
-    
+
     // Create bill
     const bill = new Bill({
       studentId: req.user.id,
@@ -105,7 +105,7 @@ router.post('/course/:courseId', async (req: any, res) => {
 
     // This would typically integrate with payment gateway
     // For now, just return success
-    
+
     res.status(201).json({
       success: true,
       message: 'Payment initiated successfully',
@@ -123,11 +123,154 @@ router.post('/course/:courseId', async (req: any, res) => {
   }
 });
 
+// Create VNPay payment for course
+router.post('/vnpay/:courseId', async (req: any, res) => {
+  try {
+    const { courseId } = req.params;
+    const { amount, courseTitle, returnUrl, cancelUrl } = req.body;
+
+    // Check if course exists
+    const course = await Course.findOne({
+      _id: courseId,
+      isPublished: true,
+      isApproved: true
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        error: 'Course not found'
+      });
+    }
+
+    // Check if already enrolled
+    const { Enrollment } = require('../../shared/models');
+    const existingEnrollment = await Enrollment.findOne({
+      studentId: req.user.id,
+      courseId: courseId
+    });
+
+    if (existingEnrollment) {
+      // Return success instead of error when already enrolled
+      return res.json({
+        success: true,
+        message: 'Bạn đã đăng ký khóa học này rồi!',
+        data: {
+          alreadyEnrolled: true,
+          enrollmentId: existingEnrollment._id,
+          enrolledAt: existingEnrollment.enrolledAt
+        }
+      });
+    }
+
+    // Generate unique order ID for VNPay
+    const vnpayOrderId = `VNPAY_${Date.now()}_${req.user.id}_${courseId}`;
+
+    // Create bill with VNPay metadata
+    const bill = new Bill({
+      studentId: req.user.id,
+      courseId: courseId,
+      amount: amount || course.price,
+      currency: 'VND',
+      purpose: 'course_purchase',
+      status: 'pending',
+      paymentMethod: 'vnpay',
+      description: `Payment for course: ${courseTitle || course.title}`,
+      metadata: {
+        vnpayOrderId,
+        returnUrl,
+        cancelUrl
+      }
+    });
+
+    await bill.save();
+
+    // Generate VNPay payment URL (mock implementation)
+    // In production, this would integrate with VNPay SDK
+    const paymentUrl = generateVNPayPaymentUrl({
+      orderId: vnpayOrderId,
+      amount: bill.amount,
+      courseTitle: courseTitle || course.title,
+      returnUrl,
+      cancelUrl
+    });
+
+    res.json({
+      success: true,
+      message: 'VNPay payment initiated successfully',
+      data: {
+        paymentUrl,
+        billId: bill._id,
+        orderId: vnpayOrderId,
+        amount: bill.amount
+      }
+    });
+  } catch (error) {
+    console.error('VNPay payment creation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+// Helper function to generate VNPay payment URL
+function generateVNPayPaymentUrl(params: {
+  orderId: string;
+  amount: number;
+  courseTitle: string;
+  returnUrl: string;
+  cancelUrl: string;
+}) {
+  const baseUrl = process.env.VNPAY_PAYMENT_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+  const tmnCode = process.env.VNPAY_TMN_CODE || 'V0M3ZTRW';
+  const hashSecret = process.env.VNPAY_HASH_SECRET || 'UEYCKX1ZQ2SXSCPY7KGKC04XQWAWOT15';
+
+  // Create payment URL with required VNPay parameters
+  const url = new URL(baseUrl);
+
+  // Required parameters
+  url.searchParams.set('vnp_Version', '2.1.0');
+  url.searchParams.set('vnp_Command', 'pay');
+  url.searchParams.set('vnp_TmnCode', tmnCode);
+  url.searchParams.set('vnp_Amount', (params.amount * 100).toString()); // Convert to smallest currency unit
+  url.searchParams.set('vnp_CurrCode', 'VND');
+  url.searchParams.set('vnp_TxnRef', params.orderId);
+  url.searchParams.set('vnp_OrderInfo', `Thanh toan khoa hoc: ${params.courseTitle}`);
+  url.searchParams.set('vnp_OrderType', 'other');
+  url.searchParams.set('vnp_Locale', 'vn');
+  url.searchParams.set('vnp_ReturnUrl', params.returnUrl);
+  url.searchParams.set('vnp_IpnUrl', process.env.VNPAY_IPN_URL || 'https://lms-backend-cf11.onrender.com/api/client/payments/vnpay/ipn');
+
+  // Add timestamp
+  const date = new Date();
+  const createDate = date.toISOString().split('T')[0].split('-').join('');
+  url.searchParams.set('vnp_CreateDate', createDate);
+
+  // Add expire time (15 minutes from now)
+  const expireDate = new Date(date.getTime() + 15 * 60 * 1000);
+  const expireDateStr = expireDate.toISOString().split('T')[0].split('-').join('');
+  url.searchParams.set('vnp_ExpireDate', expireDateStr);
+
+  // Generate checksum hash
+  const queryString = url.searchParams.toString();
+  const hashData = queryString;
+  const crypto = require('crypto');
+  const hmac = crypto.createHmac('sha512', hashSecret);
+  hmac.update(hashData);
+  const vnp_SecureHash = hmac.digest('hex');
+
+  // Add secure hash
+  url.searchParams.set('vnp_SecureHash', vnp_SecureHash);
+
+  return url.toString();
+}
+
 // Process payment callback
 router.post('/callback', async (req: any, res) => {
   try {
     const { billId, status, transactionId } = req.body;
-    
+
     if (!billId || !status) {
       return res.status(400).json({
         success: false,
@@ -172,11 +315,213 @@ router.post('/callback', async (req: any, res) => {
   }
 });
 
+// Test IPN endpoint accessibility
+router.get('/vnpay/test-ipn', async (req: any, res) => {
+  try {
+    res.json({
+      success: true,
+      message: 'IPN endpoint is accessible',
+      timestamp: new Date().toISOString(),
+      environment: {
+        vnpayTmnCode: process.env.VNPAY_TMN_CODE,
+        vnpayPaymentUrl: process.env.VNPAY_PAYMENT_URL,
+        vnpayIpnUrl: process.env.VNPAY_IPN_URL,
+        appBaseUrl: process.env.APP_BASE_URL
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'IPN test failed'
+    });
+  }
+});
+
+// VNPay IPN callback
+router.post('/vnpay/ipn', async (req: any, res) => {
+  try {
+    const vnpParams = req.body;
+    console.log('VNPay IPN received:', vnpParams);
+
+    // Extract VNPay parameters
+    const orderId = vnpParams.vnp_TxnRef;
+    const amount = parseInt(vnpParams.vnp_Amount) / 100; // Convert from smallest currency unit
+    const responseCode = vnpParams.vnp_ResponseCode;
+    const transactionId = vnpParams.vnp_TransactionNo;
+    const bankCode = vnpParams.vnp_BankCode;
+    const secureHash = vnpParams.vnp_SecureHash;
+
+    // Verify response code
+    const isSuccess = responseCode === '00';
+    const status = isSuccess ? 'completed' : 'failed';
+
+    console.log(`VNPay IPN - Order: ${orderId}, Amount: ${amount}, Response: ${responseCode}, Status: ${status}`);
+
+    // Find bill by orderId
+    const bill = await Bill.findOne({
+      'metadata.vnpayOrderId': orderId
+    });
+
+    if (!bill) {
+      console.error(`VNPay IPN - Bill not found for order: ${orderId}`);
+      return res.status(404).json({
+        success: false,
+        error: 'Bill not found'
+      });
+    }
+
+    // Update bill status
+    bill.status = status;
+    bill.transactionId = transactionId;
+    if (isSuccess) {
+      bill.paidAt = new Date();
+      bill.metadata = {
+        ...bill.metadata,
+        vnpBankCode: bankCode,
+        vnpTransactionNo: transactionId,
+        vnpResponseCode: responseCode
+      };
+    }
+
+    await bill.save();
+    console.log(`VNPay IPN - Bill ${bill._id} updated to status: ${status}`);
+
+    // If payment successful, create enrollment
+    if (isSuccess && bill.courseId) {
+      try {
+        // Import Enrollment model
+        const { Enrollment } = require('../../shared/models');
+
+        // Check if already enrolled
+        const existingEnrollment = await Enrollment.findOne({
+          studentId: bill.studentId,
+          courseId: bill.courseId
+        });
+
+        if (!existingEnrollment) {
+          // Get course to get instructorId
+          const course = await Course.findById(bill.courseId);
+
+          // Create enrollment
+          const enrollment = new Enrollment({
+            studentId: bill.studentId,
+            courseId: bill.courseId,
+            instructorId: course?.instructorId,
+            enrolledAt: new Date(),
+            progress: 0,
+            isActive: true,
+            paymentStatus: 'completed',
+            paymentMethod: 'vnpay',
+            paymentDetails: {
+              billId: bill._id,
+              transactionId: transactionId,
+              amount: amount,
+              currency: 'VND',
+              paymentGateway: 'vnpay'
+            }
+          });
+
+          await enrollment.save();
+          console.log(`VNPay IPN - Enrollment created: ${enrollment._id}`);
+
+          // Update course stats
+          await Course.findByIdAndUpdate(bill.courseId, {
+            $inc: { totalStudents: 1 }
+          });
+
+          // Update user stats
+          await User.findByIdAndUpdate(bill.studentId, {
+            $inc: { 'stats.totalCoursesEnrolled': 1 }
+          });
+        } else {
+          console.log(`VNPay IPN - User already enrolled in course: ${bill.courseId}`);
+        }
+      } catch (enrollmentError) {
+        console.error('VNPay IPN - Error creating enrollment:', enrollmentError);
+      }
+    }
+
+    // Return success to VNPay (required)
+    res.json({
+      RspCode: '00',
+      Message: 'Confirmed'
+    });
+
+  } catch (error) {
+    console.error('VNPay IPN error:', error);
+    res.status(500).json({
+      RspCode: '99',
+      Message: 'Unknown error'
+    });
+  }
+});
+
+// VNPay return URL (user redirect after payment)
+router.get('/vnpay/return', async (req: any, res) => {
+  try {
+    const vnpParams = req.query;
+
+    console.log('VNPay return URL called with params:', vnpParams);
+
+    const orderId = vnpParams.vnp_TxnRef;
+    const responseCode = vnpParams.vnp_ResponseCode;
+    const amount = vnpParams.vnp_Amount / 100;
+    const transactionId = vnpParams.vnp_TransactionNo;
+    const bankCode = vnpParams.vnp_BankCode;
+
+    // Find bill by orderId
+    const bill = await Bill.findOne({
+      'metadata.vnpayOrderId': orderId
+    });
+
+    if (!bill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Order not found'
+      });
+    }
+
+    // Check payment status
+    if (responseCode === '00') {
+      // Payment successful
+      res.json({
+        success: true,
+        message: 'Thanh toán thành công!',
+        data: {
+          orderId,
+          amount,
+          transactionId,
+          bankCode,
+          status: 'success'
+        }
+      });
+    } else {
+      // Payment failed
+      res.json({
+        success: false,
+        message: 'Thanh toán thất bại!',
+        data: {
+          orderId,
+          amount,
+          responseCode,
+          status: 'failed'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('VNPay return URL error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 // Request refund
 router.post('/refund', async (req: any, res) => {
   try {
     const { billId, reason, description } = req.body;
-    
+
     if (!billId || !reason) {
       return res.status(400).json({
         success: false,
@@ -200,7 +545,7 @@ router.post('/refund', async (req: any, res) => {
 
     // This would typically create a refund request
     // For now, just return success
-    
+
     res.json({
       success: true,
       message: 'Refund request submitted successfully',
