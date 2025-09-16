@@ -17,6 +17,9 @@ import certificateRoutes from './certificate.routes';
 import teacherRatingRoutes from './teacher-rating.routes';
 import teacherDashboardRoutes from './teacher-dashboard.routes';
 import teacherPackageRoutes from './teacher-package.routes';
+import wishlistRoutes from './wishlist.routes';
+import studyGroupRoutes from './study-group.routes';
+import { StudyGroupController } from '../controllers/study-group.controller';
 
 const router = express.Router();
 
@@ -40,6 +43,14 @@ router.use('/course-submissions', courseSubmissionRoutes);
 router.use('/ratings', courseRatingRoutes);
 router.use('/teacher-responses', teacherResponseRoutes);
 router.use('/teacher-packages', authenticate, teacherPackageRoutes);
+router.use('/wishlist', authenticate, wishlistRoutes);
+
+// Protected Study Group endpoints (must be before public routes to avoid conflicts)
+router.use('/study-groups', authenticate, studyGroupRoutes);
+
+// Public Study Group endpoints (no auth)
+router.get('/study-groups/public', StudyGroupController.listPublic);
+router.get('/study-groups/:groupId', StudyGroupController.detail);
 
 // Client dashboard overview
 router.get('/dashboard', authenticate, async (req: any, res) => {

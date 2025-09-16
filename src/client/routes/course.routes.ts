@@ -13,6 +13,8 @@ router.get('/categories', ClientCourseController.getCourseCategories);
 router.get('/featured', ClientCourseController.getFeaturedCourses);
 router.get('/popular', ClientCourseController.getPopularCourses);
 router.get('/search', ClientCourseController.searchCourses);
+router.get('/filter-options', ClientCourseController.getFilterOptions);
+router.get('/popular-tags', ClientCourseController.getPopularTags);
 router.get('/instructor/:instructorId', ClientCourseController.getCoursesByInstructor);
 router.get('/:id', ClientCourseController.getCourseById);
 router.get('/:id/related', ClientCourseController.getRelatedCourses);

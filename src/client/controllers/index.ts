@@ -5,3 +5,4 @@ export { ClientSectionController } from './section.controller';
 export { ClientLessonController } from './lesson.controller';
 export { ClientAssignmentController } from './assignment.controller';
 export { ClientAnnouncementController } from './announcement.controller';
+export { ClientWishlistController } from './wishlist.controller';

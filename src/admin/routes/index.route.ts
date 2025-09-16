@@ -18,6 +18,7 @@ import certificateRoutes from './certificate.routes';
 import teacherManagementRoutes from './teacher-management.routes';
 import commentModerationRoutes from './comment-moderation.routes';
 import packageRoutes from './package.routes';
+import wishlistRoutes from './wishlist.routes';
 
 const router = express.Router();
 
@@ -44,6 +45,7 @@ router.use('/certificates', certificateRoutes);
 router.use('/teacher-management', teacherManagementRoutes);
 router.use('/comments', commentModerationRoutes);
 router.use('/packages-management', packageRoutes);
+router.use('/wishlist', wishlistRoutes);
 
 // Admin dashboard overview
 router.get('/dashboard', async (req, res) => {

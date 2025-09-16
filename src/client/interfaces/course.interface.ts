@@ -61,6 +61,21 @@ export interface CourseSearchFilters {
     start: Date;
     end: Date;
   };
+  // Advanced search filters
+  priceRange?: 'free' | '0-100000' | '100000-500000' | '500000-1000000' | '1000000+';
+  duration?: '0-2' | '2-5' | '5-10' | '10+';
+  rating?: '4+' | '4.5+' | '5';
+  sortBy?: 'title' | 'price' | 'rating' | 'duration' | 'students' | 'createdAt' | 'updatedAt';
+  sortOrder?: 'asc' | 'desc';
+  tags?: string[];
+  prerequisites?: string[];
+  benefits?: string[];
+  maxStudents?: number;
+  startDate?: Date;
+  endDate?: Date;
+  // Pagination
+  page?: number;
+  limit?: number;
 }
 
 export interface CourseContent {

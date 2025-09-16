@@ -390,4 +390,61 @@ export class ClientCourseService {
 
     return recommendations;
   }
+
+  // Get filter options for advanced search
+  static async getFilterOptions() {
+    try {
+      const [domains, levels, languages, tags, instructors] = await Promise.all([
+        CourseModel.distinct('domain', { isPublished: true, isApproved: true }),
+        CourseModel.distinct('level', { isPublished: true, isApproved: true }),
+        CourseModel.distinct('language', { isPublished: true, isApproved: true }),
+        CourseModel.distinct('tags', { isPublished: true, isApproved: true }),
+        CourseModel.distinct('instructorId', { isPublished: true, isApproved: true })
+      ]);
+
+      // Get instructor details
+      const instructorDetails = await UserModel.find(
+        { _id: { $in: instructors } },
+        'name email avatar bio'
+      ).lean();
+
+      return {
+        domains: domains.filter(Boolean).sort(),
+        levels: levels.filter(Boolean).sort(),
+        languages: languages.filter(Boolean).sort(),
+        tags: tags.filter(Boolean).sort(),
+        instructors: instructorDetails.map(instructor => ({
+          id: instructor._id.toString(),
+          name: instructor.name,
+          email: instructor.email,
+          avatar: instructor.avatar,
+          bio: instructor.bio
+        }))
+      };
+    } catch (error) {
+      console.error('Error getting filter options:', error);
+      throw error;
+    }
+  }
+
+  // Get popular tags
+  static async getPopularTags(limit: number = 20) {
+    try {
+      const tags = await CourseModel.aggregate([
+        { $match: { isPublished: true, isApproved: true } },
+        { $unwind: '$tags' },
+        { $group: { _id: '$tags', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: limit }
+      ]);
+
+      return tags.map(tag => ({
+        name: tag._id,
+        count: tag.count
+      }));
+    } catch (error) {
+      console.error('Error getting popular tags:', error);
+      throw error;
+    }
+  }
 }

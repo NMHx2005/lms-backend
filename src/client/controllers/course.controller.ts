@@ -356,6 +356,43 @@ export class ClientCourseController {
     }
   }
 
+  // Get filter options for advanced search
+  static async getFilterOptions(req: Request, res: Response) {
+    try {
+      const filterOptions = await ClientCourseService.getFilterOptions();
+
+      res.json({
+        success: true,
+        data: filterOptions
+      });
+    } catch (error) {
+      console.error('Error getting filter options:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // Get popular tags
+  static async getPopularTags(req: Request, res: Response) {
+    try {
+      const { limit = 20 } = req.query;
+      const tags = await ClientCourseService.getPopularTags(Number(limit));
+
+      res.json({
+        success: true,
+        data: tags
+      });
+    } catch (error) {
+      console.error('Error getting popular tags:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
   // Get lesson content (for enrolled students)
   static async getLessonContent(req: Request, res: Response) {
     try {

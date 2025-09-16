@@ -66,16 +66,16 @@ export class ClientAuthService extends BaseAuthService {
       throw new NotFoundError('User not found');
     }
 
-    // Get enrolled courses
-    const enrollments = await Enrollment.find({ studentId: userId, status: 'active' })
-      .populate('courseId', 'name description thumbnail totalLessons totalDuration')
+    // Get enrolled courses (all statuses, not just active)
+    const enrollments = await Enrollment.find({ studentId: userId })
+      .populate('courseId', 'title description thumbnail totalLessons totalDuration')
       .sort({ enrolledAt: -1 })
       .limit(5);
 
     // Recent activity: lấy từ enrollment và gần đây (đơn giản hoá)
     const recentActivity = enrollments.map((e: any) => ({
       type: 'course_enrolled',
-      message: `Enrolled in ${(e.courseId as any).name || (e.courseId as any).title || 'Course'}`,
+      message: `Enrolled in ${(e.courseId as any).title || 'Course'}`,
       timestamp: e.enrolledAt,
       courseId: e.courseId?._id || e.courseId
     }));
@@ -83,7 +83,7 @@ export class ClientAuthService extends BaseAuthService {
     // Upcoming assignments: trong 14 ngày tới theo course đã ghi danh
     const courseIds = enrollments.map((e: any) => e.courseId?._id || e.courseId);
     const now = new Date();
-    const in14 = new Date(Date.now() + 14*24*3600*1000);
+    const in14 = new Date(Date.now() + 14 * 24 * 3600 * 1000);
     const upcomingAssignments = await (await import('../../shared/models')).Assignment.find({
       courseId: { $in: courseIds },
       dueDate: { $gte: now, $lte: in14 },
@@ -93,7 +93,7 @@ export class ClientAuthService extends BaseAuthService {
     // Get course progress
     const courseProgress = enrollments.map(enrollment => ({
       courseId: enrollment.courseId._id,
-      courseName: (enrollment.courseId as any).name,
+      courseName: (enrollment.courseId as any).title,
       progress: enrollment.progress || 0,
       completedLessons: (enrollment as any).completedLessons || 0,
       totalLessons: (enrollment.courseId as any).totalLessons || 0,
@@ -131,7 +131,7 @@ export class ClientAuthService extends BaseAuthService {
 
     if (filters.search) {
       query.$or = [
-        { 'courseId.name': { $regex: filters.search, $options: 'i' } },
+        { 'courseId.title': { $regex: filters.search, $options: 'i' } },
         { 'courseId.description': { $regex: filters.search, $options: 'i' } },
       ];
     }
@@ -142,7 +142,7 @@ export class ClientAuthService extends BaseAuthService {
 
     const [enrollments, total] = await Promise.all([
       Enrollment.find(query)
-        .populate('courseId', 'name description thumbnail totalLessons totalDuration category')
+        .populate('courseId', 'title description thumbnail totalLessons totalDuration category price instructorId')
         .sort({ enrolledAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -168,7 +168,7 @@ export class ClientAuthService extends BaseAuthService {
       studentId: userId,
       courseId,
       status: 'active',
-    }).populate('courseId', 'name totalLessons totalDuration');
+    }).populate('courseId', 'title totalLessons totalDuration');
 
     if (!enrollment) {
       throw new NotFoundError('Enrollment not found');
@@ -181,7 +181,7 @@ export class ClientAuthService extends BaseAuthService {
 
     return {
       courseId,
-      courseName: course.name,
+      courseName: course.title,
       progress,
       completedLessons,
       totalLessons,
@@ -285,12 +285,12 @@ export class ClientAuthService extends BaseAuthService {
       studentId: userId,
       status: 'completed',
       certificateIssued: true,
-    }).populate('courseId', 'name description thumbnail');
+    }).populate('courseId', 'title description thumbnail');
 
     return enrollments.map(enrollment => ({
       id: enrollment._id.toString(),
       courseId: enrollment.courseId._id,
-      courseName: (enrollment.courseId as any).name,
+      courseName: (enrollment.courseId as any).title,
       courseDescription: (enrollment.courseId as any).description,
       courseThumbnail: (enrollment.courseId as any).thumbnail,
       issuedAt: enrollment.completedAt,
