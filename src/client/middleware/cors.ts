@@ -1,5 +1,20 @@
 import cors from 'cors';
 
+const normalize = (s?: string) => (s || '').trim().replace(/\/$/, '').toLowerCase();
+
+const getAllowedOrigins = (): string[] => {
+  // Prefer CORS_ORIGINS, fallback to CORS_ORIGIN or CORS_ORIGIN_PRODUCTION
+  const raw =
+    process.env.CORS_ORIGINS ||
+    process.env.CORS_ORIGIN ||
+    process.env.CORS_ORIGIN_PRODUCTION ||
+    '';
+  return raw
+    .split(',')
+    .map(s => normalize(s))
+    .filter(Boolean);
+};
+
 // CORS configuration for different environments
 const corsOptions = {
   origin: (
@@ -9,37 +24,28 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = (process.env.CORS_ORIGIN || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
+    const allowedOrigins = getAllowedOrigins();
+    const o = normalize(origin);
 
-    // If no CORS_ORIGIN is set, allow all origins in development
+    // If no origins configured: allow in development, block in production
     if (allowedOrigins.length === 0) {
-      if (process.env.NODE_ENV === 'development') {
-        return callback(null, true);
-      }
-      // In production, require CORS_ORIGIN to be set
-      return callback(new Error('CORS_ORIGIN must be set in production'));
+      return process.env.NODE_ENV === 'development'
+        ? callback(null, true)
+        : callback(new Error('CORS_ORIGINS must be set in production'));
     }
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    // Exact match
+    if (allowedOrigins.includes(o)) return callback(null, true);
 
-    // Check for wildcard subdomains (e.g., *.example.com)
-    const isWildcardMatch = allowedOrigins.some(allowed => {
-      if (allowed.startsWith('*.')) {
-        const domain = allowed.slice(2);
-        return origin.endsWith(domain);
-      }
-      return false;
+    // Wildcard support like https://*.vercel.app
+    const ok = allowedOrigins.some(allowed => {
+      if (!allowed.includes('*')) return false;
+      const pattern = '^' + allowed
+        .replace(/[-/\\^$+?.()|[\]{}]/g, r => `\\${r}`)
+        .replace(/\\\*/g, '[^.]+') + '$';
+      try { return new RegExp(pattern).test(o); } catch { return false; }
     });
-
-    if (isWildcardMatch) {
-      return callback(null, true);
-    }
+    if (ok) return callback(null, true);
 
     return callback(new Error(`Origin ${origin} not allowed by CORS`));
   },

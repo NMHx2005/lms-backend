@@ -16,6 +16,7 @@ import { createOAuthSessionMiddleware } from './shared/middleware/session';
 
 // Import Passport configuration to initialize it
 import { initializePassport } from './shared/config/passport';
+import { corsMiddleware } from './client/middleware/cors';
 
 // Import error handling middleware
 import {
@@ -38,6 +39,11 @@ const app = express();
 app.use(requestIdMiddleware);
 // Global API metrics collection
 app.use(metricsMiddleware);
+
+// Ensure CORS runs before any other middleware/routes
+app.use((req, res, next) => { res.header('Vary', 'Origin'); next(); });
+app.use(corsMiddleware);
+app.options('*', corsMiddleware);
 
 // Apply all security middleware
 applySecurityMiddleware(app);
