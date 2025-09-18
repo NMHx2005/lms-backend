@@ -1,14 +1,15 @@
 import bcrypt from 'bcryptjs';
 import { User as UserModel } from '../../shared/models';
-import { 
-  CreateUserRequest, 
-  UpdateUserRequest, 
-  UserListResponse, 
-  UserStats, 
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+  UserListResponse,
+  UserStats,
   UserSearchFilters,
   User
 } from '../interfaces/user.interface';
 import { DEFAULT_USER_LIMIT, USER_SORT_FIELDS, USER_SORT_ORDERS } from '../constants/user.constants';
+import { CloudinaryService } from '../../shared/services/cloudinaryService';
 
 export class UserService {
   // Create a new user
@@ -51,32 +52,32 @@ export class UserService {
     filters: UserSearchFilters = {}
   ): Promise<UserListResponse> {
     const skip = (page - 1) * limit;
-    
+
     // Build query
     const query: any = {};
-    
+
     if (filters.search) {
       query.$or = [
         { name: { $regex: filters.search, $options: 'i' } },
         { email: { $regex: filters.search, $options: 'i' } }
       ];
     }
-    
+
     if (filters.roles && filters.roles.length > 0) {
       query.roles = { $in: filters.roles };
     }
-    
+
     if (filters.isActive !== undefined) {
       query.isActive = filters.isActive;
     }
-    
+
     if (filters.createdAt) {
       query.createdAt = {
         $gte: filters.createdAt.start,
         $lte: filters.createdAt.end
       };
     }
-    
+
     if (filters.lastActivityAt) {
       query.lastActivityAt = {
         $gte: filters.lastActivityAt.start,
@@ -156,7 +157,7 @@ export class UserService {
 
     // Check if user has any dependencies (courses, enrollments, etc.)
     // This would need to be implemented based on your business logic
-    
+
     await UserModel.findByIdAndDelete(userId);
     return { message: 'User deleted successfully' };
   }
@@ -217,8 +218,8 @@ export class UserService {
         { name: { $regex: searchTerm, $options: 'i' } }
       ]
     })
-    .select('-password')
-    .limit(limit);
+      .select('-password')
+      .limit(limit);
 
     return users;
   }
@@ -258,5 +259,22 @@ export class UserService {
       message: `Updated ${result.modifiedCount} users`,
       modifiedCount: result.modifiedCount
     };
+  }
+
+  // Update user avatar
+  static async updateUserAvatar(userId: string, file: Express.Multer.File): Promise<string> {
+    // Upload to Cloudinary
+    const result = await CloudinaryService.uploadFile(file, {
+      folder: 'avatars',
+      resourceType: 'image'
+    });
+
+    // Update user avatar
+    await UserModel.findByIdAndUpdate(userId, {
+      avatar: result.secureUrl,
+      updatedAt: new Date()
+    });
+
+    return result.secureUrl;
   }
 }

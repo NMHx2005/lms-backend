@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { PackagePlan, TeacherPackageSubscription } from '../../shared/models';
+// Removed json2csv dependency to avoid runtime install; build CSV manually
 
 // Packages
 export const listPackages = async (req: Request, res: Response) => {
@@ -73,6 +75,48 @@ export const deletePackage = async (req: Request, res: Response) => {
 
     await pkg.deleteOne();
     res.json({ success: true, message: 'Package deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error as Error).message });
+  }
+};
+
+export const exportPackagesCsv = async (req: Request, res: Response) => {
+  try {
+    const { search, isActive } = req.query as any;
+    const filters: any = {};
+    if (typeof isActive === 'boolean' || isActive === 'true' || isActive === 'false') {
+      filters.isActive = isActive === true || isActive === 'true';
+    }
+    if (search) filters.name = { $regex: search, $options: 'i' };
+
+    const packages = await PackagePlan.find(filters).sort({ createdAt: -1 });
+    const headers = ['name', 'description', 'price', 'maxCourses', 'billingCycle', 'isActive', 'version', 'createdAt', 'updatedAt'];
+    const escapeCsv = (value: unknown): string => {
+      const str = value === null || value === undefined ? '' : String(value);
+      const needsQuotes = /[",\n]/.test(str);
+      const escaped = str.replace(/"/g, '""');
+      return needsQuotes ? `"${escaped}"` : escaped;
+    };
+    const lines: string[] = [];
+    lines.push(headers.join(','));
+    for (const p of packages) {
+      const row = [
+        escapeCsv(p.name),
+        escapeCsv(p.description || ''),
+        escapeCsv(p.price),
+        escapeCsv(p.maxCourses),
+        escapeCsv(p.billingCycle),
+        escapeCsv(p.isActive ? 'Hoạt động' : 'Tạm dừng'),
+        escapeCsv(p.version || 1),
+        escapeCsv(p.createdAt?.toISOString?.() || ''),
+        escapeCsv(p.updatedAt?.toISOString?.() || ''),
+      ].join(',');
+      lines.push(row);
+    }
+    const csv = lines.join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="packages_${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.status(200).send(csv);
   } catch (error) {
     res.status(500).json({ success: false, error: (error as Error).message });
   }
@@ -159,6 +203,68 @@ export const updateSubscription = async (req: Request, res: Response) => {
     res.json({ success: true, data: sub });
   } catch (error) {
     res.status(400).json({ success: false, error: (error as Error).message });
+  }
+};
+
+// Get teachers subscribed to a specific package
+export const getPackageSubscribers = async (req: Request, res: Response) => {
+  try {
+    const packageIdParam: any = (req.params as any);
+    const packageId = packageIdParam.packageId || packageIdParam.id;
+    const { status = 'all', page = 1, limit = 10 } = req.query;
+
+    console.log('getPackageSubscribers called with:', { packageId, status, page, limit });
+
+    if (!packageId) {
+      return res.status(400).json({ success: false, error: 'Package ID is required' });
+    }
+
+    // Convert string packageId to ObjectId for proper matching
+    const filter: any = { packageId: new mongoose.Types.ObjectId(packageId) };
+    if (status !== 'all') {
+      filter.status = status;
+    }
+
+    console.log('Filter:', filter);
+
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    const [subscriptions, total] = await Promise.all([
+      TeacherPackageSubscription.find(filter)
+        .populate('teacherId', 'firstName lastName email avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit as string)),
+      TeacherPackageSubscription.countDocuments(filter)
+    ]);
+
+    console.log('Found subscriptions:', subscriptions.length);
+    console.log('Total count:', total);
+
+    res.json({
+      success: true,
+      data: {
+        subscriptions: subscriptions.map(sub => ({
+          id: sub._id,
+          teacher: sub.teacherId,
+          status: sub.status,
+          startAt: sub.startAt,
+          endAt: sub.endAt,
+          renewedAt: sub.renewedAt,
+          snapshot: sub.snapshot,
+          createdAt: sub.createdAt
+        })),
+        pagination: {
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          total,
+          pages: Math.ceil(total / parseInt(limit as string))
+        }
+      }
+    });
+  } catch (error) {
+    console.error('getPackageSubscribers error:', error);
+    res.status(500).json({ success: false, error: (error as Error).message });
   }
 };
 

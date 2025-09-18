@@ -4,7 +4,7 @@ import { VALIDATION_CONSTANTS } from './constants';
 // Common validation rules that can be reused across different validators
 export const commonValidations = {
   // MongoDB ObjectId validation
-  mongoId: (field: string) => 
+  mongoId: (field: string) =>
     param(field)
       .isMongoId()
       .withMessage(`${field} must be a valid MongoDB ObjectId`),
@@ -20,9 +20,9 @@ export const commonValidations = {
   // Password validation with strength requirements
   password: (field: string = 'password') =>
     body(field)
-      .isLength({ 
+      .isLength({
         min: VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_PASSWORD,
-        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_PASSWORD 
+        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_PASSWORD
       })
       .withMessage(`Password must be between ${VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_PASSWORD} and ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_PASSWORD} characters`)
       .matches(VALIDATION_CONSTANTS.PATTERNS.PASSWORD)
@@ -31,9 +31,9 @@ export const commonValidations = {
   // Name validation
   name: (field: string = 'name') =>
     body(field)
-      .isLength({ 
+      .isLength({
         min: VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_NAME,
-        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME 
+        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME
       })
       .withMessage(`Name must be between ${VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_NAME} and ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME} characters`)
       .trim()
@@ -42,9 +42,9 @@ export const commonValidations = {
   // Description validation
   description: (field: string = 'description') =>
     body(field)
-      .isLength({ 
+      .isLength({
         min: VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_DESCRIPTION,
-        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_DESCRIPTION 
+        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_DESCRIPTION
       })
       .withMessage(`Description must be between ${VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_DESCRIPTION} and ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_DESCRIPTION} characters`)
       .trim()
@@ -55,9 +55,9 @@ export const commonValidations = {
     body(field)
       .matches(VALIDATION_CONSTANTS.PATTERNS.PHONE)
       .withMessage('Please provide a valid phone number')
-      .isLength({ 
+      .isLength({
         min: VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_PHONE,
-        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_PHONE 
+        max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_PHONE
       })
       .withMessage(`Phone number must be between ${VALIDATION_CONSTANTS.STRING_LENGTHS.MIN_PHONE} and ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_PHONE} characters`),
 
@@ -109,15 +109,15 @@ export const commonValidations = {
     let validation = body(field)
       .isArray()
       .withMessage(`${field} must be an array`);
-    
+
     if (minLength > 0) {
       validation = validation.isLength({ min: minLength }).withMessage(`${field} must have at least ${minLength} items`);
     }
-    
+
     if (maxLength) {
       validation = validation.isLength({ max: maxLength }).withMessage(`${field} must have at most ${maxLength} items`);
     }
-    
+
     return validation;
   },
 
@@ -139,8 +139,8 @@ export const commonValidations = {
   search: (field: string = 'search') =>
     query(field)
       .optional()
-      .isLength({ min: 2, max: 100 })
-      .withMessage('Search term must be between 2 and 100 characters')
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Search term must be between 1 and 100 characters')
       .trim()
       .escape(),
 
@@ -176,30 +176,30 @@ export const commonValidations = {
   // Integer validation
   integer: (field: string, min?: number, max?: number) => {
     let validation = body(field).isInt().withMessage(`${field} must be an integer`);
-    
+
     if (min !== undefined) {
       validation = validation.isInt({ min }).withMessage(`${field} must be at least ${min}`);
     }
-    
+
     if (max !== undefined) {
       validation = validation.isInt({ max }).withMessage(`${field} must be at most ${max}`);
     }
-    
+
     return validation;
   },
 
   // Float validation
   float: (field: string, min?: number, max?: number) => {
     let validation = body(field).isFloat().withMessage(`${field} must be a number`);
-    
+
     if (min !== undefined) {
       validation = validation.isFloat({ min }).withMessage(`${field} must be at least ${min}`);
     }
-    
+
     if (max !== undefined) {
       validation = validation.isFloat({ max }).withMessage(`${field} must be at most ${max}`);
     }
-    
+
     return validation;
   },
 };
@@ -250,20 +250,20 @@ export const customValidations = {
         if (!Array.isArray(value)) {
           throw new Error(`${field} must be an array`);
         }
-        
+
         for (let i = 0; i < value.length; i++) {
           const item = value[i];
           if (typeof item !== 'object' || item === null) {
             throw new Error(`${field}[${i}] must be an object`);
           }
-          
+
           for (const [prop, validation] of Object.entries(objectValidations)) {
             if (item[prop] !== undefined) {
               try {
                 validation.run({ body: { [prop]: item[prop] } });
-                             } catch (error: any) {
-                 throw new Error(`${field}[${i}].${prop}: ${error.message}`);
-               }
+              } catch (error: any) {
+                throw new Error(`${field}[${i}].${prop}: ${error.message}`);
+              }
             }
           }
         }
@@ -280,7 +280,7 @@ export const handleValidationErrors = (req: any, res: any, next: any) => {
       message: err?.msg,
       value: err?.value,
     }));
-    
+
     return res.status(400).json({
       success: false,
       error: 'Validation failed',

@@ -7,7 +7,7 @@ export class UserController {
     try {
       const userData = req.body;
       const user = await UserService.createUser(userData);
-      
+
       res.status(201).json({
         success: true,
         message: 'User created successfully',
@@ -27,7 +27,7 @@ export class UserController {
     try {
       const { id } = req.params;
       const user = await UserService.getUserById(id);
-      
+
       res.json({
         success: true,
         data: user
@@ -57,7 +57,15 @@ export class UserController {
       // Parse filters
       const filters: any = {};
       if (search) filters.search = search as string;
-      if (roles) filters.roles = Array.isArray(roles) ? roles : [roles];
+      if (roles) {
+        // Handle both string and array for roles
+        if (Array.isArray(roles)) {
+          filters.roles = roles;
+        } else if (typeof roles === 'string') {
+          // Split comma-separated string or use single value
+          filters.roles = roles.includes(',') ? roles.split(',').map(r => r.trim()) : [roles];
+        }
+      }
       if (isActive !== undefined) filters.isActive = isActive === 'true';
 
       const result = await UserService.getUsers(
@@ -86,9 +94,9 @@ export class UserController {
     try {
       const { id } = req.params;
       const updateData = req.body;
-      
+
       const user = await UserService.updateUser(id, updateData);
-      
+
       res.json({
         success: true,
         message: 'User updated successfully',
@@ -108,7 +116,7 @@ export class UserController {
     try {
       const { id } = req.params;
       const result = await UserService.deleteUser(id);
-      
+
       res.json({
         success: true,
         message: result.message
@@ -126,7 +134,7 @@ export class UserController {
   static async getUserStats(req: Request, res: Response) {
     try {
       const stats = await UserService.getUserStats();
-      
+
       res.json({
         success: true,
         data: stats
@@ -144,7 +152,7 @@ export class UserController {
   static async bulkUpdateUserStatus(req: Request, res: Response) {
     try {
       const { userIds, isActive } = req.body;
-      
+
       if (!Array.isArray(userIds) || userIds.length === 0) {
         return res.status(400).json({
           success: false,
@@ -160,7 +168,7 @@ export class UserController {
       }
 
       const result = await UserService.bulkUpdateUserStatus(userIds, isActive);
-      
+
       res.json({
         success: true,
         message: result.message,
@@ -179,7 +187,7 @@ export class UserController {
   static async searchUsers(req: Request, res: Response) {
     try {
       const { q, limit = 10 } = req.query;
-      
+
       if (!q || typeof q !== 'string') {
         return res.status(400).json({
           success: false,
@@ -188,7 +196,7 @@ export class UserController {
       }
 
       const users = await UserService.searchUsers(q, Number(limit));
-      
+
       res.json({
         success: true,
         data: users
@@ -207,7 +215,7 @@ export class UserController {
     try {
       const { id } = req.params;
       const result = await UserService.activateUser(id);
-      
+
       res.json({
         success: true,
         message: 'User activated successfully',
@@ -227,7 +235,7 @@ export class UserController {
     try {
       const { id } = req.params;
       const result = await UserService.deactivateUser(id);
-      
+
       res.json({
         success: true,
         message: 'User deactivated successfully',
@@ -246,7 +254,7 @@ export class UserController {
   static async bulkUpdateUserRoles(req: Request, res: Response) {
     try {
       const { userIds, roles } = req.body;
-      
+
       if (!Array.isArray(userIds) || userIds.length === 0) {
         return res.status(400).json({
           success: false,
@@ -262,7 +270,7 @@ export class UserController {
       }
 
       const result = await UserService.bulkUpdateUserRoles(userIds, roles);
-      
+
       res.json({
         success: true,
         message: result.message,
@@ -273,6 +281,34 @@ export class UserController {
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to bulk update user roles'
+      });
+    }
+  }
+
+  // Update user avatar
+  static async updateUserAvatar(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: 'Avatar file is required'
+        });
+      }
+
+      const avatar = await UserService.updateUserAvatar(id, req.file);
+
+      res.json({
+        success: true,
+        message: 'Avatar updated successfully',
+        data: { avatar }
+      });
+    } catch (error: any) {
+      console.error('Update user avatar error:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to update avatar'
       });
     }
   }

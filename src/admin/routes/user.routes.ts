@@ -2,6 +2,7 @@ import express from 'express';
 import { UserController } from '../controllers/user.controller';
 import { adminUserValidation } from '../validators/user.validator';
 import { validateRequest } from '../../shared/middleware/validation';
+import { multerInstances } from '../../shared/middleware/multer';
 
 const router = express.Router();
 
@@ -37,5 +38,11 @@ router.patch('/bulk-status', UserController.bulkUpdateUserStatus);
 
 // Bulk update user roles
 router.patch('/bulk-roles', UserController.bulkUpdateUserRoles);
+
+// Update user avatar
+router.post('/:id/avatar',
+    multerInstances.profilePictures.single('profilePicture'),
+    UserController.updateUserAvatar
+);
 
 export default router;

@@ -82,10 +82,13 @@ export const PackagePlan = mongoose.model<IPackagePlan>('PackagePlan', packagePl
 export interface ITeacherPackageSubscription extends Document {
   teacherId: mongoose.Types.ObjectId; // ref User
   packageId: mongoose.Types.ObjectId; // ref PackagePlan
-  status: 'active' | 'cancelled' | 'expired';
+  status: 'pending' | 'active' | 'cancelled' | 'expired';
   startAt: Date;
   endAt: Date;
   renewedAt?: Date;
+  paymentMethod?: 'wallet' | 'vnpay' | 'credit_card' | 'bank_transfer';
+  couponCode?: string;
+  metadata?: any; // For storing payment gateway specific data
   // immutable snapshot of package at subscription time
   snapshot: {
     name: string;
@@ -115,9 +118,23 @@ const teacherPackageSubscriptionSchema = new Schema<ITeacherPackageSubscription>
     },
     status: {
       type: String,
-      enum: ['active', 'cancelled', 'expired'],
+      enum: ['pending', 'active', 'cancelled', 'expired'],
       default: 'active',
       index: true,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['wallet', 'vnpay', 'credit_card', 'bank_transfer'],
+      index: true,
+    },
+    couponCode: {
+      type: String,
+      trim: true,
+      maxlength: [50, 'Coupon code cannot exceed 50 characters'],
+    },
+    metadata: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
     startAt: {
       type: Date,

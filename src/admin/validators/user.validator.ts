@@ -9,58 +9,75 @@ export const adminUserValidation = {
     commonValidations.email('email'),
     body('password').notEmpty().withMessage('Password is required'),
     commonValidations.password('password'),
-    body('firstName').notEmpty().withMessage('First name is required'),
-    commonValidations.name('firstName'),
-    body('lastName').notEmpty().withMessage('Last name is required'),
-    commonValidations.name('lastName'),
+    body('name').notEmpty().withMessage('Name is required'),
+    commonValidations.name('name'),
     body('roles').notEmpty().withMessage('Roles are required'),
     commonValidations.roles('roles'),
     body('isActive').optional(),
     commonValidations.boolean('isActive'),
-    body('profile.avatar').optional(),
-    commonValidations.url('profile.avatar'),
-    body('profile.phone').optional(),
-    commonValidations.phone('profile.phone'),
-    body('profile.address').optional(),
-    body('profile.address').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_ADDRESS }).withMessage(`Address must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_ADDRESS} characters`),
-    body('profile.country').optional(),
-    body('profile.country').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME }).withMessage(`Country must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME} characters`),
-    body('profile.bio').optional(),
-    body('profile.bio').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO }).withMessage(`Bio must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO} characters`),
+    body('avatar').optional(),
+    commonValidations.url('avatar'),
+    body('phone').optional(),
+    commonValidations.phone('phone'),
+    body('country').optional(),
+    body('country').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME }).withMessage(`Country must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME} characters`),
+    body('bio').optional(),
+    body('bio').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO }).withMessage(`Bio must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO} characters`),
   ],
 
   // Update user validation
   updateUser: [
-    body('firstName').optional(),
-    commonValidations.name('firstName'),
-    body('lastName').optional(),
-    commonValidations.name('lastName'),
+    body('name').optional(),
+    commonValidations.name('name'),
     body('roles').optional(),
     commonValidations.roles('roles'),
     body('isActive').optional(),
     commonValidations.boolean('isActive'),
-    body('profile.avatar').optional(),
-    commonValidations.url('profile.avatar'),
-    body('profile.phone').optional(),
-    commonValidations.phone('profile.phone'),
-    body('profile.address').optional(),
-    body('profile.address').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_ADDRESS }).withMessage(`Address must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_ADDRESS} characters`),
-    body('profile.country').optional(),
-    body('profile.country').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME }).withMessage(`Country must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME} characters`),
-    body('profile.bio').optional(),
-    body('profile.bio').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO }).withMessage(`Bio must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO} characters`),
+    body('avatar').optional().custom((value) => {
+      if (value && value !== '') {
+        // Only validate if value is provided and not empty
+        const urlPattern = /^https?:\/\/.+/;
+        if (!urlPattern.test(value)) {
+          throw new Error('Please provide a valid URL');
+        }
+      }
+      return true;
+    }),
+    body('phone').optional().custom((value) => {
+      if (value && value !== '') {
+        // Only validate if value is provided and not empty
+        const phonePattern = /^[0-9+\-\s()]+$/;
+        if (!phonePattern.test(value)) {
+          throw new Error('Please provide a valid phone number');
+        }
+        if (value.length < 10 || value.length > 15) {
+          throw new Error('Phone number must be between 10 and 15 characters');
+        }
+      }
+      return true;
+    }),
+    body('country').optional(),
+    body('country').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME }).withMessage(`Country must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_NAME} characters`),
+    body('bio').optional(),
+    body('bio').isLength({ max: VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO }).withMessage(`Bio must be less than ${VALIDATION_CONSTANTS.STRING_LENGTHS.MAX_BIO} characters`),
   ],
 
   // User ID validation
   userId: [
-    commonValidations.mongoId('userId'),
+    commonValidations.mongoId('id'),
   ],
 
   // Query parameters validation
   queryParams: [
     ...commonValidations.pagination(),
     commonValidations.search('search'),
-    query('roles').optional().isArray().withMessage('Roles must be an array'),
+    query('roles').optional().custom((value) => {
+      // Accept both string and array for roles
+      if (typeof value === 'string' || Array.isArray(value)) {
+        return true;
+      }
+      throw new Error('Roles must be a string or array');
+    }),
     query('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
     query('createdAtFrom').optional().isISO8601().withMessage('Created at from must be in ISO 8601 format'),
     query('createdAtTo').optional().isISO8601().withMessage('Created at to must be in ISO 8601 format'),
@@ -117,7 +134,13 @@ export const adminUserValidation = {
     query('period').optional().isIn(['daily', 'weekly', 'monthly', 'yearly']),
     query('startDate').optional().isISO8601().withMessage('Start date must be in ISO 8601 format'),
     query('endDate').optional().isISO8601().withMessage('End date must be in ISO 8601 format'),
-    query('roles').optional().isArray().withMessage('Roles must be an array'),
+    query('roles').optional().custom((value) => {
+      // Accept both string and array for roles
+      if (typeof value === 'string' || Array.isArray(value)) {
+        return true;
+      }
+      throw new Error('Roles must be a string or array');
+    }),
     query('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
   ],
 };
