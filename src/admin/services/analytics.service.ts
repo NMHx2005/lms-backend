@@ -1,10 +1,10 @@
 import { User, Course, Enrollment, Bill } from '../../shared/models';
-import { 
-  DashboardAnalytics, 
-  UserAnalytics, 
-  CourseAnalytics, 
-  RevenueAnalytics, 
-  EnrollmentAnalytics 
+import {
+  DashboardAnalytics,
+  UserAnalytics,
+  CourseAnalytics,
+  RevenueAnalytics,
+  EnrollmentAnalytics
 } from '../interfaces/analytics.interface';
 import { ANALYTICS_DEFAULT_PERIOD } from '../constants/analytics.constants';
 
@@ -27,10 +27,10 @@ export class AnalyticsService {
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]),
       Course.countDocuments({ isApproved: false }),
-      User.countDocuments({ 
-        lastActivityAt: { 
-          $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
-        } 
+      User.countDocuments({
+        lastActivityAt: {
+          $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        }
       })
     ]);
 
@@ -49,7 +49,24 @@ export class AnalyticsService {
 
   // Get user analytics
   static async getUserAnalytics(period: string = ANALYTICS_DEFAULT_PERIOD): Promise<UserAnalytics> {
-    const days = Number(period);
+    // Convert period to days
+    let days: number;
+    switch (period) {
+      case 'daily':
+        days = 1;
+        break;
+      case 'weekly':
+        days = 7;
+        break;
+      case 'monthly':
+        days = 30;
+        break;
+      case 'yearly':
+        days = 365;
+        break;
+      default:
+        days = Number(period) || 30;
+    }
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const [
@@ -60,8 +77,8 @@ export class AnalyticsService {
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ createdAt: { $gte: startDate } }),
-      User.countDocuments({ 
-        lastActivityAt: { $gte: startDate } 
+      User.countDocuments({
+        lastActivityAt: { $gte: startDate }
       }),
       User.aggregate([
         { $unwind: '$roles' },
@@ -80,7 +97,24 @@ export class AnalyticsService {
 
   // Get course analytics
   static async getCourseAnalytics(period: string = ANALYTICS_DEFAULT_PERIOD): Promise<CourseAnalytics> {
-    const days = Number(period);
+    // Convert period to days
+    let days: number;
+    switch (period) {
+      case 'daily':
+        days = 1;
+        break;
+      case 'weekly':
+        days = 7;
+        break;
+      case 'monthly':
+        days = 30;
+        break;
+      case 'yearly':
+        days = 365;
+        break;
+      default:
+        days = Number(period) || 30;
+    }
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const [
@@ -113,7 +147,24 @@ export class AnalyticsService {
 
   // Get revenue analytics
   static async getRevenueAnalytics(period: string = ANALYTICS_DEFAULT_PERIOD): Promise<RevenueAnalytics> {
-    const days = Number(period);
+    // Convert period to days
+    let days: number;
+    switch (period) {
+      case 'daily':
+        days = 1;
+        break;
+      case 'weekly':
+        days = 7;
+        break;
+      case 'monthly':
+        days = 30;
+        break;
+      case 'yearly':
+        days = 365;
+        break;
+      default:
+        days = Number(period) || 30;
+    }
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const [
@@ -128,14 +179,14 @@ export class AnalyticsService {
       ]),
       Bill.aggregate([
         { $match: { status: 'completed', createdAt: { $gte: startDate } } },
-        { 
-          $group: { 
-            _id: { 
-              year: { $year: '$createdAt' }, 
-              month: { $month: '$createdAt' } 
-            }, 
-            revenue: { $sum: '$amount' } 
-          } 
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' }
+            },
+            revenue: { $sum: '$amount' }
+          }
         },
         { $sort: { '_id.year': 1, '_id.month': 1 } }
       ]),
@@ -166,7 +217,24 @@ export class AnalyticsService {
 
   // Get enrollment analytics
   static async getEnrollmentAnalytics(period: string = ANALYTICS_DEFAULT_PERIOD): Promise<EnrollmentAnalytics> {
-    const days = Number(period);
+    // Convert period to days
+    let days: number;
+    switch (period) {
+      case 'daily':
+        days = 1;
+        break;
+      case 'weekly':
+        days = 7;
+        break;
+      case 'monthly':
+        days = 30;
+        break;
+      case 'yearly':
+        days = 365;
+        break;
+      default:
+        days = Number(period) || 30;
+    }
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const [

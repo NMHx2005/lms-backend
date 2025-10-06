@@ -51,7 +51,7 @@ export const adminCourseValidation = {
 
   // Course ID validation
   courseId: [
-    commonValidations.mongoId('courseId'),
+    param('id').isMongoId().withMessage('Course ID must be a valid MongoDB ObjectId'),
   ],
 
   // Query parameters validation
@@ -61,12 +61,17 @@ export const adminCourseValidation = {
     query('level').optional().isIn(['beginner', 'intermediate', 'advanced', 'expert']),
     query('status').optional().isIn(VALIDATION_CONSTANTS.COURSE_STATUSES.ALL),
     query('domain').optional().isLength({ min: 2, max: 100 }).trim().escape(),
+    query('isPublished').optional().isBoolean(),
+    query('isApproved').optional().isBoolean(),
+    query('isFeatured').optional().isBoolean(),
+    query('submittedForReview').optional().isBoolean(),
     query('instructorId').optional().isMongoId(),
+    query('instructor').optional().isLength({ min: 1, max: 100 }).trim().escape(),
     query('minPrice').optional().isFloat({ min: 0 }),
     query('maxPrice').optional().isFloat({ min: 0 }),
     query('minDuration').optional().isInt({ min: 1 }),
     query('maxDuration').optional().isInt({ min: 1 }),
-    query('sortBy').optional().isIn(['title', 'price', 'duration', 'rating', 'createdAt', 'updatedAt']),
+    query('sortBy').optional().isIn(['title', 'price', 'duration', 'rating', 'createdAt', 'updatedAt', 'totalStudents', 'enrollmentCount', 'averageRating', 'totalRevenue', 'revenue', 'isFeatured', 'domain', 'level', 'totalLessons', 'totalDuration']),
     query('sortOrder').optional().isIn(['asc', 'desc']),
   ],
 

@@ -130,4 +130,28 @@ router.get(
   AdminAuthController.getUserStatistics
 );
 
+/**
+ * @route   GET /api/admin/auth/roles
+ * @desc    Get available roles (admin only)
+ * @access  Private (Admin)
+ */
+router.get(
+  '/roles',
+  authenticate,
+  requireAdmin,
+  AdminAuthController.getRoles
+);
+
+/**
+ * @route   GET /api/admin/auth/permissions
+ * @desc    Get available permissions (admin only)
+ * @access  Private (Admin)
+ */
+router.get(
+  '/permissions',
+  authenticate,
+  requireAdmin,
+  AdminAuthController.getPermissions
+);
+
 export default router;

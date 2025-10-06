@@ -11,10 +11,19 @@ router.get('/overview', SystemController.getSystemOverview);
 // Get pending refunds
 router.get('/refunds', validateRequest(adminSystemValidation.refundQuery), SystemController.getRefunds);
 
+// Get refund statistics
+router.get('/refunds/stats', SystemController.getRefundStats);
+
 // Process refund request
-router.put('/refunds/:id/process', 
-  validateRequest([...adminSystemValidation.refundId, ...adminSystemValidation.processRefund]), 
+router.put('/refunds/:id/process',
+  validateRequest([...adminSystemValidation.refundId, ...adminSystemValidation.processRefund]),
   SystemController.processRefund
+);
+
+// Bulk process refunds
+router.put('/refunds/bulk-process',
+  validateRequest(adminSystemValidation.bulkProcessRefunds),
+  SystemController.bulkProcessRefunds
 );
 
 // Get system logs

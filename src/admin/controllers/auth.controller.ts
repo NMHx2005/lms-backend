@@ -192,4 +192,36 @@ export class AdminAuthController {
       next(error);
     }
   }
+
+  /**
+   * Get available roles (admin only)
+   */
+  static async getRoles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const roles = await AdminAuthService.getRoles();
+
+      res.json({
+        success: true,
+        data: roles,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get available permissions (admin only)
+   */
+  static async getPermissions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const permissions = await AdminAuthService.getPermissions();
+
+      res.json({
+        success: true,
+        data: permissions,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

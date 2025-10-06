@@ -1,7 +1,7 @@
 import { User, Course, Bill, RefundRequest } from '../../shared/models';
-import { 
-  SystemOverview, 
-  SystemHealth, 
+import {
+  SystemOverview,
+  SystemHealth,
   RefundRequest as RefundRequestInterface,
   SystemLog,
   SystemSettings,
@@ -83,6 +83,61 @@ export class SystemService {
   }
 
   /**
+   * Get refund statistics
+   */
+  static async getRefundStats(): Promise<{
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    completed: number;
+    totalAmount: number;
+    pendingAmount: number;
+  }> {
+    try {
+      const [
+        total,
+        pending,
+        approved,
+        rejected,
+        completed,
+        totalAmountResult,
+        pendingAmountResult
+      ] = await Promise.all([
+        RefundRequest.countDocuments(),
+        RefundRequest.countDocuments({ status: 'pending' }),
+        RefundRequest.countDocuments({ status: 'approved' }),
+        RefundRequest.countDocuments({ status: 'rejected' }),
+        RefundRequest.countDocuments({ status: 'completed' }),
+        RefundRequest.aggregate([
+          { $match: { status: { $in: ['approved', 'completed'] } } },
+          { $lookup: { from: 'bills', localField: 'billId', foreignField: '_id', as: 'bill' } },
+          { $unwind: '$bill' },
+          { $group: { _id: null, total: { $sum: '$bill.amount' } } }
+        ]),
+        RefundRequest.aggregate([
+          { $match: { status: 'pending' } },
+          { $lookup: { from: 'bills', localField: 'billId', foreignField: '_id', as: 'bill' } },
+          { $unwind: '$bill' },
+          { $group: { _id: null, total: { $sum: '$bill.amount' } } }
+        ])
+      ]);
+
+      return {
+        total,
+        pending,
+        approved,
+        rejected,
+        completed,
+        totalAmount: totalAmountResult[0]?.total || 0,
+        pendingAmount: pendingAmountResult[0]?.total || 0
+      };
+    } catch (error) {
+      throw new Error('Failed to get refund statistics');
+    }
+  }
+
+  /**
    * Get pending refunds with pagination
    */
   static async getRefunds(filters: SystemQueryFilters): Promise<{
@@ -97,12 +152,12 @@ export class SystemService {
   }> {
     try {
       const { page = 1, limit = 10, status } = filters;
-      
+
       const filter: any = {};
       if (status) filter.status = status;
 
       const skip = (Number(page) - 1) * Number(limit);
-      
+
       const [refunds, total] = await Promise.all([
         RefundRequest.find(filter)
           .populate('studentId', 'name email')
@@ -159,24 +214,27 @@ export class SystemService {
    * Process refund request
    */
   static async processRefund(
-    refundId: string, 
-    status: 'approved' | 'rejected', 
-    adminNotes?: string,
+    refundId: string,
+    action: 'approve' | 'reject',
+    notes?: string,
+    refundMethod?: string,
     adminId?: string
   ): Promise<RefundRequestInterface> {
     try {
+      const status = action === 'approve' ? 'approved' : 'rejected';
+
       const refund = await RefundRequest.findByIdAndUpdate(
         refundId,
         {
           status,
-          adminNotes,
+          adminNotes: notes,
           processedBy: adminId,
           processedAt: new Date()
         },
         { new: true, runValidators: true }
       ).populate('studentId', 'name email')
-       .populate('courseId', 'title')
-       .populate('billId', 'amount');
+        .populate('courseId', 'title')
+        .populate('billId', 'amount');
 
       if (!refund) {
         throw new Error('Refund request not found');
@@ -226,7 +284,7 @@ export class SystemService {
   }> {
     try {
       const { page = 1, limit = 10 } = filters;
-      
+
       // Mock data - in real app this would query an audit log collection
       const mockLogs: SystemLog[] = [
         {
@@ -284,7 +342,7 @@ export class SystemService {
     try {
       // In real app, this would update a system settings collection
       const currentSettings = await SystemService.getSystemSettings();
-      
+
       const updatedSettings: SystemSettings = {
         ...currentSettings,
         ...updates
@@ -313,6 +371,111 @@ export class SystemService {
       return backupStatus;
     } catch (error) {
       throw new Error('Failed to get backup status');
+    }
+  }
+
+  /**
+   * Bulk process refunds
+   */
+  static async bulkProcessRefunds(
+    refundIds: string[],
+    action: 'approve' | 'reject',
+    notes?: string,
+    adminId?: string
+  ): Promise<{ processed: number; failed: number; results: any[] }> {
+    try {
+      const status = action === 'approve' ? 'approved' : 'rejected';
+      const results: any[] = [];
+      let processed = 0;
+      let failed = 0;
+
+      for (const refundId of refundIds) {
+        try {
+          const refund = await RefundRequest.findByIdAndUpdate(
+            refundId,
+            {
+              status,
+              adminNotes: notes,
+              processedBy: adminId,
+              processedAt: new Date()
+            },
+            { new: true, runValidators: true }
+          );
+
+          if (refund) {
+            processed++;
+            results.push({ id: refundId, status: 'success' });
+          } else {
+            failed++;
+            results.push({ id: refundId, status: 'not_found' });
+          }
+        } catch (error) {
+          failed++;
+          results.push({ id: refundId, status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      }
+
+      return { processed, failed, results };
+    } catch (error) {
+      throw new Error('Failed to bulk process refunds');
+    }
+  }
+
+  /**
+   * Seed sample refunds data (for development)
+   */
+  static async seedSampleRefunds(): Promise<{ created: number }> {
+    try {
+      // Check if data already exists
+      const existingCount = await RefundRequest.countDocuments();
+      if (existingCount > 0) {
+        return { created: 0 };
+      }
+
+      const sampleRefunds = [
+        {
+          orderId: 'ORD-2024-001',
+          courseId: '507f1f77bcf86cd799439011', // Sample ObjectId
+          studentId: '507f1f77bcf86cd799439012', // Sample ObjectId
+          billId: '507f1f77bcf86cd799439013', // Sample ObjectId
+          reason: 'Khóa học không phù hợp với nhu cầu học tập',
+          status: 'pending',
+          createdAt: new Date('2024-01-20T10:30:00Z'),
+          updatedAt: new Date('2024-01-20T10:30:00Z')
+        },
+        {
+          orderId: 'ORD-2024-002',
+          courseId: '507f1f77bcf86cd799439014',
+          studentId: '507f1f77bcf86cd799439015',
+          billId: '507f1f77bcf86cd799439016',
+          reason: 'Chất lượng nội dung không như mong đợi',
+          status: 'approved',
+          adminNotes: 'Đã xác minh và chấp thuận yêu cầu hoàn tiền',
+          processedBy: '507f1f77bcf86cd799439017',
+          processedAt: new Date('2024-01-21T09:15:00Z'),
+          createdAt: new Date('2024-01-19T14:20:00Z'),
+          updatedAt: new Date('2024-01-21T09:15:00Z')
+        },
+        {
+          orderId: 'ORD-2024-003',
+          courseId: '507f1f77bcf86cd799439018',
+          studentId: '507f1f77bcf86cd799439019',
+          billId: '507f1f77bcf86cd799439020',
+          reason: 'Khóa học quá khó so với trình độ hiện tại',
+          status: 'rejected',
+          adminNotes: 'Không đủ điều kiện hoàn tiền theo chính sách',
+          processedBy: '507f1f77bcf86cd799439021',
+          processedAt: new Date('2024-01-22T11:30:00Z'),
+          createdAt: new Date('2024-01-18T16:45:00Z'),
+          updatedAt: new Date('2024-01-22T11:30:00Z')
+        }
+      ];
+
+      await RefundRequest.insertMany(sampleRefunds);
+
+      return { created: sampleRefunds.length };
+    } catch (error) {
+      throw new Error('Failed to seed sample refunds');
     }
   }
 }

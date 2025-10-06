@@ -4,9 +4,35 @@ import { announcementService, CreateAnnouncementData, AnnouncementFilter } from 
 import { AuthenticatedRequest } from '../../shared/types/global';
 import { asyncHandler } from '../../shared/utils/asyncHandler';
 import { AppError } from '../../shared/utils/appError';
+import Announcement from '../../shared/models/communication/Announcement';
 
 export class AdminAnnouncementController {
-  
+
+  // Test endpoint to check data
+  static testAnnouncements = asyncHandler(async (req: Request, res: Response) => {
+    try {
+      // Direct MongoDB query to test
+      const directQuery = await Announcement.find({});
+      const directCount = await Announcement.countDocuments({});
+
+      res.status(200).json({
+        success: true,
+        message: 'Direct MongoDB test',
+        data: {
+          directCount,
+          directQuery: directQuery.length,
+          announcements: directQuery
+        }
+      });
+    } catch (error: any) {
+      console.error('Test error:', error);
+      res.status(500).json({
+        success: false,
+        error: error?.message || 'Unknown error'
+      });
+    }
+  });
+
   // Create new announcement
   static createAnnouncement = asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response) => {
     const announcementData: CreateAnnouncementData = {
@@ -29,72 +55,41 @@ export class AdminAnnouncementController {
 
   // Get all announcements with filtering
   static getAnnouncements = asyncHandler(async (req: Request, res: Response) => {
-    const {
-      page = 1,
-      limit = 20,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      status,
-      type,
-      priority,
-      targetType,
-      createdBy,
-      tags,
-      startDate,
-      endDate,
-      search
-    } = req.query;
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
 
-    const filter: AnnouncementFilter = {};
+      // Use direct collection query to bypass schema validation issues
+      const db = Announcement.db;
+      const directCollection = db.collection('announcements');
 
-    if (status) {
-      filter.status = typeof status === 'string' ? [status] : status as string[];
+      // Get total count and data
+      const [announcements, total] = await Promise.all([
+        directCollection.find({})
+          .sort({ createdAt: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .toArray(),
+        directCollection.countDocuments({})
+      ]);
+
+      res.status(200).json({
+        success: true,
+        message: 'Announcements retrieved successfully',
+        data: {
+          announcements,
+          total,
+          page,
+          pages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error: any) {
+      console.error('Error in getAnnouncements:', error);
+      res.status(500).json({
+        success: false,
+        error: error?.message || 'Unknown error'
+      });
     }
-
-    if (type) {
-      filter.type = typeof type === 'string' ? [type] : type as string[];
-    }
-
-    if (priority) {
-      filter.priority = typeof priority === 'string' ? [priority] : priority as string[];
-    }
-
-    if (targetType) {
-      filter.targetType = typeof targetType === 'string' ? [targetType] : targetType as string[];
-    }
-
-    if (createdBy) {
-      filter.createdBy = createdBy as string;
-    }
-
-    if (tags) {
-      filter.tags = typeof tags === 'string' ? [tags] : tags as string[];
-    }
-
-    if (startDate && endDate) {
-      filter.dateRange = {
-        start: new Date(startDate as string),
-        end: new Date(endDate as string)
-      };
-    }
-
-    if (search) {
-      filter.searchTerm = search as string;
-    }
-
-    const result = await announcementService.getAnnouncements(
-      filter,
-      Number(page),
-      Number(limit),
-      sortBy as string,
-      sortOrder as 'asc' | 'desc'
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Announcements retrieved successfully',
-      data: result
-    });
   });
 
   // Get announcement by ID
@@ -105,7 +100,11 @@ export class AdminAnnouncementController {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const announcement = await announcementService.getAnnouncementById(id);
+    // Use direct collection query to bypass schema validation issues
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
+
+    const announcement = await directCollection.findOne({ _id: new mongoose.Types.ObjectId(id) });
 
     if (!announcement) {
       throw new AppError('Announcement not found', 404);
@@ -135,16 +134,24 @@ export class AdminAnnouncementController {
       }
     };
 
-    const announcement = await announcementService.updateAnnouncement(id, updateData);
+    // Use direct collection query
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
 
-    if (!announcement) {
+    const result = await directCollection.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
       throw new AppError('Announcement not found', 404);
     }
 
     res.status(200).json({
       success: true,
       message: 'Announcement updated successfully',
-      data: announcement
+      data: result
     });
   });
 
@@ -156,9 +163,13 @@ export class AdminAnnouncementController {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const deleted = await announcementService.deleteAnnouncement(id);
+    // Use direct collection query
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
 
-    if (!deleted) {
+    const result = await directCollection.deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+
+    if (result.deletedCount === 0) {
       throw new AppError('Announcement not found', 404);
     }
 
@@ -176,16 +187,29 @@ export class AdminAnnouncementController {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const announcement = await announcementService.publishAnnouncement(id);
+    // Use direct collection query to bypass schema validation issues
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
 
-    if (!announcement) {
+    const result = await directCollection.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      {
+        $set: {
+          status: 'published',
+          publishedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
       throw new AppError('Announcement not found', 404);
     }
 
     res.status(200).json({
       success: true,
       message: 'Announcement published successfully',
-      data: announcement
+      data: result
     });
   });
 
@@ -197,16 +221,29 @@ export class AdminAnnouncementController {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const announcement = await announcementService.cancelAnnouncement(id);
+    // Use direct collection query
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
 
-    if (!announcement) {
+    const result = await directCollection.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      {
+        $set: {
+          status: 'cancelled',
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
       throw new AppError('Announcement not found', 404);
     }
 
     res.status(200).json({
       success: true,
       message: 'Announcement cancelled successfully',
-      data: announcement
+      data: result
     });
   });
 
@@ -218,11 +255,27 @@ export class AdminAnnouncementController {
       throw new AppError('Invalid announcement ID', 400);
     }
 
-    const analytics = await announcementService.getAnnouncementAnalytics(id);
+    // Use direct collection query
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
 
-    if (!analytics) {
+    const announcement = await directCollection.findOne({ _id: new mongoose.Types.ObjectId(id) });
+
+    if (!announcement) {
       throw new AppError('Announcement not found', 404);
     }
+
+    // Return analytics from the announcement document
+    const analytics = {
+      readCount: announcement.analytics?.totalViews || 0,
+      clickCount: announcement.analytics?.totalClicks || 0,
+      acknowledgmentCount: announcement.analytics?.totalAcknowledgments || 0,
+      engagementRate: 0,
+      conversionRate: 0,
+      demographics: {},
+      deviceStats: {},
+      timeStats: {}
+    };
 
     res.status(200).json({
       success: true,
@@ -310,19 +363,33 @@ export class AdminAnnouncementController {
       filter['target.type'] = targetType;
     }
 
-    // Mock stats - in real implementation, use aggregation
+    // Use direct collection query for real stats
+    const db = Announcement.db;
+    const directCollection = db.collection('announcements');
+
+    const [totalAnnouncements, publishedAnnouncements, scheduledAnnouncements, draftAnnouncements, expiredAnnouncements, cancelledAnnouncements] = await Promise.all([
+      directCollection.countDocuments({}),
+      directCollection.countDocuments({ status: 'published' }),
+      directCollection.countDocuments({ status: 'scheduled' }),
+      directCollection.countDocuments({ status: 'draft' }),
+      directCollection.countDocuments({ status: 'expired' }),
+      directCollection.countDocuments({ status: 'cancelled' })
+    ]);
+
     const stats = {
-      totalAnnouncements: 0,
-      publishedAnnouncements: 0,
-      scheduledAnnouncements: 0,
-      expiredAnnouncements: 0,
-      totalViews: 0,
+      totalAnnouncements,
+      publishedAnnouncements,
+      scheduledAnnouncements,
+      draftAnnouncements,
+      expiredAnnouncements,
+      cancelledAnnouncements,
+      totalReads: 0,
       totalClicks: 0,
-      totalAcknowledgments: 0,
-      byType: {},
-      byPriority: {},
-      byTargetType: {},
-      recentActivity: []
+      averageReadRate: 0,
+      averageClickRate: 0,
+      announcementsByType: [],
+      announcementsByPriority: [],
+      announcementsByAudience: []
     };
 
     res.status(200).json({

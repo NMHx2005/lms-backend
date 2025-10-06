@@ -10,6 +10,9 @@ const router = Router();
 router.use(authenticate);
 router.use(requireAdmin);
 
+// Test route
+router.get('/test', AdminAnnouncementController.testAnnouncements);
+
 // CRUD Routes
 router.post(
   '/',

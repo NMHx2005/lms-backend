@@ -262,4 +262,45 @@ export class AdminAuthService extends BaseAuthService {
       modifiedCount: result.modifiedCount,
     };
   }
+
+  /**
+   * Get available roles
+   */
+  static async getRoles(): Promise<string[]> {
+    // Return predefined roles for the system
+    return [
+      'admin',
+      'teacher',
+      'student',
+      'moderator',
+      'content_creator',
+      'support_staff'
+    ];
+  }
+
+  /**
+   * Get available permissions
+   */
+  static async getPermissions(): Promise<string[]> {
+    // Return predefined permissions for the system
+    return [
+      'users:read',
+      'users:write',
+      'users:delete',
+      'courses:read',
+      'courses:write',
+      'courses:delete',
+      'courses:moderate',
+      'content:moderate',
+      'analytics:read',
+      'system:admin',
+      'reports:read',
+      'settings:read',
+      'settings:write',
+      'billing:read',
+      'billing:write',
+      'support:read',
+      'support:write'
+    ];
+  }
 }

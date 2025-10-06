@@ -5,22 +5,22 @@ export interface IAnnouncement extends Document {
   content: string;
   type: 'general' | 'course' | 'urgent' | 'maintenance' | 'update';
   priority: 'low' | 'normal' | 'high' | 'urgent';
-  
+
   // Target audience
   target: {
     type: 'all' | 'role' | 'course' | 'user';
     value?: string | string[]; // role name, course ID, or user IDs
   };
-  
+
   // Scheduling
   isScheduled: boolean;
   scheduledAt?: Date;
   publishedAt?: Date;
   expiresAt?: Date;
-  
+
   // Status
   status: 'draft' | 'scheduled' | 'published' | 'expired' | 'cancelled';
-  
+
   // Media attachments
   attachments?: {
     type: 'image' | 'video' | 'document';
@@ -28,7 +28,7 @@ export interface IAnnouncement extends Document {
     filename: string;
     size: number;
   }[];
-  
+
   // Display options
   displayOptions: {
     showAsPopup: boolean;
@@ -37,13 +37,13 @@ export interface IAnnouncement extends Document {
     sendPush: boolean;
     requireAcknowledgment: boolean;
   };
-  
+
   // Acknowledgments
   acknowledgedBy?: {
     userId: mongoose.Types.ObjectId;
     acknowledgedAt: Date;
   }[];
-  
+
   // Analytics
   analytics: {
     totalViews: number;
@@ -51,23 +51,23 @@ export interface IAnnouncement extends Document {
     totalAcknowledgments: number;
     lastViewedAt?: Date;
   };
-  
+
   // Author
   createdBy: {
     userId: mongoose.Types.ObjectId;
     name: string;
     role: string;
   };
-  
+
   updatedBy?: {
     userId: mongoose.Types.ObjectId;
     name: string;
     role: string;
   };
-  
+
   // Tags for organization
-  tags?: string[];
-  
+  tags: string[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -115,7 +115,7 @@ const AnnouncementSchema = new Schema<IAnnouncement>(
       value: {
         type: Schema.Types.Mixed,
         validate: {
-          validator: function(this: IAnnouncement, value: any) {
+          validator: function (this: IAnnouncement, value: any) {
             if (this.target.type === 'all') {
               return value === undefined || value === null;
             }
@@ -132,7 +132,7 @@ const AnnouncementSchema = new Schema<IAnnouncement>(
     scheduledAt: {
       type: Date,
       validate: {
-        validator: function(this: IAnnouncement, scheduledAt: Date) {
+        validator: function (this: IAnnouncement, scheduledAt: Date) {
           if (this.isScheduled && scheduledAt) {
             return scheduledAt > new Date();
           }
@@ -148,7 +148,7 @@ const AnnouncementSchema = new Schema<IAnnouncement>(
     expiresAt: {
       type: Date,
       validate: {
-        validator: function(expiresAt: Date) {
+        validator: function (expiresAt: Date) {
           return !expiresAt || expiresAt > new Date();
         },
         message: 'Expiration date must be in the future'
@@ -298,34 +298,34 @@ AnnouncementSchema.index({ status: 1, 'target.type': 1, publishedAt: -1 });
 AnnouncementSchema.index({ isScheduled: 1, scheduledAt: 1, status: 1 });
 
 // Virtual for acknowledgment percentage
-AnnouncementSchema.virtual('acknowledgmentRate').get(function(this: IAnnouncement) {
+AnnouncementSchema.virtual('acknowledgmentRate').get(function (this: IAnnouncement) {
   if (!this.displayOptions.requireAcknowledgment) return null;
-  
+
   const totalAcknowledged = this.acknowledgedBy?.length || 0;
   const totalViews = this.analytics.totalViews || 1;
-  
+
   return Math.round((totalAcknowledged / totalViews) * 100);
 });
 
 // Virtual for time remaining until expiry
-AnnouncementSchema.virtual('timeUntilExpiry').get(function(this: IAnnouncement) {
+AnnouncementSchema.virtual('timeUntilExpiry').get(function (this: IAnnouncement) {
   if (!this.expiresAt) return null;
-  
+
   const now = new Date();
   const timeDiff = this.expiresAt.getTime() - now.getTime();
-  
+
   if (timeDiff <= 0) return 'Expired';
-  
+
   const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  
+
   if (days > 0) return `${days} days`;
   if (hours > 0) return `${hours} hours`;
   return 'Less than 1 hour';
 });
 
 // Pre-save middleware
-AnnouncementSchema.pre('save', function(this: IAnnouncement, next) {
+AnnouncementSchema.pre('save', function (this: IAnnouncement, next) {
   // Auto-publish if scheduled time has passed
   if (this.isScheduled && this.scheduledAt && this.status === 'scheduled') {
     if (this.scheduledAt <= new Date()) {
@@ -334,34 +334,34 @@ AnnouncementSchema.pre('save', function(this: IAnnouncement, next) {
       this.isScheduled = false;
     }
   }
-  
+
   // Set published date when status changes to published
   if (this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
   }
-  
+
   // Update acknowledgment count
   this.analytics.totalAcknowledgments = this.acknowledgedBy?.length || 0;
-  
+
   next();
 });
 
 // Pre-find middleware to handle expired announcements
-AnnouncementSchema.pre(/^find/, function(this: any, next) {
+AnnouncementSchema.pre(/^find/, function (this: any, next) {
   // Auto-expire announcements
   this.updateMany(
-    { 
+    {
       expiresAt: { $lt: new Date() },
       status: { $ne: 'expired' }
     },
     { status: 'expired' }
   );
-  
+
   next();
 });
 
 // Static methods
-AnnouncementSchema.statics.findActive = function() {
+AnnouncementSchema.statics.findActive = function () {
   return this.find({
     status: 'published',
     $or: [
@@ -371,8 +371,8 @@ AnnouncementSchema.statics.findActive = function() {
   }).sort({ priority: 1, publishedAt: -1 });
 };
 
-AnnouncementSchema.statics.findByTarget = function(targetType: string, targetValue?: string) {
-  const query: any = { 
+AnnouncementSchema.statics.findByTarget = function (targetType: string, targetValue?: string) {
+  const query: any = {
     status: 'published',
     'target.type': targetType,
     $or: [
@@ -380,7 +380,7 @@ AnnouncementSchema.statics.findByTarget = function(targetType: string, targetVal
       { expiresAt: { $gt: new Date() } }
     ]
   };
-  
+
   if (targetType !== 'all' && targetValue) {
     if (targetType === 'user') {
       query['target.value'] = { $in: [targetValue] };
@@ -388,21 +388,21 @@ AnnouncementSchema.statics.findByTarget = function(targetType: string, targetVal
       query['target.value'] = targetValue;
     }
   }
-  
+
   return this.find(query).sort({ priority: 1, publishedAt: -1 });
 };
 
-AnnouncementSchema.statics.findScheduled = function() {
+AnnouncementSchema.statics.findScheduled = function () {
   return this.find({
     status: 'scheduled',
     scheduledAt: { $lte: new Date() }
   });
 };
 
-AnnouncementSchema.statics.findExpiring = function(hours: number = 24) {
+AnnouncementSchema.statics.findExpiring = function (hours: number = 24) {
   const expiryThreshold = new Date();
   expiryThreshold.setHours(expiryThreshold.getHours() + hours);
-  
+
   return this.find({
     status: 'published',
     expiresAt: {
@@ -414,51 +414,51 @@ AnnouncementSchema.statics.findExpiring = function(hours: number = 24) {
 };
 
 // Instance methods
-AnnouncementSchema.methods.acknowledge = function(userId: mongoose.Types.ObjectId) {
+AnnouncementSchema.methods.acknowledge = function (userId: mongoose.Types.ObjectId) {
   if (!this.acknowledgedBy) this.acknowledgedBy = [];
-  
-  const alreadyAcknowledged = this.acknowledgedBy.some((ack: any) => 
+
+  const alreadyAcknowledged = this.acknowledgedBy.some((ack: any) =>
     ack.userId.toString() === userId.toString()
   );
-  
+
   if (!alreadyAcknowledged) {
     this.acknowledgedBy.push({
       userId,
       acknowledgedAt: new Date()
     });
-    
+
     this.analytics.totalAcknowledgments = this.acknowledgedBy.length;
   }
-  
+
   return this.save();
 };
 
-AnnouncementSchema.methods.incrementView = function() {
+AnnouncementSchema.methods.incrementView = function () {
   this.analytics.totalViews += 1;
   this.analytics.lastViewedAt = new Date();
   return this.save();
 };
 
-AnnouncementSchema.methods.incrementClick = function() {
+AnnouncementSchema.methods.incrementClick = function () {
   this.analytics.totalClicks += 1;
   return this.save();
 };
 
-AnnouncementSchema.methods.publish = function() {
+AnnouncementSchema.methods.publish = function () {
   this.status = 'published';
   this.publishedAt = new Date();
   this.isScheduled = false;
   return this.save();
 };
 
-AnnouncementSchema.methods.cancel = function() {
+AnnouncementSchema.methods.cancel = function () {
   this.status = 'cancelled';
   return this.save();
 };
 
-AnnouncementSchema.methods.expire = function() {
+AnnouncementSchema.methods.expire = function () {
   this.status = 'expired';
   return this.save();
 };
 
-export default mongoose.model<IAnnouncement>('Announcement', AnnouncementSchema);
+export default mongoose.model<IAnnouncement>('Announcement', AnnouncementSchema, 'announcements');

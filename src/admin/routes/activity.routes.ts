@@ -112,35 +112,35 @@ router.get('/summary', async (req: any, res) => {
 // Preset filters
 router.get('/presets/learning', async (req: any, res) => {
   const q = { ...req.query };
-  const filter = buildFilter({ ...q, action: { $in: ['course_view','course_enroll','course_complete','section_view','lesson_view','lesson_complete','lesson_pause'] } });
-  const skip = (Number(q.page||1) - 1) * Number(q.limit||20);
+  const filter = buildFilter({ ...q, action: { $in: ['course_view', 'course_enroll', 'course_complete', 'section_view', 'lesson_view', 'lesson_complete', 'lesson_pause'] } });
+  const skip = (Number(q.page || 1) - 1) * Number(q.limit || 20);
   const [items, total] = await Promise.all([
-    (UserActivityLog as any).find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(q.limit||20)),
+    (UserActivityLog as any).find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(q.limit || 20)),
     (UserActivityLog as any).countDocuments(filter)
   ]);
-  res.json({ success: true, data: { items, page: Number(q.page||1), limit: Number(q.limit||20), total, pages: Math.ceil(total / Number(q.limit||20)) } });
+  res.json({ success: true, data: { items, page: Number(q.page || 1), limit: Number(q.limit || 20), total, pages: Math.ceil(total / Number(q.limit || 20)) } });
 });
 
 router.get('/presets/payment', async (req: any, res) => {
-  const q = { ...req.query, action: { $in: ['payment_initiate','payment_complete','payment_failed','subscription_start','subscription_cancel','subscription_renew'] } } as any;
+  const q = { ...req.query, action: { $in: ['payment_initiate', 'payment_complete', 'payment_failed', 'subscription_start', 'subscription_cancel', 'subscription_renew'] } } as any;
   const filter = buildFilter(q);
-  const skip = (Number(q.page||1) - 1) * Number(q.limit||20);
+  const skip = (Number(q.page || 1) - 1) * Number(q.limit || 20);
   const [items, total] = await Promise.all([
-    (UserActivityLog as any).find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(q.limit||20)),
+    (UserActivityLog as any).find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(q.limit || 20)),
     (UserActivityLog as any).countDocuments(filter)
   ]);
-  res.json({ success: true, data: { items, page: Number(q.page||1), limit: Number(q.limit||20), total, pages: Math.ceil(total / Number(q.limit||20)) } });
+  res.json({ success: true, data: { items, page: Number(q.page || 1), limit: Number(q.limit || 20), total, pages: Math.ceil(total / Number(q.limit || 20)) } });
 });
 
 router.get('/presets/system', async (req: any, res) => {
-  const q = { ...req.query, action: { $in: ['login','logout','register','password_reset','email_verification','export','import'] } } as any;
+  const q = { ...req.query, action: { $in: ['login', 'logout', 'register', 'password_reset', 'email_verification', 'export', 'import'] } } as any;
   const filter = buildFilter(q);
-  const skip = (Number(q.page||1) - 1) * Number(q.limit||20);
+  const skip = (Number(q.page || 1) - 1) * Number(q.limit || 20);
   const [items, total] = await Promise.all([
-    (UserActivityLog as any).find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(q.limit||20)),
+    (UserActivityLog as any).find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(q.limit || 20)),
     (UserActivityLog as any).countDocuments(filter)
   ]);
-  res.json({ success: true, data: { items, page: Number(q.page||1), limit: Number(q.limit||20), total, pages: Math.ceil(total / Number(q.limit||20)) } });
+  res.json({ success: true, data: { items, page: Number(q.page || 1), limit: Number(q.limit || 20), total, pages: Math.ceil(total / Number(q.limit || 20)) } });
 });
 
 

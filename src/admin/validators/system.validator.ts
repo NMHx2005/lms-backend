@@ -10,12 +10,22 @@ export const adminSystemValidation = {
 
   // Refund operations
   processRefund: [
-    body('status').notEmpty().withMessage('Status is required'),
-    body('status').isIn(['approved', 'rejected', 'pending']).withMessage('Status must be approved, rejected, or pending'),
-    body('adminNotes').optional(),
-    body('adminNotes').isLength({ max: 1000 }).withMessage('Admin notes must be less than 1000 characters'),
-    body('refundAmount').optional(),
-    body('refundAmount').isFloat({ min: 0 }).withMessage('Refund amount must be a positive number'),
+    body('action').notEmpty().withMessage('Action is required'),
+    body('action').isIn(['approve', 'reject']).withMessage('Action must be approve or reject'),
+    body('notes').optional(),
+    body('notes').isLength({ max: 1000 }).withMessage('Notes must be less than 1000 characters'),
+    body('refundMethod').optional(),
+    body('refundMethod').isIn(['original_payment', 'credit', 'bank_transfer']).withMessage('Invalid refund method'),
+  ],
+
+  // Bulk process refunds
+  bulkProcessRefunds: [
+    body('refundIds').isArray().withMessage('Refund IDs must be an array'),
+    body('refundIds').isArray({ min: 1 }).withMessage('At least one refund ID is required'),
+    body('action').notEmpty().withMessage('Action is required'),
+    body('action').isIn(['approve', 'reject']).withMessage('Action must be approve or reject'),
+    body('notes').optional(),
+    body('notes').isLength({ max: 1000 }).withMessage('Notes must be less than 1000 characters'),
   ],
 
   refundQuery: [

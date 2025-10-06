@@ -8,7 +8,7 @@ export class SystemController {
   static async getSystemOverview(req: Request, res: Response) {
     try {
       const overview = await SystemService.getSystemOverview();
-      
+
       res.json({
         success: true,
         data: overview
@@ -27,7 +27,7 @@ export class SystemController {
   static async getRefunds(req: Request, res: Response) {
     try {
       const { page, limit, status } = req.query;
-      
+
       const filters = {
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
@@ -50,30 +50,50 @@ export class SystemController {
   }
 
   /**
+   * Get refund statistics
+   */
+  static async getRefundStats(req: Request, res: Response) {
+    try {
+      const stats = await SystemService.getRefundStats();
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  /**
    * Process refund request
    */
   static async processRefund(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { status, adminNotes } = req.body;
-      
-      if (!['approved', 'rejected'].includes(status)) {
+      const { action, notes, refundMethod } = req.body;
+
+      if (!['approve', 'reject'].includes(action)) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid status. Must be approved or rejected'
+          error: 'Invalid action. Must be approve or reject'
         });
       }
 
       const refund = await SystemService.processRefund(
-        id, 
-        status, 
-        adminNotes, 
+        id,
+        action,
+        notes,
+        refundMethod,
         (req.user as any)?.id
       );
 
       res.json({
         success: true,
-        message: `Refund request ${status} successfully`,
+        message: `Refund request ${action}d successfully`,
         data: refund
       });
     } catch (error) {
@@ -83,7 +103,36 @@ export class SystemController {
           error: 'Refund request not found'
         });
       }
-      
+
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  /**
+   * Bulk process refunds
+   */
+  static async bulkProcessRefunds(req: Request, res: Response) {
+    try {
+      const { refundIds, action, notes } = req.body;
+
+      if (!['approve', 'reject'].includes(action)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid action. Must be approve or reject'
+        });
+      }
+
+      const result = await SystemService.bulkProcessRefunds(refundIds, action, notes, (req.user as any)?.id);
+
+      res.json({
+        success: true,
+        message: `Bulk ${action} completed successfully`,
+        data: result
+      });
+    } catch (error) {
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -97,7 +146,7 @@ export class SystemController {
   static async getSystemLogs(req: Request, res: Response) {
     try {
       const { page, limit, type, severity } = req.query;
-      
+
       const filters = {
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
@@ -145,14 +194,14 @@ export class SystemController {
   static async updateSystemSettings(req: Request, res: Response) {
     try {
       const { maintenanceMode, maxFileSize, emailNotifications } = req.body;
-      
+
       const updates: any = {};
       if (maintenanceMode !== undefined) updates.maintenanceMode = maintenanceMode;
       if (maxFileSize !== undefined) updates.maxFileSize = maxFileSize;
       if (emailNotifications !== undefined) updates.emailNotifications = emailNotifications;
 
       const updatedSettings = await SystemService.updateSystemSettings(updates);
-      
+
       res.json({
         success: true,
         message: 'System settings updated successfully',

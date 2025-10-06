@@ -118,7 +118,7 @@ export class AnnouncementService {
 
       await announcement.save();
       console.log(`📢 Announcement created: ${announcement.title}`);
-      
+
       return announcement;
     } catch (error) {
       console.error('Error creating announcement:', error);
@@ -128,7 +128,7 @@ export class AnnouncementService {
 
   // Update announcement
   async updateAnnouncement(
-    id: string, 
+    id: string,
     data: Partial<CreateAnnouncementData> & { updatedBy: { userId: mongoose.Types.ObjectId; name: string; role: string } }
   ): Promise<IAnnouncement | null> {
     try {
@@ -152,7 +152,7 @@ export class AnnouncementService {
 
       await announcement.save();
       console.log(`📝 Announcement updated: ${announcement.title}`);
-      
+
       return announcement;
     } catch (error) {
       console.error('Error updating announcement:', error);
@@ -202,9 +202,7 @@ export class AnnouncementService {
         Announcement.find(query)
           .sort(sort)
           .skip((page - 1) * limit)
-          .limit(limit)
-          .populate('createdBy.userId', 'firstName lastName')
-          .populate('updatedBy.userId', 'firstName lastName'),
+          .limit(limit),
         Announcement.countDocuments(query)
       ]);
 
@@ -274,10 +272,10 @@ export class AnnouncementService {
 
       announcement.status = 'published';
       await announcement.save();
-      
+
       // Send notifications
       await this.sendAnnouncementNotifications(announcement);
-      
+
       console.log(`📢 Announcement published: ${announcement.title}`);
       return announcement;
     } catch (error) {
@@ -295,7 +293,7 @@ export class AnnouncementService {
       announcement.status = 'cancelled';
       await announcement.save();
       console.log(`❌ Announcement cancelled: ${announcement.title}`);
-      
+
       return announcement;
     } catch (error) {
       console.error('Error cancelling announcement:', error);
@@ -321,7 +319,7 @@ export class AnnouncementService {
       });
       await announcement.save();
       console.log(`✅ Announcement acknowledged by user ${userId}`);
-      
+
       return true;
     } catch (error) {
       console.error('Error acknowledging announcement:', error);
@@ -387,7 +385,7 @@ export class AnnouncementService {
         status: 'scheduled',
         scheduledAt: { $lte: new Date() }
       });
-      
+
       for (const announcement of scheduledAnnouncements) {
         announcement.status = 'published';
         await announcement.save();
@@ -425,11 +423,11 @@ export class AnnouncementService {
         expiresAt: { $lte: new Date(Date.now() + 24 * 60 * 60 * 1000) },
         status: 'published'
       });
-      
+
       for (const announcement of expiringAnnouncements) {
         // Notify admin about expiring announcement
         const adminUsers = await User.find({ role: 'admin' });
-        
+
         for (const admin of adminUsers) {
           webSocketService.sendToUser(admin._id.toString(), {
             type: 'warning',
@@ -481,7 +479,7 @@ export class AnnouncementService {
   private async sendAnnouncementEmails(announcement: IAnnouncement): Promise<void> {
     try {
       const targetUsers = await this.getTargetUsers(announcement);
-      
+
       const emailPromises = targetUsers.map(async (user) => {
         const canSend = await emailNotificationService.canSendEmail(user._id, 'announcement');
         if (!canSend) return false;
@@ -495,12 +493,12 @@ export class AnnouncementService {
             <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
               ${announcement.content.replace(/\n/g, '<br>')}
             </div>
-            ${announcement.attachments?.length ? 
+            ${announcement.attachments?.length ?
               `<h3>Tệp đính kèm:</h3>
                <ul>
-                 ${announcement.attachments.map(att => 
-                   `<li><a href="${att.url}">${att.filename}</a></li>`
-                 ).join('')}
+                 ${announcement.attachments.map(att =>
+                `<li><a href="${att.url}">${att.filename}</a></li>`
+              ).join('')}
                </ul>` : ''
             }
             <hr>
@@ -561,6 +559,16 @@ export class AnnouncementService {
   private async calculateTargetUserCount(announcement: IAnnouncement): Promise<number> {
     const targetUsers = await this.getTargetUsers(announcement);
     return targetUsers.length;
+  }
+
+  // Get total count of announcements
+  async getAnnouncementCount(): Promise<number> {
+    return Announcement.countDocuments({});
+  }
+
+  // Get all announcements (no pagination)
+  async getAllAnnouncements(): Promise<IAnnouncement[]> {
+    return Announcement.find({});
   }
 
   // Build query for admin listing

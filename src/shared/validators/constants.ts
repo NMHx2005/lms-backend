@@ -76,9 +76,13 @@ export const VALIDATION_CONSTANTS = {
   // Course statuses
   COURSE_STATUSES: {
     DRAFT: 'draft',
+    SUBMITTED: 'submitted',
+    APPROVED: 'approved',
     PUBLISHED: 'published',
-    ARCHIVED: 'archived',
-    ALL: ['draft', 'published', 'archived'],
+    REJECTED: 'rejected',
+    NEEDS_REVISION: 'needs_revision',
+    DELISTED: 'delisted',
+    ALL: ['draft', 'submitted', 'approved', 'published', 'rejected', 'needs_revision', 'delisted'],
   },
 
   // Enrollment statuses

@@ -1,10 +1,10 @@
 import { Course as CourseModel, User as UserModel, Enrollment as EnrollmentModel, Bill as BillModel } from '../../shared/models';
 import { TeacherPackageSubscription } from '../../shared/models/extended/TeacherPackage';
-import { 
-  CreateCourseRequest, 
-  UpdateCourseRequest, 
-  CourseListResponse, 
-  CourseStats, 
+import {
+  CreateCourseRequest,
+  UpdateCourseRequest,
+  CourseListResponse,
+  CourseStats,
   CourseSearchFilters,
   Course
 } from '../interfaces/course.interface';
@@ -86,10 +86,10 @@ export class CourseService {
     filters: CourseSearchFilters = {}
   ): Promise<CourseListResponse> {
     const skip = (page - 1) * limit;
-    
+
     // Build query
     const query: any = {};
-    
+
     if (filters.search) {
       query.$or = [
         { title: { $regex: filters.search, $options: 'i' } },
@@ -97,33 +97,47 @@ export class CourseService {
         { domain: { $regex: filters.search, $options: 'i' } }
       ];
     }
-    
+
     if (filters.domain) {
       query.domain = filters.domain;
     }
-    
+
     if (filters.level) {
       query.level = filters.level;
     }
-    
+
     if (filters.isPublished !== undefined) {
       query.isPublished = filters.isPublished;
     }
-    
+
     if (filters.isApproved !== undefined) {
       query.isApproved = filters.isApproved;
     }
-    
+
+    if (filters.isFeatured !== undefined) {
+      query.isFeatured = filters.isFeatured;
+    }
+
+    if (filters.submittedForReview !== undefined) {
+      query.submittedForReview = filters.submittedForReview;
+    }
+
     if (filters.instructorId) {
       query.instructorId = filters.instructorId;
     }
-    
+
+    if (filters.instructor) {
+      // Search in instructor name (will work after populate)
+      // We'll filter this after the query since we need to populate instructorId first
+      // For now, we'll handle this in post-processing
+    }
+
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
       query.price = {};
       if (filters.minPrice !== undefined) query.price.$gte = filters.minPrice;
       if (filters.maxPrice !== undefined) query.price.$lte = filters.maxPrice;
     }
-    
+
     if (filters.createdAt) {
       query.createdAt = {
         $gte: filters.createdAt.start,
@@ -135,18 +149,33 @@ export class CourseService {
     const sort: any = {};
     sort[sortBy] = sortOrder === COURSE_SORT_ORDERS.ASC ? 1 : -1;
 
+    // Debug log
+    console.log('🔍 Course query filters:', filters);
+    console.log('🔍 MongoDB query:', JSON.stringify(query, null, 2));
+
     // Execute query
     const [coursesData, total] = await Promise.all([
       CourseModel.find(query)
-        .populate('instructorId', 'name')
+        .populate('instructorId', 'name fullName')
         .sort(sort)
         .skip(skip)
         .limit(limit),
       CourseModel.countDocuments(query)
     ]);
 
+    // Post-process for instructor filter if needed
+    let filteredCourses = coursesData;
+    if (filters.instructor) {
+      filteredCourses = coursesData.filter(course => {
+        const instructor = course.instructorId as any;
+        if (!instructor) return false;
+        const instructorName = instructor.name || instructor.fullName || '';
+        return instructorName.toLowerCase().includes(filters.instructor!.toLowerCase());
+      });
+    }
+
     // Map to match Course interface
-    const courses: Course[] = coursesData.map(course => ({
+    const courses: Course[] = filteredCourses.map(course => ({
       _id: course._id.toString(),
       title: course.title,
       description: course.description,
@@ -212,6 +241,35 @@ export class CourseService {
     if (updateData.isApproved && !course.isApproved) {
       course.approvedAt = new Date();
     }
+
+    return await course.save();
+  }
+
+  // Update course status only (without full validation)
+  static async updateCourseStatus(courseId: string, statusData: { isPublished?: boolean; isFeatured?: boolean; status?: string }) {
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    // Update only status fields
+    if (statusData.isPublished !== undefined) {
+      course.isPublished = statusData.isPublished;
+      // Set publishedAt if publishing for the first time
+      if (statusData.isPublished && !course.publishedAt) {
+        course.publishedAt = new Date();
+      }
+    }
+
+    if (statusData.isFeatured !== undefined) {
+      course.isFeatured = statusData.isFeatured;
+    }
+
+    if (statusData.status !== undefined) {
+      course.status = statusData.status as any;
+    }
+
+    course.updatedAt = new Date();
 
     return await course.save();
   }
@@ -289,7 +347,7 @@ export class CourseService {
 
     course.isApproved = approved;
     course.updatedAt = new Date();
-    
+
     if (approved) {
       course.approvedAt = new Date();
     }
@@ -304,10 +362,10 @@ export class CourseService {
 
   // Bulk update course status
   static async bulkUpdateCourseStatus(courseIds: string[], isPublished: boolean, isApproved: boolean) {
-    const updateData: any = { 
-      isPublished, 
-      isApproved, 
-      updatedAt: new Date() 
+    const updateData: any = {
+      isPublished,
+      isApproved,
+      updatedAt: new Date()
     };
 
     if (isPublished) {
@@ -338,8 +396,8 @@ export class CourseService {
         { domain: { $regex: searchTerm, $options: 'i' } }
       ]
     })
-    .populate('instructorId', 'name')
-    .limit(limit);
+      .populate('instructorId', 'name')
+      .limit(limit);
 
     return courses;
   }
@@ -385,7 +443,7 @@ export class CourseService {
   // Get pending course approvals
   static async getPendingApprovals(page: number = 1, limit: number = 20) {
     const skip = (page - 1) * limit;
-    
+
     const [courses, total] = await Promise.all([
       CourseModel.find({ isApproved: false })
         .populate('instructorId', 'name email')
@@ -416,7 +474,7 @@ export class CourseService {
     // Calculate date range based on period
     const now = new Date();
     let startDate: Date;
-    
+
     switch (period) {
       case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

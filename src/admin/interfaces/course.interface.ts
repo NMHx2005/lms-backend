@@ -107,7 +107,10 @@ export interface CourseSearchFilters {
   level?: string;
   isPublished?: boolean;
   isApproved?: boolean;
+  isFeatured?: boolean;
+  submittedForReview?: boolean;
   instructorId?: string;
+  instructor?: string;
   minPrice?: number;
   maxPrice?: number;
   createdAt?: {

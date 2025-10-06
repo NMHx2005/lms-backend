@@ -38,6 +38,9 @@ router.patch('/bulk-status', CourseController.bulkUpdateCourseStatus);
 // Feature/unfeature course
 router.patch('/:id/feature', CourseController.toggleCourseFeature);
 
+// Update course status only (without full validation)
+router.patch('/:id/status', validateRequest(adminCourseValidation.courseId), CourseController.updateCourseStatus);
+
 // Get course enrollment statistics
 router.get('/:id/enrollment-stats', CourseController.getCourseEnrollmentStats);
 

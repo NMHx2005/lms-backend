@@ -1,41 +1,46 @@
 import express from 'express';
-import { SupportController } from '../controllers/support.controller';
-import { adminSupportValidation } from '../validators/support.validator';
-import { validateRequest } from '../../shared/middleware/validation';
+import { authenticate, requireAdmin } from '../middleware/auth';
+import {
+  getSupportTickets,
+  getSupportTicketById,
+  assignTicket,
+  updateTicketStatus,
+  addTicketNote,
+  getSupportStaff,
+  getSupportStats,
+  getFAQs,
+  getFAQById,
+  createFAQ,
+  updateFAQ,
+  deleteFAQ,
+  toggleFAQStatus
+} from '../controllers/supportController';
 
 const router = express.Router();
 
-// Get all support tickets
-router.get('/tickets', validateRequest(adminSupportValidation.ticketQuery), SupportController.getTickets);
+// Apply authentication and admin middleware to all routes
+router.use(authenticate);
+router.use(requireAdmin);
 
-// Get ticket by ID
-router.get('/tickets/:id', validateRequest(adminSupportValidation.ticketId), SupportController.getTicketById);
+// ========== SUPPORT TICKET ROUTES ==========
+router.get('/tickets', getSupportTickets);
+router.get('/tickets/:id', getSupportTicketById);
+router.put('/tickets/:id/assign', assignTicket);
+router.put('/tickets/:id/status', updateTicketStatus);
+router.post('/tickets/:id/notes', addTicketNote);
 
-// Assign ticket to support staff
-router.put('/tickets/:id/assign', 
-  validateRequest([...adminSupportValidation.ticketId, ...adminSupportValidation.assignTicket]), 
-  SupportController.assignTicket
-);
+// ========== SUPPORT STAFF ROUTES ==========
+router.get('/staff', getSupportStaff);
 
-// Update ticket status
-router.put('/tickets/:id/status', 
-  validateRequest([...adminSupportValidation.ticketId, ...adminSupportValidation.updateTicket]), 
-  SupportController.updateTicketStatus
-);
+// ========== SUPPORT STATISTICS ROUTES ==========
+router.get('/stats', getSupportStats);
 
-// Add internal note to ticket
-router.post('/tickets/:id/notes', 
-  validateRequest([...adminSupportValidation.ticketId, ...adminSupportValidation.addResponse]), 
-  SupportController.addInternalNote
-);
-
-// Get support staff
-router.get('/staff', SupportController.getSupportStaff);
-
-// Get ticket statistics
-router.get('/stats', SupportController.getTicketStatistics);
-
-// Search tickets
-router.get('/search', validateRequest(adminSupportValidation.ticketQuery), SupportController.searchTickets);
+// ========== FAQ ROUTES ==========
+router.get('/faqs', getFAQs);
+router.get('/faqs/:id', getFAQById);
+router.post('/faqs', createFAQ);
+router.put('/faqs/:id', updateFAQ);
+router.delete('/faqs/:id', deleteFAQ);
+router.patch('/faqs/:id/toggle-status', toggleFAQStatus);
 
 export default router;

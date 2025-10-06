@@ -55,3 +55,9 @@ export type { IUserActivityLog } from '../analytics/UserActivityLog';
 export { default as Subscription } from '../payment/Subscription';
 
 export type { ISubscription } from '../payment/Subscription';
+
+
+
+export { default as Category, ICategory } from './Category';
+export { default as SupportTicket, ISupportTicket } from './SupportTicket';
+export { default as FAQ, IFAQ } from './FAQ';
