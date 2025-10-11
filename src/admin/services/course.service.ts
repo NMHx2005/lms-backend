@@ -118,8 +118,20 @@ export class CourseService {
       query.isFeatured = filters.isFeatured;
     }
 
+    // Filter by status field (NEW LOGIC)
+    if (filters.status) {
+      query.status = filters.status;
+    }
+
+    // Legacy filter: submittedForReview
     if (filters.submittedForReview !== undefined) {
-      query.submittedForReview = filters.submittedForReview;
+      if (filters.submittedForReview) {
+        // Courses submitted for review: use new status field
+        query.status = 'submitted';
+      } else {
+        // Not submitted courses: draft, approved, published, etc.
+        query.status = { $ne: 'submitted' };
+      }
     }
 
     if (filters.instructorId) {
@@ -187,6 +199,8 @@ export class CourseService {
       price: course.price,
       originalPrice: course.originalPrice,
       discountPercentage: course.discountPercentage,
+      status: course.status || 'draft',
+      hasUnsavedChanges: course.hasUnsavedChanges || false,
       isPublished: course.isPublished,
       isApproved: course.isApproved,
       isFeatured: course.isFeatured,
@@ -255,9 +269,17 @@ export class CourseService {
     // Update only status fields
     if (statusData.isPublished !== undefined) {
       course.isPublished = statusData.isPublished;
-      // Set publishedAt if publishing for the first time
-      if (statusData.isPublished && !course.publishedAt) {
-        course.publishedAt = new Date();
+
+      // Sync status field with isPublished
+      if (statusData.isPublished) {
+        course.status = 'published';
+        // Set publishedAt if publishing for the first time
+        if (!course.publishedAt) {
+          course.publishedAt = new Date();
+        }
+      } else {
+        // Unpublish: revert to approved if was approved, otherwise draft
+        course.status = course.isApproved ? 'approved' : 'draft';
       }
     }
 
@@ -265,6 +287,7 @@ export class CourseService {
       course.isFeatured = statusData.isFeatured;
     }
 
+    // Allow explicit status override
     if (statusData.status !== undefined) {
       course.status = statusData.status as any;
     }
@@ -305,9 +328,9 @@ export class CourseService {
       totalRevenue
     ] = await Promise.all([
       CourseModel.countDocuments(),
-      CourseModel.countDocuments({ isPublished: true, isApproved: true }),
-      CourseModel.countDocuments({ isApproved: false }),
-      CourseModel.countDocuments({ isPublished: false, isApproved: false }),
+      CourseModel.countDocuments({ status: 'published' }),
+      CourseModel.countDocuments({ status: 'submitted' }), // Courses waiting for approval
+      CourseModel.countDocuments({ status: 'draft' }),
       CourseModel.aggregate([
         { $group: { _id: '$domain', count: { $sum: 1 } } }
       ]),
@@ -345,18 +368,27 @@ export class CourseService {
       throw new Error('Course not found');
     }
 
-    course.isApproved = approved;
-    course.updatedAt = new Date();
-
+    // Update status based on approval
     if (approved) {
+      course.status = 'published';
+      course.isApproved = true;
+      course.isPublished = true;
       course.approvedAt = new Date();
+      course.publishedAt = new Date();
+    } else {
+      course.status = 'rejected';
+      course.isApproved = false;
+      course.isPublished = false;
     }
+
+    course.updatedAt = new Date();
 
     await course.save();
 
     return {
       message: `Course ${approved ? 'approved' : 'rejected'} successfully`,
-      course
+      course,
+      feedback
     };
   }
 
@@ -444,13 +476,14 @@ export class CourseService {
   static async getPendingApprovals(page: number = 1, limit: number = 20) {
     const skip = (page - 1) * limit;
 
+    // Get courses with status 'submitted' (waiting for admin approval)
     const [courses, total] = await Promise.all([
-      CourseModel.find({ isApproved: false })
+      CourseModel.find({ status: 'submitted' })
         .populate('instructorId', 'name email')
-        .sort({ createdAt: -1 })
+        .sort({ submittedAt: -1 }) // Sort by submission time
         .skip(skip)
         .limit(limit),
-      CourseModel.countDocuments({ isApproved: false })
+      CourseModel.countDocuments({ status: 'submitted' })
     ]);
 
     const totalPages = Math.ceil(total / limit);

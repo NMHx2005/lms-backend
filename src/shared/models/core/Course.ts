@@ -30,6 +30,7 @@ export interface ICourse extends Document {
   isFeatured: boolean;
   submittedAt?: Date;
   submittedForReview?: boolean;
+  hasUnsavedChanges?: boolean; // Track if course has been modified after publishing
 
   // Enhanced Course Fields
   category: string;
@@ -218,21 +219,8 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       required: [true, 'Course domain is required'],
       trim: true,
-      enum: {
-        values: [
-          'IT',
-          'Economics',
-          'Law',
-          'Marketing',
-          'Design',
-          'Language',
-          'Science',
-          'Arts',
-          'Business',
-          'Other',
-        ],
-        message: 'Please select a valid domain',
-      },
+      // Note: Domain values are now managed dynamically via Categories collection
+      // No enum validation to allow flexible category management
     },
     level: {
       type: String,
@@ -244,7 +232,7 @@ const courseSchema = new Schema<ICourse>(
     },
     category: {
       type: String,
-      required: [true, 'Course category is required'],
+      required: false, // Deprecated: Use domain instead
       trim: true,
     },
     subcategory: {
@@ -520,6 +508,10 @@ const courseSchema = new Schema<ICourse>(
       index: true
     },
     submittedForReview: {
+      type: Boolean,
+      default: false
+    },
+    hasUnsavedChanges: {
       type: Boolean,
       default: false
     },

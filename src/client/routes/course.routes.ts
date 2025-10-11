@@ -7,6 +7,12 @@ import { Enrollment, Course, User, UserActivityLog } from '../../shared/models';
 
 const router = Router();
 
+// Teacher routes (for course management) - MUST be before /:id routes
+router.get('/my-courses', authenticate, ClientCourseController.getTeacherCourses);
+router.get('/my-courses/:id', authenticate, ClientCourseController.getTeacherCourseById);
+router.get('/stats', authenticate, ClientCourseController.getTeacherCourseStats);
+router.post('/', authenticate, ClientCourseController.createCourse);
+
 // Public routes (no authentication required)
 router.get('/', ClientCourseController.getPublishedCourses);
 router.get('/categories', ClientCourseController.getCourseCategories);
@@ -15,15 +21,19 @@ router.get('/popular', ClientCourseController.getPopularCourses);
 router.get('/search', ClientCourseController.searchCourses);
 router.get('/filter-options', ClientCourseController.getFilterOptions);
 router.get('/popular-tags', ClientCourseController.getPopularTags);
+router.get('/recommendations', authenticate, ClientCourseController.getCourseRecommendations);
 router.get('/instructor/:instructorId', ClientCourseController.getCoursesByInstructor);
-router.get('/:id', ClientCourseController.getCourseById);
-router.get('/:id/related', ClientCourseController.getRelatedCourses);
 
-// Protected routes (authentication required)
+// Dynamic ID routes - MUST be after specific routes
+// Note: Using optionalAuth to allow both authenticated users (can see own draft courses) and guests (can see published courses)
+router.get('/:id', optionalAuth, ClientCourseController.getCourseById);
+router.get('/:id/related', ClientCourseController.getRelatedCourses);
 router.get('/:id/content', authenticate, ClientCourseController.getCourseContent);
 router.get('/:id/progress', authenticate, ClientCourseController.getCourseProgress);
 router.get('/:id/lessons/:lessonId', authenticate, ClientCourseController.getLessonContent);
-router.get('/recommendations', authenticate, ClientCourseController.getCourseRecommendations);
+router.put('/:id', authenticate, ClientCourseController.updateCourse);
+router.delete('/:id', authenticate, ClientCourseController.deleteCourse);
+router.patch('/:id/status', authenticate, ClientCourseController.updateCourseStatus);
 
 // Course enrollment endpoint
 router.post('/:id/enroll', authenticate, async (req: any, res) => {

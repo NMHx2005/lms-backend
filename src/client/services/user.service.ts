@@ -2,8 +2,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User as UserModel, UserActivityLog as ActivityLogModel } from '../../shared/models';
-import { 
-  UpdateProfileRequest, 
+import {
+  UpdateProfileRequest,
   ChangePasswordRequest,
   UpdatePreferencesRequest,
   UpdateNotificationSettingsRequest,
@@ -21,10 +21,7 @@ export class UserService {
    */
   static async getUserProfile(userId: string): Promise<UserProfile> {
     const user = await UserModel.findById(userId)
-      .select('-password')
-      .populate('enrolledCourses', 'title thumbnail progress')
-      .populate('completedCourses', 'title thumbnail completedAt')
-      .populate('favoriteCourses', 'title thumbnail');
+      .select('-password');
 
     if (!user) {
       throw new Error('User not found');
@@ -38,8 +35,8 @@ export class UserService {
    */
   static async updateUserProfile(userId: string, updateData: UpdateProfileRequest): Promise<UserProfile> {
     const allowedFields = [
-      'name', 'bio', 'phone', 'dateOfBirth', 'country', 
-      'avatar', 'socialLinks', 'preferences'
+      'name', 'bio', 'phone', 'dateOfBirth', 'country',
+      'avatar', 'socialLinks', 'preferences', 'skills', 'education', 'experience'
     ];
 
     const filteredData: any = {};
@@ -283,10 +280,10 @@ export class UserService {
       folder: 'avatars',
       resourceType: 'image'
     });
-    
+
     // Update user avatar
     await UserModel.findByIdAndUpdate(userId, { avatar: result.secureUrl });
-    
+
     return result.secureUrl;
   }
 
@@ -361,6 +358,156 @@ export class UserService {
       default:
         return ['Basic courses', 'Limited assignments', 'Community support'];
     }
+  }
+
+  /**
+   * Get profile stats for teachers
+   */
+  static async getProfileStats(userId: string) {
+    const user = await UserModel.findById(userId).select('-password');
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Get courses created by teacher (if teacher)
+    let coursesCreated = 0;
+    let totalStudents = 0;
+    let totalRevenue = 0;
+    let totalSubscriptions = 0;
+    let activeSubscriptions = 0;
+
+    if (user.roles?.includes('teacher')) {
+      const { Course, Bill } = require('../../shared/models');
+      const { TeacherPackageSubscription } = require('../../shared/models/extended/TeacherPackage');
+      const mongoose = require('mongoose');
+      const teacherObjectId = new mongoose.Types.ObjectId(userId);
+
+      // Get courses
+      const courses = await Course.find({ instructorId: teacherObjectId });
+      coursesCreated = courses.length;
+      totalStudents = courses.reduce((sum: number, c: any) => sum + (c.totalStudents || 0), 0);
+
+      // Calculate revenue from Bills (actual payments from students)
+      const revenueResult = await Bill.aggregate([
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'courseId',
+            foreignField: '_id',
+            as: 'course'
+          }
+        },
+        { $unwind: '$course' },
+        {
+          $match: {
+            'course.instructorId': teacherObjectId,
+            status: 'completed'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' }
+          }
+        }
+      ]);
+
+      totalRevenue = revenueResult[0]?.total || 0;
+
+      // Get subscription packages count
+      totalSubscriptions = await TeacherPackageSubscription.countDocuments({
+        teacherId: teacherObjectId
+      });
+
+      activeSubscriptions = await TeacherPackageSubscription.countDocuments({
+        teacherId: teacherObjectId,
+        status: 'active',
+        endAt: { $gt: new Date() }
+      });
+    }
+
+    return {
+      profileCompletion: this.calculateProfileCompletion(user),
+      coursesCreated,
+      totalStudents,
+      totalRevenue,
+      totalSubscriptions,
+      activeSubscriptions,
+      joinedDate: user.createdAt,
+      lastActive: user.lastActivityAt || user.lastLoginAt,
+      subscriptionStatus: user.subscriptionPlan || 'free'
+    };
+  }
+
+  /**
+   * Get course quota info for teachers
+   */
+  static async getCourseQuota(userId: string) {
+    const { Course } = require('../../shared/models');
+    const { TeacherPackageSubscription } = require('../../shared/models/extended/TeacherPackage');
+    const mongoose = require('mongoose');
+    const teacherObjectId = new mongoose.Types.ObjectId(userId);
+
+    // Get all active subscriptions
+    const activeSubscriptions = await TeacherPackageSubscription.find({
+      teacherId: teacherObjectId,
+      status: 'active',
+      endAt: { $gt: new Date() }
+    }).populate('packageId', 'name maxCourses');
+
+    // Get current courses count
+    const currentCoursesCount = await Course.countDocuments({
+      instructorId: teacherObjectId
+    });
+
+    if (!activeSubscriptions || activeSubscriptions.length === 0) {
+      return {
+        hasActiveSubscription: false,
+        currentCourses: currentCoursesCount,
+        maxCourses: 0,
+        remainingCourses: 0,
+        canCreateCourse: false,
+        activePackages: []
+      };
+    }
+
+    // Get the subscription with highest maxCourses limit
+    const maxAllowed = Math.max(...activeSubscriptions.map((sub: any) => sub.snapshot?.maxCourses || 0));
+    const remainingCourses = Math.max(0, maxAllowed - currentCoursesCount);
+
+    return {
+      hasActiveSubscription: true,
+      currentCourses: currentCoursesCount,
+      maxCourses: maxAllowed,
+      remainingCourses,
+      canCreateCourse: currentCoursesCount < maxAllowed,
+      activePackages: activeSubscriptions.map((sub: any) => ({
+        name: sub.snapshot?.name,
+        maxCourses: sub.snapshot?.maxCourses,
+        endAt: sub.endAt
+      }))
+    };
+  }
+
+  /**
+   * Calculate profile completion percentage
+   */
+  private static calculateProfileCompletion(user: any): number {
+    const fields = [
+      user.name,
+      user.email,
+      user.bio,
+      user.avatar,
+      user.phone,
+      user.dateOfBirth,
+      user.country,
+      user.skills && user.skills.length > 0,
+      user.education && user.education.length > 0,
+      user.experience && user.experience.length > 0
+    ];
+
+    const filledFields = fields.filter(field => field).length;
+    return Math.round((filledFields / fields.length) * 100);
   }
 }
 

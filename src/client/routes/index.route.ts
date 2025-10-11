@@ -8,8 +8,7 @@ import enrollmentRoutes from './enrollment.routes';
 import assignmentRoutes from './assignment.routes';
 import announcementRoutes from './announcement.routes';
 import courseSubmissionRoutes from './course-submission.routes';
-import courseRatingRoutes from './course-rating.routes';
-import teacherResponseRoutes from './teacher-response.routes';
+import reviewRoutes from './review.routes';
 import paymentRoutes from './payment.routes';
 import clientAuthRoutes from './auth.routes';
 import analyticsRoutes from './analytics.routes';
@@ -19,31 +18,38 @@ import teacherDashboardRoutes from './teacher-dashboard.routes';
 import teacherPackageRoutes from './teacher-package.routes';
 import wishlistRoutes from './wishlist.routes';
 import studyGroupRoutes from './study-group.routes';
+import messageRoutes from './message.routes';
+import earningsRoutes from './earnings.routes';
+import aiToolsRoutes from './ai-tools.routes';
+import categoryRoutes from './category.routes';
 import { StudyGroupController } from '../controllers/study-group.controller';
 
 const router = express.Router();
 
 // Public routes (no authentication required)
 router.use('/courses', courseRoutes);
+router.use('/categories', categoryRoutes);
 
 // Protected routes (authentication required)
 router.use('/auth', clientAuthRoutes);
-router.use('/user', authenticate, userRoutes);
+router.use('/users', authenticate, userRoutes);
 router.use('/sections', authenticate, sectionRoutes);
 router.use('/lessons', authenticate, lessonRoutes);
 router.use('/enrollments', authenticate, enrollmentRoutes);
 router.use('/assignments', authenticate, assignmentRoutes);
 router.use('/announcements', authenticate, announcementRoutes);
 router.use('/payments', authenticate, paymentRoutes);
+router.use('/teacher-dashboard', teacherDashboardRoutes); // Must be BEFORE /analytics to avoid route conflict
 router.use('/analytics', authenticate, analyticsRoutes);
 router.use('/certificates', authenticate, certificateRoutes);
 router.use('/teacher-ratings', teacherRatingRoutes);
-router.use('/teacher-dashboard', teacherDashboardRoutes);
 router.use('/course-submissions', courseSubmissionRoutes);
-router.use('/ratings', courseRatingRoutes);
-router.use('/teacher-responses', teacherResponseRoutes);
+router.use('/ratings', reviewRoutes); // Course reviews with teacher responses
 router.use('/teacher-packages', authenticate, teacherPackageRoutes);
 router.use('/wishlist', authenticate, wishlistRoutes);
+router.use('/messages', messageRoutes);
+router.use('/earnings', earningsRoutes);
+router.use('/ai-tools', aiToolsRoutes);
 
 // Protected Study Group endpoints (must be before public routes to avoid conflicts)
 router.use('/study-groups', authenticate, studyGroupRoutes);

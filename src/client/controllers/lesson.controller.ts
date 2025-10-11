@@ -23,8 +23,16 @@ export class ClientLessonController {
   static async getLessonsBySection(req: Request, res: Response) {
     try {
       const { sectionId } = req.params;
-      const userId = (req as any).user?._id;
-      
+      const user = (req as any).user;
+      const userId = user?._id || user?.id;
+
+      console.log('🔍 getLessonsBySection - Auth check:', {
+        hasUser: !!user,
+        userId,
+        userRoles: user?.roles,
+        sectionId
+      });
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -33,7 +41,7 @@ export class ClientLessonController {
       }
 
       const lessons = await ClientLessonService.getLessonsBySection(sectionId, userId);
-      
+
       res.json({
         success: true,
         data: lessons
@@ -52,7 +60,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -61,7 +69,7 @@ export class ClientLessonController {
       }
 
       const content = await ClientLessonService.getLessonContent(id, userId);
-      
+
       res.json({
         success: true,
         data: content
@@ -80,7 +88,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -89,7 +97,7 @@ export class ClientLessonController {
       }
 
       const progress = await ClientLessonService.getLessonProgress(id, userId);
-      
+
       res.json({
         success: true,
         data: progress
@@ -108,7 +116,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -117,7 +125,7 @@ export class ClientLessonController {
       }
 
       const nextLesson = await ClientLessonService.getNextLesson(id, userId);
-      
+
       res.json({
         success: true,
         data: nextLesson
@@ -136,7 +144,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -145,7 +153,7 @@ export class ClientLessonController {
       }
 
       const previousLesson = await ClientLessonService.getPreviousLesson(id, userId);
-      
+
       res.json({
         success: true,
         data: previousLesson
@@ -196,7 +204,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -205,7 +213,7 @@ export class ClientLessonController {
       }
 
       const attachments = await ClientLessonService.getLessonAttachments(id, userId);
-      
+
       res.json({
         success: true,
         data: attachments
@@ -224,7 +232,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -233,7 +241,7 @@ export class ClientLessonController {
       }
 
       const navigation = await ClientLessonService.getLessonNavigation(id, userId);
-      
+
       res.json({
         success: true,
         data: navigation
@@ -252,7 +260,7 @@ export class ClientLessonController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -261,7 +269,7 @@ export class ClientLessonController {
       }
 
       const summary = await ClientLessonService.getLessonSummary(id, userId);
-      
+
       res.json({
         success: true,
         data: summary
@@ -271,6 +279,122 @@ export class ClientLessonController {
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to get lesson summary'
+      });
+    }
+  }
+
+  // ========== TEACHER CRUD OPERATIONS ==========
+
+  // Create lesson (for course instructors)
+  static async createLesson(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?._id || (req as any).user?.id;
+      const lessonData = req.body;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const lesson = await ClientLessonService.createLesson(userId, lessonData);
+
+      res.status(201).json({
+        success: true,
+        data: lesson
+      });
+    } catch (error: any) {
+      console.error('Create lesson error:', error);
+      res.status(error.message.includes('permission') ? 403 : 500).json({
+        success: false,
+        error: error.message || 'Failed to create lesson'
+      });
+    }
+  }
+
+  // Update lesson (for course instructors)
+  static async updateLesson(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?._id || (req as any).user?.id;
+      const { id } = req.params;
+      const updates = req.body;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const lesson = await ClientLessonService.updateLesson(id, userId, updates);
+
+      res.json({
+        success: true,
+        data: lesson
+      });
+    } catch (error: any) {
+      console.error('Update lesson error:', error);
+      res.status(error.message.includes('permission') ? 403 : 500).json({
+        success: false,
+        error: error.message || 'Failed to update lesson'
+      });
+    }
+  }
+
+  // Delete lesson (for course instructors)
+  static async deleteLesson(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?._id || (req as any).user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      await ClientLessonService.deleteLesson(id, userId);
+
+      res.json({
+        success: true,
+        message: 'Lesson deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Delete lesson error:', error);
+      res.status(error.message.includes('permission') ? 403 : 500).json({
+        success: false,
+        error: error.message || 'Failed to delete lesson'
+      });
+    }
+  }
+
+  // Reorder lessons (for course instructors)
+  static async reorderLessons(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?._id || (req as any).user?.id;
+      const { sectionId } = req.params;
+      const { lessons } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const updatedLessons = await ClientLessonService.reorderLessons(sectionId, userId, lessons);
+
+      res.json({
+        success: true,
+        data: updatedLessons
+      });
+    } catch (error: any) {
+      console.error('Reorder lessons error:', error);
+      res.status(error.message.includes('permission') ? 403 : 500).json({
+        success: false,
+        error: error.message || 'Failed to reorder lessons'
       });
     }
   }

@@ -1,13 +1,19 @@
 import { Router } from 'express';
 import { ClientLessonController } from '../controllers/lesson.controller';
-import { authenticate } from '../middleware/auth';
-import { validateRequest } from '../middleware/validation';
+import { authenticate } from '../../shared/middleware/auth';
+import { validateRequest } from '../../shared/middleware/validation';
 import { clientLessonValidation } from '../validators/lesson.validator';
 
 const router = Router();
 
-// All lesson routes require authentication (enrolled students only)
+// All lesson routes require authentication (enrolled students and teachers)
 router.use(authenticate);
+
+// Teacher CRUD operations (must be before /:id to avoid route conflicts)
+router.post('/', ClientLessonController.createLesson);
+router.put('/:id', ClientLessonController.updateLesson);
+router.delete('/:id', ClientLessonController.deleteLesson);
+router.patch('/section/:sectionId/reorder', ClientLessonController.reorderLessons);
 
 // Get lesson by ID (for enrolled students)
 router.get('/:id', validateRequest(clientLessonValidation.lessonId), ClientLessonController.getLessonById);

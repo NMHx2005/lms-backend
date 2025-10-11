@@ -8,6 +8,9 @@ export interface UpdateProfileRequest {
   avatar?: string;
   socialLinks?: SocialLinks;
   preferences?: UserPreferences;
+  skills?: string[];
+  education?: Education[];
+  experience?: Experience[];
 }
 
 export interface ChangePasswordRequest {
@@ -58,6 +61,9 @@ export interface UserProfile {
   dateOfBirth?: Date;
   country?: string;
   bio?: string;
+  skills?: string[];
+  education?: Education[];
+  experience?: Experience[];
   socialLinks?: SocialLinks;
   preferences?: UserPreferences;
   stats?: UserStats;
@@ -110,6 +116,25 @@ export interface UserSubscriptionInfo {
 }
 
 // Supporting Interfaces
+export interface Education {
+  institution: string;
+  degree: string;
+  field: string;
+  startDate: string;
+  endDate?: string;
+  current?: boolean;
+  description?: string;
+}
+
+export interface Experience {
+  company: string;
+  position: string;
+  startDate: string;
+  endDate?: string;
+  current?: boolean;
+  description?: string;
+}
+
 export interface SocialLinks {
   linkedin?: string;
   twitter?: string;

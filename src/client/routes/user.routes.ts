@@ -37,6 +37,14 @@ router.get('/activity/summary', ClientUserController.getActivitySummary);
 // Subscription Information
 router.get('/subscription', ClientUserController.getSubscriptionInfo);
 
+// Profile specific updates (for teachers)
+router.put('/bio', ClientUserController.updateBio);
+router.put('/skills', ClientUserController.updateSkills);
+router.put('/education', ClientUserController.updateEducation);
+router.put('/experience', ClientUserController.updateExperience);
+router.get('/profile/stats', ClientUserController.getProfileStats);
+router.get('/course-quota', ClientUserController.getCourseQuota);
+
 // Account Management
 router.delete('/account', validateRequest(clientUserValidation.deleteAccount), ClientUserController.deleteAccount);
 

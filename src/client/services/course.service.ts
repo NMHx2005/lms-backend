@@ -145,20 +145,45 @@ export class ClientCourseService {
   }
 
   // Get course by ID (published and approved only)
-  static async getCourseById(courseId: string) {
-    const course = await CourseModel.findOne({
-      _id: courseId,
-      isPublished: true,
-      isApproved: true
-    })
-      .populate('instructorId', 'name email avatar bio')
-      .populate('sections')
-      .populate('lessons')
-      .populate('assignments');
+  static async getCourseById(courseId: string, userId?: string) {
+    // First, find the course without populate to check instructorId
+    const courseDoc = await CourseModel.findById(courseId).lean();
 
-    if (!course) {
+    if (!courseDoc) {
       throw new Error('Course not found or not available');
     }
+
+    // Check access permissions
+    const isInstructor = userId && courseDoc.instructorId &&
+      courseDoc.instructorId.toString() === userId.toString();
+
+    const isPublicCourse = courseDoc.isPublished && courseDoc.isApproved;
+
+    // Debug logging
+    console.log('🔍 Access Check:', {
+      courseId,
+      userId,
+      instructorId: courseDoc.instructorId?.toString(),
+      isInstructor,
+      isPublished: courseDoc.isPublished,
+      isApproved: courseDoc.isApproved,
+      isPublicCourse
+    });
+
+    // Allow access if:
+    // 1. User is the instructor (can see draft/pending courses)
+    // 2. Course is published and approved (public access)
+    if (!isInstructor && !isPublicCourse) {
+      console.log('❌ Access denied');
+      throw new Error('Course not found or not available');
+    }
+
+    console.log('✅ Access granted');
+
+    // Now populate and return
+    const course = await CourseModel.findById(courseId)
+      .populate('instructorId', 'firstName lastName email avatar bio')
+      .lean();
 
     return course;
   }
@@ -446,5 +471,524 @@ export class ClientCourseService {
       console.error('Error getting popular tags:', error);
       throw error;
     }
+  }
+
+  // ========== TEACHER COURSE MANAGEMENT ==========
+
+  /**
+   * Get teacher's single course by ID (for editing)
+   */
+  static async getTeacherCourseById(courseId: string, teacherId: string) {
+    const course = await CourseModel.findOne({
+      _id: courseId,
+      instructorId: teacherId
+    })
+      .populate('instructorId', 'firstName lastName email avatar bio')
+      .lean();
+
+    if (!course) {
+      throw new Error('Course not found or you do not have permission to view it');
+    }
+
+    return course;
+  }
+
+  /**
+   * Get teacher's courses with filters
+   */
+  static async getTeacherCourses(teacherId: string, filters: any) {
+    const { page, limit, status, search, sortBy, sortOrder } = filters;
+    const skip = (page - 1) * limit;
+
+    const query: any = { instructorId: teacherId };
+
+    if (status && status !== 'all') {
+      if (status === 'draft') {
+        query.status = 'draft';
+      } else if (status === 'published') {
+        query.status = 'published';
+      } else if (status === 'pending') {
+        query.status = 'submitted';
+      } else if (status === 'approved') {
+        query.status = 'approved';
+      } else if (status === 'rejected') {
+        query.status = 'rejected';
+      } else {
+        // Use status field directly for other values
+        query.status = status;
+      }
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { domain: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const [courses, total] = await Promise.all([
+      CourseModel.find(query)
+        .select('title thumbnail domain level price status hasUnsavedChanges isPublished isApproved totalStudents averageRating createdAt updatedAt')
+        .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      CourseModel.countDocuments(query)
+    ]);
+
+    // Get sections and lessons count for each course
+    const coursesWithCounts = await Promise.all(
+      courses.map(async (course: any) => {
+        const sections = await CourseModel.aggregate([
+          { $match: { _id: course._id } },
+          { $lookup: { from: 'sections', localField: '_id', foreignField: 'courseId', as: 'sections' } },
+          { $unwind: { path: '$sections', preserveNullAndEmptyArrays: true } },
+          {
+            $lookup: {
+              from: 'lessons',
+              localField: 'sections._id',
+              foreignField: 'sectionId',
+              as: 'sections.lessons'
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              sectionsCount: { $sum: 1 },
+              lessonsCount: { $sum: { $size: '$sections.lessons' } }
+            }
+          }
+        ]);
+
+        const counts = sections[0] || { sectionsCount: 0, lessonsCount: 0 };
+
+        return {
+          _id: course._id,
+          title: course.title,
+          thumbnail: course.thumbnail || '/images/default-course.png',
+          domain: course.domain,
+          level: course.level,
+          price: course.price,
+          status: course.status || 'draft', // Use status field from database
+          hasUnsavedChanges: course.hasUnsavedChanges || false,
+          studentsCount: course.totalStudents || 0,
+          rating: course.averageRating || 0,
+          createdAt: course.createdAt,
+          updatedAt: course.updatedAt,
+          sectionsCount: counts.sectionsCount,
+          lessonsCount: counts.lessonsCount
+        };
+      })
+    );
+
+    return {
+      courses: coursesWithCounts,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  /**
+   * Get teacher course statistics
+   */
+  static async getTeacherCourseStats(teacherId: string) {
+    const [total, published, draft, pending, totalStudents, revenue] = await Promise.all([
+      CourseModel.countDocuments({ instructorId: teacherId }),
+      CourseModel.countDocuments({ instructorId: teacherId, status: 'published' }),
+      CourseModel.countDocuments({ instructorId: teacherId, status: 'draft' }),
+      CourseModel.countDocuments({ instructorId: teacherId, status: 'submitted' }),
+      CourseModel.aggregate([
+        { $match: { instructorId: teacherId } },
+        { $group: { _id: null, total: { $sum: '$totalStudents' } } }
+      ]),
+      BillModel.aggregate([
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'courseId',
+            foreignField: '_id',
+            as: 'course'
+          }
+        },
+        { $unwind: '$course' },
+        {
+          $match: {
+            'course.instructorId': teacherId,
+            status: 'completed'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' }
+          }
+        }
+      ])
+    ]);
+
+    return {
+      total,
+      published,
+      draft,
+      pending,
+      totalStudents: totalStudents[0]?.total || 0,
+      totalRevenue: revenue[0]?.total || 0
+    };
+  }
+
+  /**
+   * Create new course
+   */
+  static async createCourse(teacherId: string, courseData: any) {
+    // ========== VALIDATE PACKAGE SUBSCRIPTION ==========
+    const mongoose = require('mongoose');
+    const { TeacherPackageSubscription } = require('../../shared/models/extended/TeacherPackage');
+    const teacherObjectId = new mongoose.Types.ObjectId(teacherId);
+
+    // Get all active subscriptions
+    const activeSubscriptions = await TeacherPackageSubscription.find({
+      teacherId: teacherObjectId,
+      status: 'active',
+      endAt: { $gt: new Date() }
+    }).sort({ 'snapshot.maxCourses': -1 }); // Sort by maxCourses descending
+
+    if (!activeSubscriptions || activeSubscriptions.length === 0) {
+      throw new Error('Bạn cần đăng ký gói subscription để tạo khóa học. Vui lòng chọn gói phù hợp tại /teacher/advanced/packages.');
+    }
+
+    // Get the subscription with highest maxCourses limit
+    const maxAllowed = Math.max(...activeSubscriptions.map((sub: any) => sub.snapshot?.maxCourses || 0));
+    const bestPackage = activeSubscriptions.find((sub: any) => sub.snapshot?.maxCourses === maxAllowed);
+
+    // Check course creation quota
+    const currentCoursesCount = await CourseModel.countDocuments({
+      instructorId: teacherObjectId
+    });
+
+    if (currentCoursesCount >= maxAllowed) {
+      const packageName = bestPackage?.snapshot?.name || 'hiện tại';
+      throw new Error(`Bạn đã đạt giới hạn ${maxAllowed} khóa học của gói ${packageName}. Hiện tại: ${currentCoursesCount}/${maxAllowed}. Vui lòng nâng cấp gói để tạo thêm khóa học.`);
+    }
+
+    console.log(`✅ Course quota check passed: ${currentCoursesCount}/${maxAllowed} courses (Package: ${bestPackage?.snapshot?.name})`);
+    // ========== END VALIDATION ==========
+
+    // Map frontend field names to model field names
+    const mappedData: any = {
+      title: courseData.title,
+      description: courseData.description,
+      shortDescription: courseData.shortDescription || '', // ✅ NEW: Short description
+      thumbnail: courseData.thumbnail,
+      domain: courseData.domain,
+      category: courseData.domain, // Set category = domain for backward compatibility
+      level: courseData.level,
+      price: courseData.price || 0,
+      originalPrice: courseData.originalPrice || 0, // ✅ NEW: Original price
+      discountPercentage: courseData.discountPercentage || 0, // ✅ NEW: Discount percentage
+      estimatedDuration: courseData.duration > 0 ? courseData.duration : 1, // Min 0.5, default 1
+      tags: courseData.tags || [],
+      prerequisites: courseData.requirements || [], // Map requirements -> prerequisites
+      learningObjectives: courseData.objectives || [], // Map objectives -> learningObjectives
+      benefits: courseData.benefits || [], // ✅ NEW: Benefits
+      maxStudents: courseData.maxStudents || 0, // ✅ NEW: Max students
+      instructorId: teacherId,
+      isPublished: false,
+      isApproved: false,
+      totalStudents: 0,
+      averageRating: 0,
+      totalRatings: 0,
+      isFree: courseData.isFree || false,
+      // Map language to localization object
+      // Note: originalLanguage uses 'en' for text indexing, actual language stored in availableLanguages
+      localization: {
+        originalLanguage: 'en', // Fixed to 'en' for MongoDB compatibility
+        availableLanguages: [courseData.language || 'vi'], // Actual course language(s)
+        hasSubtitles: false,
+        subtitleLanguages: [],
+        hasDubbing: false,
+        dubbedLanguages: []
+      },
+      // Assessment settings
+      assessment: {
+        hasQuizzes: false,
+        hasAssignments: false,
+        hasFinalExam: false,
+        hasCertification: courseData.certificateAvailable || false,
+        passingScore: 70,
+        maxAttempts: 3
+      },
+      // Top-level certificate field (for backward compatibility)
+      certificate: courseData.certificateAvailable || false
+    };
+
+    const course = new CourseModel(mappedData);
+    await course.save();
+    return course;
+  }
+
+  /**
+   * Update course
+   */
+  static async updateCourse(courseId: string, teacherId: string, updates: any) {
+    // First, get the current course to check its status
+    const currentCourse = await CourseModel.findOne({
+      _id: courseId,
+      instructorId: teacherId
+    });
+
+    if (!currentCourse) {
+      throw new Error('Course not found or you do not have permission to update this course');
+    }
+
+    // Map frontend field names to model field names
+    const mappedUpdates: any = {
+      ...updates,
+      updatedAt: new Date()
+    };
+
+    // Sync category with domain for backward compatibility
+    if (updates.domain !== undefined) {
+      mappedUpdates.category = updates.domain;
+    }
+
+    // Remove deprecated fields if sent from old frontend
+    if (updates.category !== undefined && updates.domain === undefined) {
+      delete mappedUpdates.category; // Don't update category alone
+    }
+
+    // Map field names if they exist in updates
+    if (updates.duration !== undefined) {
+      mappedUpdates.estimatedDuration = updates.duration > 0 ? updates.duration : 1; // Min 0.5, default 1
+      delete mappedUpdates.duration;
+    }
+    if (updates.requirements !== undefined) {
+      mappedUpdates.prerequisites = updates.requirements;
+      delete mappedUpdates.requirements;
+    }
+    if (updates.objectives !== undefined) {
+      mappedUpdates.learningObjectives = updates.objectives;
+      delete mappedUpdates.objectives;
+    }
+    if (updates.benefits !== undefined) {
+      mappedUpdates.benefits = updates.benefits;
+      // Don't delete - benefits is already the correct field name
+    }
+    if (updates.originalPrice !== undefined) {
+      mappedUpdates.originalPrice = updates.originalPrice;
+      // Don't delete - originalPrice is already the correct field name
+    }
+    if (updates.discountPercentage !== undefined) {
+      mappedUpdates.discountPercentage = updates.discountPercentage;
+      // Don't delete - discountPercentage is already the correct field name
+    }
+    if (updates.maxStudents !== undefined) {
+      mappedUpdates.maxStudents = updates.maxStudents;
+      // Don't delete - maxStudents is already the correct field name
+    }
+    if (updates.certificateAvailable !== undefined) {
+      mappedUpdates.certificate = updates.certificateAvailable;
+      mappedUpdates['assessment.hasCertification'] = updates.certificateAvailable;
+      delete mappedUpdates.certificateAvailable;
+    }
+
+    // If editing a published course, mark it as having unsaved changes
+    if (currentCourse.status === 'published') {
+      mappedUpdates.hasUnsavedChanges = true;
+      console.log('📝 Published course edited, marking hasUnsavedChanges = true');
+    }
+
+    // Manual validation for price/discount fields
+    if (mappedUpdates.originalPrice !== undefined && mappedUpdates.price !== undefined) {
+      if (mappedUpdates.originalPrice < mappedUpdates.price) {
+        throw new Error('Original price must be greater than or equal to current price');
+      }
+    }
+
+    if (mappedUpdates.discountPercentage !== undefined &&
+      mappedUpdates.originalPrice !== undefined &&
+      mappedUpdates.price !== undefined) {
+      const calculatedPrice = mappedUpdates.originalPrice * (1 - mappedUpdates.discountPercentage / 100);
+      if (Math.abs(calculatedPrice - mappedUpdates.price) >= 1000) {
+        throw new Error(
+          `Discount percentage does not match price calculation. ` +
+          `Expected price: ${calculatedPrice.toFixed(0)}, Got: ${mappedUpdates.price}`
+        );
+      }
+    }
+
+    // Debug logging for important fields
+    console.log('🔍 Update Course - Mapped Updates:', {
+      originalPrice: mappedUpdates.originalPrice,
+      discountPercentage: mappedUpdates.discountPercentage,
+      maxStudents: mappedUpdates.maxStudents,
+      certificate: mappedUpdates.certificate,
+      benefits: mappedUpdates.benefits,
+      isFree: mappedUpdates.isFree
+    });
+
+    // Use $set to update fields properly, especially nested ones
+    // Note: runValidators is set to false because validation runs on OLD document context
+    // which causes issues with price/discount validation
+    const course = await CourseModel.findOneAndUpdate(
+      { _id: courseId, instructorId: teacherId },
+      { $set: mappedUpdates },
+      { new: true, runValidators: false }
+    );
+
+    if (!course) {
+      throw new Error('Course not found or you do not have permission to update this course');
+    }
+
+    return course;
+  }
+
+  /**
+   * Delete course
+   */
+  static async deleteCourse(courseId: string, teacherId: string) {
+    // Check if course has enrollments
+    const enrollmentCount = await EnrollmentModel.countDocuments({ courseId });
+
+    if (enrollmentCount > 0) {
+      throw {
+        statusCode: 400,
+        message: 'Cannot delete course with active enrollments'
+      };
+    }
+
+    const result = await CourseModel.deleteOne({
+      _id: courseId,
+      instructorId: teacherId
+    });
+
+    if (result.deletedCount === 0) {
+      throw {
+        statusCode: 404,
+        message: 'Course not found or you do not have permission to delete it'
+      };
+    }
+
+    return true;
+  }
+
+  /**
+   * Update course status
+   */
+  static async updateCourseStatus(courseId: string, teacherId: string, status: string) {
+    // Find course first to validate current status
+    const course = await CourseModel.findOne({
+      _id: courseId,
+      instructorId: teacherId
+    });
+
+    if (!course) {
+      throw new Error('Course not found or you do not have permission to update this course');
+    }
+
+    console.log('🔍 UpdateCourseStatus:', {
+      courseId,
+      currentStatus: course.status,
+      requestedStatus: status,
+      title: course.title
+    });
+
+    const updates: any = {};
+
+    // Handle submit for review
+    if (status === 'submit' || status === 'submitted') {
+      const currentStatus = course.status || 'draft'; // Default to draft if undefined
+      console.log('🔍 Submit Debug:', {
+        courseId,
+        currentStatus,
+        requestedStatus: status,
+        courseStatus: course.status,
+        submittedForReview: course.submittedForReview,
+        submittedAt: course.submittedAt
+      });
+
+      // Allowed statuses for submission:
+      // - draft: Initial submission (one-time only)
+      // - published: Resubmission after editing
+      // - rejected: Resubmission after admin rejected
+      // - needs_revision: Resubmission after admin requested changes
+      const allowedStatuses = ['draft', 'published', 'rejected', 'needs_revision'];
+
+      if (!allowedStatuses.includes(currentStatus)) {
+        throw new Error(`Cannot submit course with status "${currentStatus}". Only draft, published, rejected, or needs_revision courses can be submitted for review.`);
+      }
+
+      // For published courses, require unsaved changes
+      if (currentStatus === 'published') {
+        if (!course.hasUnsavedChanges) {
+          throw new Error('Cannot resubmit published course without any changes. Please edit the course first.');
+        }
+
+        updates.status = 'submitted';
+        updates.submittedAt = new Date();
+        updates.submittedForReview = true;
+        updates.isPublished = false; // Unpublish when resubmitting
+        updates.hasUnsavedChanges = false; // Reset after submitting
+        console.log('📝 Published course resubmission');
+      }
+      // For rejected or needs_revision courses, allow resubmission
+      else if (currentStatus === 'rejected' || currentStatus === 'needs_revision') {
+        updates.status = 'submitted';
+        updates.submittedAt = new Date();
+        updates.submittedForReview = true;
+        updates.hasUnsavedChanges = false;
+        console.log(`📝 ${currentStatus} course resubmission`);
+      }
+      // For draft courses, one-time submission only
+      else {
+        // For draft courses (including undefined status), check if already submitted (one-time submission)
+        if (course.submittedForReview === true || course.submittedAt) {
+          throw new Error('This course has already been submitted for review. You can only submit each draft course once.');
+        }
+
+        updates.status = 'submitted';
+        updates.submittedAt = new Date();
+        updates.submittedForReview = true;
+        updates.hasUnsavedChanges = false; // Reset after submitting
+        console.log('📝 Draft course submission');
+      }
+    }
+    // Handle withdraw submission (revert to draft)
+    // DISABLED: One-time submission policy - courses cannot be withdrawn once submitted
+    else if (status === 'withdraw' || (status === 'draft' && course.status === 'submitted')) {
+      throw new Error('Cannot withdraw submission. Each course can only be submitted once for review.');
+    }
+    // Block publish/unpublish actions for teachers
+    else if (status === 'publish' || status === 'unpublish') {
+      throw new Error('Teachers cannot publish or unpublish courses. This action is reserved for administrators.');
+    }
+    // Invalid status
+    else {
+      throw new Error(`Invalid status update: ${status}. Teachers can only submit courses for review or withdraw submissions.`);
+    }
+
+    const updatedCourse = await CourseModel.findByIdAndUpdate(
+      courseId,
+      updates,
+      { new: true }
+    ).populate('instructorId', 'name email avatar');
+
+    console.log('✅ Course status updated:', {
+      courseId,
+      newStatus: updatedCourse?.status,
+      submittedAt: updatedCourse?.submittedAt,
+      submittedForReview: updatedCourse?.submittedForReview,
+      hasUnsavedChanges: updatedCourse?.hasUnsavedChanges
+    });
+
+    if (!updatedCourse) {
+      throw new Error('Failed to update course status');
+    }
+
+    return updatedCourse;
   }
 }

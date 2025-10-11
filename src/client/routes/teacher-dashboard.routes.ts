@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import * as teacherDashboardController from '../controllers/teacher-dashboard.controller';
 import { authenticate } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
@@ -137,14 +137,9 @@ router.put(
  */
 router.get(
   '/analytics',
-  [
-    query('timeRange')
-      .optional()
-      .isIn(['1month', '3months', '6months', '1year'])
-      .withMessage('Time range must be 1month, 3months, 6months, or 1year'),
-    validateRequest
-  ],
-  teacherDashboardController.getAnalytics
+  (req: Request, res: Response, next: NextFunction) => {
+    return teacherDashboardController.getAnalytics(req, res, next);
+  }
 );
 
 /**

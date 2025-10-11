@@ -1,29 +1,48 @@
-import { Section as SectionModel, Lesson as LessonModel, Enrollment as EnrollmentModel, LessonProgress as LessonProgressModel } from '../../shared/models';
+import { Section as SectionModel, Lesson as LessonModel, Enrollment as EnrollmentModel, LessonProgress as LessonProgressModel, Course as CourseModel } from '../../shared/models';
 import { ISection } from '../../shared/models/core/Section';
 
 export class ClientSectionService {
-  // Get sections by course (for enrolled students)
+  // Get sections by course (for enrolled students and course instructors)
   static async getSectionsByCourse(courseId: string, userId: string): Promise<ISection[]> {
-    // Check if user is enrolled
-    const enrollment = await EnrollmentModel.findOne({
-      courseId,
-      studentId: userId,
-      isActive: true
-    });
+    // Check if user is the course instructor
+    const course = await CourseModel.findById(courseId);
+    const isInstructor = course && course.instructorId.toString() === userId;
 
-    if (!enrollment) {
-      throw new Error('You must be enrolled to access course sections');
+    // Check if user is enrolled (if not instructor)
+    if (!isInstructor) {
+      const enrollment = await EnrollmentModel.findOne({
+        courseId,
+        studentId: userId,
+        isActive: true
+      });
+
+      if (!enrollment) {
+        throw new Error('You must be enrolled to access course sections');
+      }
     }
 
-    // Get visible sections with lessons
-    const sections = await SectionModel.find({ 
-      courseId, 
-      isVisible: true 
-    })
+    // Get sections with lessons
+    // Instructors see all sections, students only see visible ones
+    const query: any = { courseId };
+    if (!isInstructor) {
+      query.isVisible = true;
+    }
+
+    console.log('🔍 getSectionsByCourse - Query:', {
+      courseId,
+      userId,
+      isInstructor,
+      query
+    });
+
+    // Populate lessons - instructors see all, students only see visible ones
+    const lessonMatch = isInstructor ? {} : { isVisible: true };
+
+    const sections = await SectionModel.find(query)
       .populate({
         path: 'lessons',
-        match: { isVisible: true },
-        select: 'title type order estimatedTime isPreview isRequired',
+        match: lessonMatch,
+        select: 'title type order estimatedTime isPreview isRequired duration isPublished',
         options: { sort: { order: 1 } }
       })
       .sort({ order: 1 });
@@ -99,7 +118,7 @@ export class ClientSectionService {
     }
 
     const progress = await this.calculateSectionProgress(sectionId, userId);
-    
+
     return {
       sectionId,
       userId,
@@ -199,9 +218,9 @@ export class ClientSectionService {
     }
 
     // Get all visible sections with basic info
-    const sections = await SectionModel.find({ 
-      courseId, 
-      isVisible: true 
+    const sections = await SectionModel.find({
+      courseId,
+      isVisible: true
     })
       .select('title order totalLessons totalDuration')
       .sort({ order: 1 });
@@ -240,9 +259,9 @@ export class ClientSectionService {
   // Helper method to calculate section progress
   private static async calculateSectionProgress(sectionId: string, userId: string) {
     // Get all lessons in the section
-    const lessons = await LessonModel.find({ 
-      sectionId, 
-      isVisible: true 
+    const lessons = await LessonModel.find({
+      sectionId,
+      isVisible: true
     }).select('_id order isRequired');
 
     if (lessons.length === 0) {
@@ -280,13 +299,104 @@ export class ClientSectionService {
   private static async getNextLessonInSection(sectionId: string, userId: string) {
     // This would typically check the user's current progress and return the next uncompleted lesson
     // For now, return the first lesson
-    const nextLesson = await LessonModel.findOne({ 
-      sectionId, 
-      isVisible: true 
+    const nextLesson = await LessonModel.findOne({
+      sectionId,
+      isVisible: true
     })
       .select('title type order estimatedTime')
       .sort({ order: 1 });
 
     return nextLesson;
+  }
+
+  // ========== TEACHER CRUD OPERATIONS ==========
+
+  // Create section (for course instructors)
+  static async createSection(courseId: string, userId: string, data: any): Promise<ISection> {
+    // Verify user is the course instructor
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    if (course.instructorId.toString() !== userId) {
+      throw new Error('You do not have permission to create sections for this course');
+    }
+
+    const section = await SectionModel.create({
+      courseId,
+      title: data.title,
+      description: data.description,
+      order: data.order || 1,
+      isVisible: true
+    });
+
+    return section;
+  }
+
+  // Update section (for course instructors)
+  static async updateSection(sectionId: string, userId: string, updates: any): Promise<ISection> {
+    const section = await SectionModel.findById(sectionId);
+    if (!section) {
+      throw new Error('Section not found');
+    }
+
+    // Verify user is the course instructor
+    const course = await CourseModel.findById(section.courseId);
+    if (!course || course.instructorId.toString() !== userId) {
+      throw new Error('You do not have permission to update this section');
+    }
+
+    const updatedSection = await SectionModel.findByIdAndUpdate(
+      sectionId,
+      { $set: updates },
+      { new: true, runValidators: false }
+    );
+
+    return updatedSection!;
+  }
+
+  // Delete section (for course instructors)
+  static async deleteSection(sectionId: string, userId: string): Promise<void> {
+    const section = await SectionModel.findById(sectionId);
+    if (!section) {
+      throw new Error('Section not found');
+    }
+
+    // Verify user is the course instructor
+    const course = await CourseModel.findById(section.courseId);
+    if (!course || course.instructorId.toString() !== userId) {
+      throw new Error('You do not have permission to delete this section');
+    }
+
+    // Delete all lessons in this section
+    await LessonModel.deleteMany({ sectionId });
+
+    // Delete the section
+    await SectionModel.findByIdAndDelete(sectionId);
+  }
+
+  // Reorder sections (for course instructors)
+  static async reorderSections(courseId: string, userId: string, sections: any[]): Promise<ISection[]> {
+    // Verify user is the course instructor
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    if (course.instructorId.toString() !== userId) {
+      throw new Error('You do not have permission to reorder sections for this course');
+    }
+
+    // Update order for each section
+    await Promise.all(
+      sections.map(({ sectionId, newOrder }) =>
+        SectionModel.findByIdAndUpdate(sectionId, { order: newOrder })
+      )
+    );
+
+    // Return updated sections
+    const updatedSections = await SectionModel.find({ courseId }).sort({ order: 1 });
+    return updatedSections;
   }
 }

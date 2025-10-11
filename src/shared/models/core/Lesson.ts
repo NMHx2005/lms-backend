@@ -6,7 +6,7 @@ export interface ILesson extends Document {
   courseId: mongoose.Types.ObjectId;
   title: string;
   content: string;
-  type: 'video' | 'text' | 'file' | 'link';
+  type: 'video' | 'text' | 'file' | 'link' | 'quiz' | 'assignment';
   videoUrl?: string;
   videoDuration?: number;
   videoThumbnail?: string;
@@ -14,6 +14,20 @@ export interface ILesson extends Document {
   fileSize?: number;
   fileType?: string;
   externalLink?: string;
+  // Quiz fields
+  quizQuestions?: {
+    question: string;
+    answers: string[];
+    correctAnswer: number; // Index of correct answer (0-based)
+    explanation?: string;
+  }[];
+  // Assignment fields
+  assignmentDetails?: {
+    instructions: string;
+    dueDate?: Date;
+    maxScore?: number;
+    allowLateSubmission?: boolean;
+  };
   order: number;
   isRequired: boolean;
   isPreview: boolean;
@@ -51,19 +65,40 @@ const lessonSchema = new Schema<ILesson>(
     },
     content: {
       type: String,
-      required: [true, 'Lesson content is required'],
       trim: true,
+      validate: {
+        validator: function (this: any, content: string) {
+          // Content is required for text and assignment types only
+          // Quiz uses quizQuestions instead
+          const typesNeedingContent = ['text', 'assignment'];
+          if (typesNeedingContent.includes(this.type) && !content) {
+            return false;
+          }
+          return true;
+        },
+        message: 'Content is required for text and assignment lessons'
+      }
     },
     type: {
       type: String,
       required: [true, 'Lesson type is required'],
       enum: {
-        values: ['video', 'text', 'file', 'link'],
-        message: 'Lesson type must be video, text, file, or link',
+        values: ['video', 'text', 'file', 'link', 'quiz', 'assignment'],
+        message: 'Lesson type must be video, text, file, link, quiz, or assignment',
       },
     },
     videoUrl: {
       type: String,
+      validate: {
+        validator: function (this: any, url: string) {
+          // VideoUrl is required for 'video' type lessons
+          if (this.type === 'video' && !url) {
+            return false;
+          }
+          return true;
+        },
+        message: 'Video URL is required for video lessons'
+      }
     },
     videoDuration: {
       type: Number,
@@ -74,6 +109,16 @@ const lessonSchema = new Schema<ILesson>(
     },
     fileUrl: {
       type: String,
+      validate: {
+        validator: function (this: any, url: string) {
+          // FileUrl is required for 'file' type lessons
+          if (this.type === 'file' && !url) {
+            return false;
+          }
+          return true;
+        },
+        message: 'File URL is required for file lessons'
+      }
     },
     fileSize: {
       type: Number,
@@ -84,6 +129,36 @@ const lessonSchema = new Schema<ILesson>(
     },
     externalLink: {
       type: String,
+    },
+    // Quiz questions
+    quizQuestions: {
+      type: [{
+        question: { type: String, required: true },
+        answers: { type: [String], required: true },
+        correctAnswer: { type: Number, required: true },
+        explanation: { type: String }
+      }],
+      default: [],
+      validate: {
+        validator: function (this: any, questions: any[]) {
+          // Quiz lessons must have at least 1 question
+          if (this.type === 'quiz' && (!questions || questions.length === 0)) {
+            return false;
+          }
+          return true;
+        },
+        message: 'Quiz lessons must have at least one question'
+      }
+    },
+    // Assignment details
+    assignmentDetails: {
+      type: {
+        instructions: { type: String },
+        dueDate: { type: Date },
+        maxScore: { type: Number },
+        allowLateSubmission: { type: Boolean, default: false }
+      },
+      default: undefined
     },
     order: {
       type: Number,

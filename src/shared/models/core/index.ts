@@ -11,6 +11,10 @@ export { default as Bill } from './Bill';
 export { default as RefundRequest } from './RefundRequest';
 export { default as CourseRating } from './CourseRating';
 export { default as CourseReview } from './CourseReview';
+export { Message } from './Message';
+export { Transaction } from './Transaction';
+export { Withdrawal } from './Withdrawal';
+export { AIToolsUsage } from './AIToolsUsage';
 
 // Export model interfaces
 export type { IUser } from './User';
@@ -61,3 +65,9 @@ export type { ISubscription } from '../payment/Subscription';
 export { default as Category, ICategory } from './Category';
 export { default as SupportTicket, ISupportTicket } from './SupportTicket';
 export { default as FAQ, IFAQ } from './FAQ';
+
+// Export additional interface types
+export type { IMessage } from './Message';
+export type { ITransaction } from './Transaction';
+export type { IWithdrawal } from './Withdrawal';
+export type { IAIToolsUsage } from './AIToolsUsage';

@@ -114,12 +114,23 @@ export class ClientCourseController {
     }
   }
 
-  // Get course by ID (published and approved only)
+  // Get course by ID (published and approved only, or own course for teachers)
   static async getCourseById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const course = await ClientCourseService.getCourseById(id);
-      const userId = (req as any).user?._id;
+      const userId = (req as any).user?._id || (req as any).user?.id;
+      const token = req.headers.authorization?.replace('Bearer ', '');
+
+      console.log('📝 Controller getCourseById:', {
+        courseId: id,
+        userId,
+        hasUser: !!req.user,
+        hasToken: !!token,
+        user: (req as any).user
+      });
+
+      const course = await ClientCourseService.getCourseById(id, userId);
+
       if (userId) {
         UserActivityLog.create({ userId, action: 'course_view', resource: 'course', resourceId: id, courseId: id });
       }
@@ -439,6 +450,208 @@ export class ClientCourseController {
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get lesson content'
+      });
+    }
+  }
+
+  // ========== TEACHER COURSE MANAGEMENT ==========
+
+  /**
+   * Get teacher's single course by ID (guaranteed authentication)
+   */
+  static async getTeacherCourseById(req: Request, res: Response) {
+    try {
+      const teacherId = (req as any)?.user?._id || (req as any)?.user?.id;
+      const { id } = req.params;
+
+      const course = await ClientCourseService.getTeacherCourseById(id, teacherId);
+
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          error: 'Course not found or you do not have permission to view it'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: course
+      });
+    } catch (error: any) {
+      console.error('Error getting teacher course:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get course'
+      });
+    }
+  }
+
+  /**
+   * Get teacher's courses
+   */
+  static async getTeacherCourses(req: Request, res: Response) {
+    try {
+      const teacherId = (req.user as any)?.id;
+      const {
+        page = 1,
+        limit = 12,
+        status,
+        search,
+        sortBy = 'updatedAt',
+        sortOrder = 'desc'
+      } = req.query;
+
+      const result = await ClientCourseService.getTeacherCourses(teacherId, {
+        page: Number(page),
+        limit: Number(limit),
+        status: status as string,
+        search: search as string,
+        sortBy: sortBy as string,
+        sortOrder: sortOrder as 'asc' | 'desc'
+      });
+
+      res.json({
+        success: true,
+        data: result.courses,
+        pagination: result.pagination
+      });
+    } catch (error: any) {
+      console.error('Error getting teacher courses:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get teacher courses'
+      });
+    }
+  }
+
+  /**
+   * Get teacher course stats
+   */
+  static async getTeacherCourseStats(req: Request, res: Response) {
+    try {
+      const teacherId = (req.user as any)?.id;
+      const stats = await ClientCourseService.getTeacherCourseStats(teacherId);
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error: any) {
+      console.error('Error getting course stats:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get course stats'
+      });
+    }
+  }
+
+  /**
+   * Create new course
+   */
+  static async createCourse(req: Request, res: Response) {
+    try {
+      const teacherId = (req.user as any)?.id;
+      const courseData = req.body;
+
+      const course = await ClientCourseService.createCourse(teacherId, courseData);
+
+      res.status(201).json({
+        success: true,
+        message: 'Course created successfully',
+        data: course
+      });
+    } catch (error: any) {
+      console.error('Error creating course:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to create course'
+      });
+    }
+  }
+
+  /**
+   * Update course
+   */
+  static async updateCourse(req: Request, res: Response) {
+    try {
+      const teacherId = (req.user as any)?.id;
+      const { id } = req.params;
+      const updates = req.body;
+
+      const course = await ClientCourseService.updateCourse(id, teacherId, updates);
+
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          error: 'Course not found or you do not have permission to update it'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Course updated successfully',
+        data: course
+      });
+    } catch (error: any) {
+      console.error('Error updating course:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to update course'
+      });
+    }
+  }
+
+  /**
+   * Delete course
+   */
+  static async deleteCourse(req: Request, res: Response) {
+    try {
+      const teacherId = (req.user as any)?.id;
+      const { id } = req.params;
+
+      await ClientCourseService.deleteCourse(id, teacherId);
+
+      res.json({
+        success: true,
+        message: 'Course deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Error deleting course:', error);
+      res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message || 'Failed to delete course'
+      });
+    }
+  }
+
+  /**
+   * Update course status
+   */
+  static async updateCourseStatus(req: Request, res: Response) {
+    try {
+      const teacherId = (req.user as any)?.id;
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const course = await ClientCourseService.updateCourseStatus(id, teacherId, status);
+
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          error: 'Course not found or you do not have permission to update it'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Course status updated successfully',
+        data: course
+      });
+    } catch (error: any) {
+      console.error('Error updating course status:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to update course status'
       });
     }
   }

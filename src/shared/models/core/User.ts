@@ -65,6 +65,24 @@ export interface IUser extends Document {
   dateOfBirth?: Date;
   country?: string;
   bio?: string;
+  skills?: string[];
+  education?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+  }>;
+  experience?: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+  }>;
   address?: string;
   socialLinks?: {
     linkedin?: string;
@@ -259,6 +277,33 @@ const userSchema = new Schema<IUser>(
     bio: {
       type: String,
       maxlength: [500, 'Bio cannot exceed 500 characters'],
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    education: {
+      type: [{
+        institution: String,
+        degree: String,
+        field: String,
+        startDate: String,
+        endDate: String,
+        current: Boolean,
+        description: String
+      }],
+      default: [],
+    },
+    experience: {
+      type: [{
+        company: String,
+        position: String,
+        startDate: String,
+        endDate: String,
+        current: Boolean,
+        description: String
+      }],
+      default: [],
     },
     address: {
       type: String,

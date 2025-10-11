@@ -10,6 +10,8 @@ export interface Course {
   price: number;
   originalPrice?: number;
   discountPercentage?: number;
+  status?: 'draft' | 'submitted' | 'approved' | 'published' | 'rejected' | 'needs_revision' | 'delisted';
+  hasUnsavedChanges?: boolean;
   isPublished: boolean;
   isApproved: boolean;
   isFeatured: boolean;
@@ -105,6 +107,7 @@ export interface CourseSearchFilters {
   search?: string;
   domain?: string;
   level?: string;
+  status?: string; // NEW: draft, submitted, approved, published, rejected, needs_revision, delisted
   isPublished?: boolean;
   isApproved?: boolean;
   isFeatured?: boolean;
