@@ -15,6 +15,7 @@ export { Message } from './Message';
 export { Transaction } from './Transaction';
 export { Withdrawal } from './Withdrawal';
 export { AIToolsUsage } from './AIToolsUsage';
+export { ChatHistory } from './ChatHistory';
 
 // Export model interfaces
 export type { IUser } from './User';
@@ -71,3 +72,4 @@ export type { IMessage } from './Message';
 export type { ITransaction } from './Transaction';
 export type { IWithdrawal } from './Withdrawal';
 export type { IAIToolsUsage } from './AIToolsUsage';
+export type { IChatHistory, IChatMessage } from './ChatHistory';

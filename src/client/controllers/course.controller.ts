@@ -12,6 +12,7 @@ export class ClientCourseController {
         sortBy = 'createdAt',
         sortOrder = 'desc',
         search,
+        q,
         domain,
         level,
         instructorId,
@@ -21,6 +22,7 @@ export class ClientCourseController {
         isFeatured,
         language,
         certificate,
+        minRating,
         priceRange,
         rating,
         duration
@@ -28,13 +30,16 @@ export class ClientCourseController {
 
       // Parse filters
       const filters: any = {};
+      // Support both 'search' and 'q' params
       if (search) filters.search = search as string;
+      if (q) filters.search = q as string;
       if (domain) filters.domain = domain as string;
       if (level) filters.level = level as string;
       if (instructorId) filters.instructorId = instructorId as string;
       if (minPrice) filters.minPrice = Number(minPrice);
       if (maxPrice) filters.maxPrice = Number(maxPrice);
       if (isFree !== undefined) filters.isFree = isFree === 'true';
+      if (minRating) filters.minRating = Number(minRating);
       if (isFeatured !== undefined) filters.isFeatured = isFeatured === 'true';
       if (language) filters.language = language as string;
       if (certificate !== undefined) filters.certificate = certificate === 'true';

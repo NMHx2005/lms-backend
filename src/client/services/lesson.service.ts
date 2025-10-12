@@ -1,4 +1,4 @@
-import { Lesson as LessonModel, Section as SectionModel, Enrollment as EnrollmentModel, LessonProgress as LessonProgressModel, Course as CourseModel } from '../../shared/models';
+import { Lesson as LessonModel, Section as SectionModel, Enrollment as EnrollmentModel, LessonProgress as LessonProgressModel, Course as CourseModel, User as UserModel } from '../../shared/models';
 import { ILesson } from '../../shared/models/core/Lesson';
 
 export class ClientLessonService {
@@ -270,7 +270,52 @@ export class ClientLessonService {
       { upsert: true }
     );
 
-    return { lessonId, userId, completed: true, completedAt: new Date(), message: 'Lesson marked as completed' };
+    // ========== AUTO-CALCULATE ENROLLMENT PROGRESS ==========
+    const course = await CourseModel.findById(lesson.courseId).select('totalLessons certificate');
+    if (course && course.totalLessons > 0) {
+      // Count total completed lessons for this course
+      const completedLessonsCount = await LessonProgressModel.countDocuments({
+        studentId: userId,
+        courseId: lesson.courseId,
+        isCompleted: true
+      });
+
+      // Calculate progress percentage
+      const progressPercentage = Math.round((completedLessonsCount / course.totalLessons) * 100);
+
+      // Update enrollment progress
+      enrollment.progress = progressPercentage;
+      enrollment.lastActivityAt = new Date();
+
+      // ========== AUTO-ISSUE CERTIFICATE IF COMPLETED ==========
+      if (progressPercentage >= 100 && !enrollment.isCompleted) {
+        enrollment.isCompleted = true;
+        enrollment.completedAt = new Date();
+
+        // Issue certificate if course has certification
+        if (course.certificate && !enrollment.certificateIssued) {
+          enrollment.certificateIssued = true;
+          enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
+        }
+
+        // Update user stats
+        await UserModel.findByIdAndUpdate(userId, {
+          $inc: { 'stats.totalCoursesCompleted': 1 }
+        });
+      }
+
+      await enrollment.save();
+    }
+
+    return {
+      lessonId,
+      userId,
+      completed: true,
+      completedAt: new Date(),
+      message: 'Lesson marked as completed',
+      progress: enrollment.progress,
+      certificateIssued: enrollment.certificateIssued
+    };
   }
 
   // Add time spent on a lesson (seconds)

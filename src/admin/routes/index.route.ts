@@ -23,6 +23,8 @@ import wishlistRoutes from './wishlist.routes';
 import billsRoutes from './bills.routes';
 import categoryRoutes from './category.routes';
 import backupRoutes from './backup.routes';
+import refundRoutes from './refund.routes';
+import systemSettingsRoutes from './system-settings.routes';
 import { AnalyticsService } from '../services/analytics.service';
 
 const router = express.Router();
@@ -53,6 +55,8 @@ router.use('/packages-management', packageRoutes);
 router.use('/wishlist', wishlistRoutes);
 router.use('/bills', billsRoutes);
 router.use('/categories', categoryRoutes);
+router.use('/refunds', refundRoutes);
+router.use('/system-settings', systemSettingsRoutes);
 router.use('/support', supportRoutes);
 router.use('/', performanceRoutes);
 router.use('/', backupRoutes);

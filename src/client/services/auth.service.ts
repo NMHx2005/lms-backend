@@ -66,9 +66,19 @@ export class ClientAuthService extends BaseAuthService {
       throw new NotFoundError('User not found');
     }
 
-    // Get enrolled courses (all statuses, not just active)
-    const enrollments = await Enrollment.find({ studentId: userId })
-      .populate('courseId', 'title description thumbnail totalLessons totalDuration')
+    // Get enrolled courses (only active enrollments)
+    const enrollments = await Enrollment.find({
+      studentId: userId,
+      isActive: true  // Only show active enrollments (exclude refunded/cancelled)
+    })
+      .populate({
+        path: 'courseId',
+        select: 'title description thumbnail totalLessons totalDuration instructorId',
+        populate: {
+          path: 'instructorId',
+          select: 'name firstName lastName avatar'
+        }
+      })
       .sort({ enrolledAt: -1 })
       .limit(5);
 
@@ -99,9 +109,37 @@ export class ClientAuthService extends BaseAuthService {
       totalLessons: (enrollment.courseId as any).totalLessons || 0,
     }));
 
+    // Calculate real-time stats from active enrollments
+    const completedCount = await Enrollment.countDocuments({
+      studentId: userId,
+      isActive: true,
+      isCompleted: true
+    });
+
+    const totalStudyTimeResult = await Enrollment.aggregate([
+      { $match: { studentId: userId, isActive: true } },
+      { $group: { _id: null, total: { $sum: '$totalTimeSpent' } } }
+    ]);
+
+    // Override user stats with real-time data
+    const userObj = user.toObject();
+    userObj.stats = {
+      totalCoursesEnrolled: enrollments.length,  // Count active enrollments
+      totalCoursesCompleted: completedCount,
+      totalAssignmentsSubmitted: userObj.stats?.totalAssignmentsSubmitted || 0,
+      averageScore: userObj.stats?.averageScore || 0,
+      totalLearningTime: totalStudyTimeResult[0]?.total || 0
+    };
+
     return {
-      user,
-      enrolledCourses: enrollments.map(e => e.courseId),
+      user: userObj,
+      enrolledCourses: enrollments.map(e => {
+        const course = e.courseId as any;
+        return {
+          ...course.toObject(),
+          instructor: course.instructorId
+        };
+      }),
       recentActivity,
       upcomingAssignments,
       courseProgress,
@@ -122,7 +160,10 @@ export class ClientAuthService extends BaseAuthService {
     } = {}
   ) {
     const skip = (page - 1) * limit;
-    const query: any = { studentId: userId };
+    const query: any = {
+      studentId: userId,
+      isActive: true  // Only return active enrollments (exclude refunded/cancelled)
+    };
 
     // Apply filters
     if (filters.status) {
@@ -142,7 +183,14 @@ export class ClientAuthService extends BaseAuthService {
 
     const [enrollments, total] = await Promise.all([
       Enrollment.find(query)
-        .populate('courseId', 'title description thumbnail totalLessons totalDuration category price instructorId')
+        .populate({
+          path: 'courseId',
+          select: 'title description thumbnail totalLessons totalDuration category price instructorId domain level',
+          populate: {
+            path: 'instructorId',
+            select: 'name firstName lastName avatar'
+          }
+        })
         .sort({ enrolledAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -167,7 +215,7 @@ export class ClientAuthService extends BaseAuthService {
     const enrollment = await Enrollment.findOne({
       studentId: userId,
       courseId,
-      status: 'active',
+      isActive: true  // Only active enrollments (exclude refunded)
     }).populate('courseId', 'title totalLessons totalDuration');
 
     if (!enrollment) {
@@ -202,15 +250,18 @@ export class ClientAuthService extends BaseAuthService {
       totalStudyTime,
       averageProgress,
     ] = await Promise.all([
-      Enrollment.countDocuments({ studentId: userId }),
-      Enrollment.countDocuments({ studentId: userId, status: 'active' }),
-      Enrollment.countDocuments({ studentId: userId, status: 'completed' }),
+      // Total = All active enrollments (exclude refunded/cancelled)
+      Enrollment.countDocuments({ studentId: userId, isActive: true }),
+      // Active = In-progress (active but not completed)
+      Enrollment.countDocuments({ studentId: userId, isActive: true, isCompleted: false }),
+      // Completed = Finished courses (still active)
+      Enrollment.countDocuments({ studentId: userId, isActive: true, isCompleted: true }),
       Enrollment.aggregate([
-        { $match: { studentId: userId } },
+        { $match: { studentId: userId, isActive: true } },  // Only active enrollments
         { $group: { _id: null, total: { $sum: '$totalStudyTime' } } },
       ]),
       Enrollment.aggregate([
-        { $match: { studentId: userId, status: 'active' } },
+        { $match: { studentId: userId, isActive: true } },  // Only active enrollments
         { $group: { _id: null, avg: { $avg: '$progress' } } },
       ]),
     ]);

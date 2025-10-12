@@ -1029,7 +1029,8 @@ router.get('/stats', async (req: any, res) => {
       totalSpent,
       totalBills,
       completedPayments,
-      pendingPayments
+      pendingPayments,
+      failedPayments
     ] = await Promise.all([
       Bill.aggregate([
         { $match: { studentId: req.user.id, status: 'completed' } },
@@ -1037,7 +1038,8 @@ router.get('/stats', async (req: any, res) => {
       ]),
       Bill.countDocuments({ studentId: req.user.id }),
       Bill.countDocuments({ studentId: req.user.id, status: 'completed' }),
-      Bill.countDocuments({ studentId: req.user.id, status: 'pending' })
+      Bill.countDocuments({ studentId: req.user.id, status: 'pending' }),
+      Bill.countDocuments({ studentId: req.user.id, status: 'failed' })
     ]);
 
     const spent = totalSpent[0]?.total || 0;
@@ -1049,6 +1051,7 @@ router.get('/stats', async (req: any, res) => {
         totalBills,
         completedPayments,
         pendingPayments,
+        failedPayments,
         averageSpent: totalBills > 0 ? spent / totalBills : 0
       }
     });
@@ -1056,6 +1059,212 @@ router.get('/stats', async (req: any, res) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error'
+    });
+  }
+});
+
+// Retry failed payment
+router.post('/bills/:id/retry', async (req: any, res) => {
+  try {
+    const bill = await Bill.findOne({
+      _id: req.params.id,
+      studentId: req.user.id,
+      status: 'failed'
+    }).populate('courseId', 'title thumbnail price');
+
+    if (!bill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bill not found or not eligible for retry'
+      });
+    }
+
+    const course = bill.courseId as any;
+
+    // Generate new VNPay payment URL
+    const vnpayOrderId = `VNPAY_RETRY_${Date.now()}_${req.user.id}_${course._id}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+    // Update bill metadata with new order ID
+    bill.metadata = {
+      ...bill.metadata,
+      vnpayOrderId,
+      retryAttempt: (bill.metadata?.retryAttempt || 0) + 1
+    };
+    bill.status = 'pending';
+    await bill.save();
+
+    // Get user information
+    const user = await User.findById(req.user.id);
+
+    // Generate payment URL
+    const paymentUrl = generateVNPayPaymentUrl({
+      orderId: vnpayOrderId,
+      amount: bill.amount,
+      courseTitle: course.title,
+      returnUrl: `${frontendUrl}/payment/result`,
+      cancelUrl: `${frontendUrl}/courses/${course._id}`,
+      userEmail: user?.email || '',
+      userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer'
+    });
+
+    res.json({
+      success: true,
+      message: 'Payment retry initiated',
+      data: {
+        paymentUrl,
+        billId: bill._id,
+        orderId: vnpayOrderId,
+        amount: bill.amount
+      }
+    });
+  } catch (error) {
+    console.error('Retry payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+// Download invoice PDF
+router.get('/bills/:id/invoice', async (req: any, res) => {
+  try {
+    const bill = await Bill.findOne({
+      _id: req.params.id,
+      studentId: req.user.id,
+      status: 'completed'
+    })
+      .populate('courseId', 'title')
+      .populate('studentId', 'firstName lastName email');
+
+    if (!bill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invoice not found or payment not completed'
+      });
+    }
+
+    // Generate invoice PDF
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${bill._id}.pdf`);
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    const course = bill.courseId as any;
+    const student = bill.studentId as any;
+
+    // Header - Company Info
+    doc
+      .fontSize(20)
+      .font('Helvetica-Bold')
+      .fillColor('#1976d2')
+      .text('INVOICE', 50, 50);
+
+    doc
+      .fontSize(10)
+      .font('Helvetica')
+      .fillColor('#424242')
+      .text('Learning Management System', 50, 80)
+      .text('Email: support@lms.com', 50, 95)
+      .text('Website: www.lms.com', 50, 110);
+
+    // Invoice Info (Right side)
+    doc
+      .fontSize(10)
+      .text(`Invoice No: ${bill._id.toString().substring(18)}`, 400, 50, { align: 'right' })
+      .text(`Date: ${bill.paidAt?.toLocaleDateString('en-US') || new Date().toLocaleDateString('en-US')}`, 400, 65, { align: 'right' })
+      .text(`Status: ${bill.status.toUpperCase()}`, 400, 80, { align: 'right' });
+
+    // Line separator
+    doc
+      .moveTo(50, 130)
+      .lineTo(550, 130)
+      .stroke();
+
+    // Bill To
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .text('BILL TO:', 50, 150);
+
+    doc
+      .fontSize(10)
+      .font('Helvetica')
+      .text(`${student.firstName || ''} ${student.lastName || ''}`.trim(), 50, 170)
+      .text(student.email, 50, 185);
+
+    // Items Table Header
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .text('DESCRIPTION', 50, 250)
+      .text('AMOUNT', 450, 250, { align: 'right' });
+
+    doc
+      .moveTo(50, 270)
+      .lineTo(550, 270)
+      .stroke();
+
+    // Item
+    doc
+      .fontSize(10)
+      .font('Helvetica')
+      .text(`Course: ${course.title}`, 50, 285, { width: 350 })
+      .text(
+        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bill.amount),
+        450,
+        285,
+        { align: 'right' }
+      );
+
+    doc
+      .moveTo(50, 320)
+      .lineTo(550, 320)
+      .stroke();
+
+    // Total
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .text('TOTAL:', 350, 340)
+      .text(
+        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bill.amount),
+        450,
+        340,
+        { align: 'right' }
+      );
+
+    // Payment Info
+    doc
+      .fontSize(10)
+      .font('Helvetica')
+      .fillColor('#616161')
+      .text('Payment Method:', 50, 400)
+      .text(bill.paymentMethod.toUpperCase(), 150, 400);
+
+    if (bill.transactionId) {
+      doc.text('Transaction ID:', 50, 415).text(bill.transactionId, 150, 415);
+    }
+
+    // Footer
+    doc
+      .fontSize(9)
+      .fillColor('#9e9e9e')
+      .text('Thank you for your purchase!', 50, 700, { align: 'center' })
+      .text('This is a computer-generated invoice. No signature required.', 50, 715, { align: 'center' });
+
+    doc.end();
+  } catch (error) {
+    console.error('Generate invoice error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate invoice'
     });
   }
 });

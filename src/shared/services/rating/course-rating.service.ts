@@ -15,6 +15,7 @@ export interface CreateReviewData {
   pros?: string[];
   cons?: string[];
   isAnonymous?: boolean;
+  isPublic?: boolean;
 }
 
 export interface UpdateReviewData {
@@ -23,6 +24,7 @@ export interface UpdateReviewData {
   content?: string;
   pros?: string[];
   cons?: string[];
+  isPublic?: boolean;
 }
 
 export interface ReviewFilters {
@@ -48,9 +50,9 @@ export class CourseRatingService {
     try {
       // Check if user is enrolled in the course
       const enrollment = await Enrollment.findOne({
-        userId: data.userId,
+        studentId: data.userId,  // ✅ Field là studentId, không phải userId
         courseId: data.courseId,
-        status: 'active'
+        isActive: true           // ✅ Field là isActive, không phải status
       });
 
       if (!enrollment) {
@@ -81,6 +83,7 @@ export class CourseRatingService {
         pros: data.pros || [],
         cons: data.cons || [],
         isAnonymous: data.isAnonymous || false,
+        isPublic: data.isPublic !== undefined ? data.isPublic : true,
         isVerifiedPurchase: true, // Since they're enrolled
         completionPercentage: completionData.completionPercentage,
         completedAt: completionData.completedAt,
@@ -126,6 +129,7 @@ export class CourseRatingService {
       if (data.content !== undefined) review.content = data.content;
       if (data.pros !== undefined) review.pros = data.pros;
       if (data.cons !== undefined) review.cons = data.cons;
+      if (data.isPublic !== undefined) review.isPublic = data.isPublic;
 
       await review.save();
 
@@ -430,7 +434,7 @@ export class CourseRatingService {
   private async updateCourseRating(courseId: string): Promise<void> {
     try {
       const summary = await this.getCourseSummary(courseId);
-      
+
       await Course.findByIdAndUpdate(courseId, {
         averageRating: summary.averageRating,
         totalRatings: summary.totalReviews
@@ -450,7 +454,7 @@ export class CourseRatingService {
   }> {
     try {
       const enrollment = await Enrollment.findOne({
-        userId,
+        studentId: userId,  // ✅ Field là studentId, không phải userId
         courseId
       });
 

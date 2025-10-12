@@ -6,7 +6,7 @@ import { asyncHandler } from '../../shared/utils/asyncHandler';
 import { AppError } from '../../shared/utils/appError';
 
 export class CourseRatingController {
-  
+
   // Create a new review for a course
   static createReview = asyncHandler<AuthenticatedRequest>(async (req, res) => {
     const { courseId } = req.params;
@@ -16,7 +16,8 @@ export class CourseRatingController {
       content,
       pros,
       cons,
-      isAnonymous
+      isAnonymous,
+      isPublic
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(courseId)) {
@@ -31,7 +32,8 @@ export class CourseRatingController {
       content,
       pros,
       cons,
-      isAnonymous
+      isAnonymous,
+      isPublic
     };
 
     const review = await courseRatingService.createReview(reviewData);
@@ -51,7 +53,8 @@ export class CourseRatingController {
       title,
       content,
       pros,
-      cons
+      cons,
+      isPublic
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(reviewId)) {
@@ -63,7 +66,8 @@ export class CourseRatingController {
       title,
       content,
       pros,
-      cons
+      cons,
+      isPublic
     };
 
     const review = await courseRatingService.updateReview(reviewId, req.user!.id, updateData);
@@ -248,39 +252,76 @@ export class CourseRatingController {
     const {
       page = 1,
       limit = 20,
-      sortBy = 'newest'
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
     } = req.query;
 
-    // This would need to be implemented in the service
-    // For now, return placeholder
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy as string] = sortOrder === 'asc' ? 1 : -1;
+
+    // Get user's reviews
+    const CourseReview = (await import('../../shared/models')).CourseReview;
+    const [reviews, total] = await Promise.all([
+      CourseReview.find({ userId: req.user!.id })  // ✅ Đúng field
+        .populate('courseId', 'title thumbnail')
+        .sort(sort)
+        .skip(skip)
+        .limit(Number(limit)),
+      CourseReview.countDocuments({ userId: req.user!.id })  // ✅ Đúng field
+    ]);
+
     res.status(200).json({
       success: true,
       message: 'User reviews retrieved successfully',
-      data: {
-        reviews: [],
-        pagination: {
-          total: 0,
-          page: Number(page),
-          pages: 0,
-          limit: Number(limit)
-        }
+      data: reviews,
+      pagination: {
+        total,
+        page: Number(page),
+        pages: Math.ceil(total / Number(limit)),
+        limit: Number(limit)
       }
     });
   });
 
   // Get review statistics for user dashboard
   static getMyReviewStats = asyncHandler<AuthenticatedRequest>(async (req, res) => {
-    // This would need to be implemented in the service
-    // For now, return placeholder
+    const CourseReview = (await import('../../shared/models')).CourseReview;
+
+    // Get all user's reviews
+    const reviews = await CourseReview.find({ userId: req.user!.id });  // ✅ Đúng field
+
+    // Calculate stats
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews > 0
+      ? reviews.reduce((sum, r: any) => sum + (r.rating || 0), 0) / totalReviews
+      : 0;
+
+    const helpfulVotesReceived = reviews.reduce((sum, r: any) => sum + (r.helpfulCount || 0), 0);
+
+    // Calculate rating distribution
+    const ratingDistribution = {
+      1: reviews.filter((r: any) => r.rating === 1).length,
+      2: reviews.filter((r: any) => r.rating === 2).length,
+      3: reviews.filter((r: any) => r.rating === 3).length,
+      4: reviews.filter((r: any) => r.rating === 4).length,
+      5: reviews.filter((r: any) => r.rating === 5).length,
+    };
+
+    // Count unique courses reviewed
+    const coursesReviewed = new Set(reviews.map((r: any) => r.courseId.toString())).size;
+
     res.status(200).json({
       success: true,
       message: 'User review statistics retrieved successfully',
       data: {
-        totalReviews: 0,
-        averageRating: 0,
-        totalUpvotes: 0,
-        totalHelpful: 0,
-        reviewsThisMonth: 0
+        totalReviews,
+        averageRating,
+        ratingDistribution,
+        helpfulVotesReceived,
+        coursesReviewed
       }
     });
   });

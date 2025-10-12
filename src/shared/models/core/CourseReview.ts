@@ -4,32 +4,33 @@ export interface ICourseReview extends Document {
   courseId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   enrollmentId?: mongoose.Types.ObjectId;
-  
+
   // Rating & Review Content
   rating: number; // 1-5 stars
   title: string;
   content: string;
   pros: string[];
   cons: string[];
-  
+
   // Review Status
   status: 'published' | 'pending' | 'hidden' | 'deleted';
   isVerifiedPurchase: boolean;
   isAnonymous: boolean;
-  
+  isPublic: boolean; // Can be viewed by everyone (vs private - only visible to user)
+
   // Engagement Metrics
   upvotes: number;
   downvotes: number;
   totalVotes: number;
   helpfulCount: number;
   reportCount: number;
-  
+
   // User Interactions
   upvotedBy: mongoose.Types.ObjectId[];
   downvotedBy: mongoose.Types.ObjectId[];
   reportedBy: mongoose.Types.ObjectId[];
   helpfulBy: mongoose.Types.ObjectId[];
-  
+
   // Admin Moderation
   moderatedBy?: {
     adminId: mongoose.Types.ObjectId;
@@ -37,33 +38,33 @@ export interface ICourseReview extends Document {
     reason?: string;
     moderatedAt: Date;
   };
-  
+
   // Review Quality Metrics
   qualityScore: number; // 0-100 (calculated based on engagement, length, etc.)
   isHighlighted: boolean; // Featured review
   isFeatured: boolean; // Staff pick
-  
+
   // Course Progress Context
   completionPercentage: number;
   completedAt?: Date;
   timeSpentInCourse: number; // minutes
-  
+
   // Response from Teacher/Admin
   teacherResponse?: {
     userId: mongoose.Types.ObjectId;
     content: string;
     respondedAt: Date;
   };
-  
+
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Virtual properties
   voteScore: number;
   helpfulPercentage: number;
   ageInDays: number;
   isEditable: boolean;
-  
+
   // Instance methods
   upvote(userId: mongoose.Types.ObjectId): Promise<ICourseReview>;
   downvote(userId: mongoose.Types.ObjectId): Promise<ICourseReview>;
@@ -91,7 +92,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     ref: 'Enrollment',
     index: true
   },
-  
+
   // Rating & Review Content
   rating: {
     type: Number,
@@ -117,7 +118,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     type: [String],
     default: [],
     validate: {
-      validator: function(pros: string[]) {
+      validator: function (pros: string[]) {
         return pros.every(pro => pro.length <= 200);
       },
       message: 'Each pro cannot exceed 200 characters'
@@ -127,13 +128,13 @@ const courseReviewSchema = new Schema<ICourseReview>({
     type: [String],
     default: [],
     validate: {
-      validator: function(cons: string[]) {
+      validator: function (cons: string[]) {
         return cons.every(con => con.length <= 200);
       },
       message: 'Each con cannot exceed 200 characters'
     }
   },
-  
+
   // Review Status
   status: {
     type: String,
@@ -150,7 +151,12 @@ const courseReviewSchema = new Schema<ICourseReview>({
     type: Boolean,
     default: false
   },
-  
+  isPublic: {
+    type: Boolean,
+    default: true,
+    index: true
+  },
+
   // Engagement Metrics
   upvotes: {
     type: Number,
@@ -177,7 +183,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     default: 0,
     min: 0
   },
-  
+
   // User Interactions
   upvotedBy: [{
     type: Schema.Types.ObjectId,
@@ -195,7 +201,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     type: Schema.Types.ObjectId,
     ref: 'User'
   }],
-  
+
   // Admin Moderation
   moderatedBy: {
     adminId: {
@@ -209,7 +215,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     reason: String,
     moderatedAt: Date
   },
-  
+
   // Review Quality Metrics
   qualityScore: {
     type: Number,
@@ -227,7 +233,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     default: false,
     index: true
   },
-  
+
   // Course Progress Context
   completionPercentage: {
     type: Number,
@@ -241,7 +247,7 @@ const courseReviewSchema = new Schema<ICourseReview>({
     default: 0,
     min: 0
   },
-  
+
   // Response from Teacher/Admin
   teacherResponse: {
     userId: {
@@ -270,31 +276,31 @@ courseReviewSchema.index({ courseId: 1, isFeatured: 1 });
 courseReviewSchema.index({ reportCount: -1, status: 1 }); // For moderation queue
 
 // Virtual for vote score (upvotes - downvotes)
-courseReviewSchema.virtual('voteScore').get(function() {
+courseReviewSchema.virtual('voteScore').get(function () {
   return this.upvotes - this.downvotes;
 });
 
 // Virtual for helpful percentage
-courseReviewSchema.virtual('helpfulPercentage').get(function() {
+courseReviewSchema.virtual('helpfulPercentage').get(function () {
   return this.totalVotes > 0 ? Math.round((this.helpfulCount / this.totalVotes) * 100) : 0;
 });
 
 // Virtual for review age in days
-courseReviewSchema.virtual('ageInDays').get(function() {
+courseReviewSchema.virtual('ageInDays').get(function () {
   return Math.floor((Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60 * 24));
 });
 
 // Virtual for is editable (within 24 hours)
-courseReviewSchema.virtual('isEditable').get(function() {
+courseReviewSchema.virtual('isEditable').get(function () {
   const hoursSinceCreation = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60);
   return hoursSinceCreation <= 24 && this.status === 'published';
 });
 
 // Instance Methods
-courseReviewSchema.methods.upvote = function(userId: mongoose.Types.ObjectId) {
+courseReviewSchema.methods.upvote = function (userId: mongoose.Types.ObjectId) {
   // Remove from downvotes if exists
   this.downvotedBy = this.downvotedBy.filter((id: any) => !id.equals(userId));
-  
+
   // Toggle upvote
   const hasUpvoted = this.upvotedBy.some((id: any) => id.equals(userId));
   if (hasUpvoted) {
@@ -304,15 +310,15 @@ courseReviewSchema.methods.upvote = function(userId: mongoose.Types.ObjectId) {
     this.upvotedBy.push(userId);
     this.upvotes += 1;
   }
-  
+
   this.updateVoteCounts();
   return this.save();
 };
 
-courseReviewSchema.methods.downvote = function(userId: mongoose.Types.ObjectId) {
+courseReviewSchema.methods.downvote = function (userId: mongoose.Types.ObjectId) {
   // Remove from upvotes if exists
   this.upvotedBy = this.upvotedBy.filter((id: any) => !id.equals(userId));
-  
+
   // Toggle downvote
   const hasDownvoted = this.downvotedBy.some((id: any) => id.equals(userId));
   if (hasDownvoted) {
@@ -322,12 +328,12 @@ courseReviewSchema.methods.downvote = function(userId: mongoose.Types.ObjectId) 
     this.downvotedBy.push(userId);
     this.downvotes += 1;
   }
-  
+
   this.updateVoteCounts();
   return this.save();
 };
 
-courseReviewSchema.methods.markHelpful = function(userId: mongoose.Types.ObjectId) {
+courseReviewSchema.methods.markHelpful = function (userId: mongoose.Types.ObjectId) {
   const hasMarked = this.helpfulBy.some((id: any) => id.equals(userId));
   if (hasMarked) {
     this.helpfulBy = this.helpfulBy.filter((id: any) => !id.equals(userId));
@@ -336,76 +342,76 @@ courseReviewSchema.methods.markHelpful = function(userId: mongoose.Types.ObjectI
     this.helpfulBy.push(userId);
     this.helpfulCount += 1;
   }
-  
+
   this.updateVoteCounts();
   return this.save();
 };
 
-courseReviewSchema.methods.report = function(userId: mongoose.Types.ObjectId) {
+courseReviewSchema.methods.report = function (userId: mongoose.Types.ObjectId) {
   const hasReported = this.reportedBy.some((id: any) => id.equals(userId));
   if (!hasReported) {
     this.reportedBy.push(userId);
     this.reportCount += 1;
-    
+
     // Auto-hide if too many reports
     if (this.reportCount >= 5 && this.status === 'published') {
       this.status = 'pending';
     }
-    
+
     return this.save();
   }
   return Promise.resolve(this);
 };
 
-courseReviewSchema.methods.updateVoteCounts = function() {
+courseReviewSchema.methods.updateVoteCounts = function () {
   this.totalVotes = this.upvotes + this.downvotes;
 };
 
-courseReviewSchema.methods.calculateQualityScore = function() {
+courseReviewSchema.methods.calculateQualityScore = function () {
   let score = 50; // Base score
-  
+
   // Content length bonus (10-20 points)
   const contentLength = this.content.length;
   if (contentLength >= 100) score += 10;
   if (contentLength >= 300) score += 10;
-  
+
   // Pros/cons bonus (5-10 points)
   if (this.pros.length > 0) score += 5;
   if (this.cons.length > 0) score += 5;
-  
+
   // Engagement bonus (10-20 points)
   const voteScore = this.upvotes - this.downvotes;
   if (voteScore > 0) score += Math.min(10, voteScore * 2);
   if (this.helpfulCount > 0) score += Math.min(10, this.helpfulCount * 3);
-  
+
   // Completion bonus (5-15 points)
   if (this.completionPercentage >= 50) score += 5;
   if (this.completionPercentage >= 80) score += 5;
   if (this.completionPercentage === 100) score += 5;
-  
+
   // Verified purchase bonus (10 points)
   if (this.isVerifiedPurchase) score += 10;
-  
+
   // Report penalty
   score -= this.reportCount * 5;
-  
+
   this.qualityScore = Math.max(0, Math.min(100, score));
   return this.qualityScore;
 };
 
 // Pre-save middleware
-courseReviewSchema.pre('save', function(next) {
+courseReviewSchema.pre('save', function (next) {
   // Update quality score
   this.calculateQualityScore();
-  
+
   // Update total votes
   this.updateVoteCounts();
-  
+
   next();
 });
 
 // Static Methods
-courseReviewSchema.statics.findByCourse = function(courseId: string, options: any = {}) {
+courseReviewSchema.statics.findByCourse = function (courseId: string, options: any = {}) {
   const {
     status = 'published',
     sortBy = 'qualityScore',
@@ -413,10 +419,10 @@ courseReviewSchema.statics.findByCourse = function(courseId: string, options: an
     page = 1,
     limit = 20
   } = options;
-  
+
   const sort: any = {};
   sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-  
+
   return this.find({ courseId, status })
     .populate('userId', 'firstName lastName avatar')
     .sort(sort)
@@ -424,7 +430,7 @@ courseReviewSchema.statics.findByCourse = function(courseId: string, options: an
     .limit(limit);
 };
 
-courseReviewSchema.statics.getAverageRating = function(courseId: string) {
+courseReviewSchema.statics.getAverageRating = function (courseId: string) {
   return this.aggregate([
     { $match: { courseId: new mongoose.Types.ObjectId(courseId), status: 'published' } },
     {
@@ -440,7 +446,7 @@ courseReviewSchema.statics.getAverageRating = function(courseId: string) {
   ]);
 };
 
-courseReviewSchema.statics.getRatingDistribution = function(courseId: string) {
+courseReviewSchema.statics.getRatingDistribution = function (courseId: string) {
   return this.aggregate([
     { $match: { courseId: new mongoose.Types.ObjectId(courseId), status: 'published' } },
     {
@@ -453,7 +459,7 @@ courseReviewSchema.statics.getRatingDistribution = function(courseId: string) {
   ]);
 };
 
-courseReviewSchema.statics.findPendingModeration = function() {
+courseReviewSchema.statics.findPendingModeration = function () {
   return this.find({
     $or: [
       { status: 'pending' },

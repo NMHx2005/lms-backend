@@ -11,6 +11,7 @@ import courseSubmissionRoutes from './course-submission.routes';
 import reviewRoutes from './review.routes';
 import paymentRoutes from './payment.routes';
 import clientAuthRoutes from './auth.routes';
+import courseRatingRoutes from './course-rating.routes';
 import analyticsRoutes from './analytics.routes';
 import certificateRoutes from './certificate.routes';
 import teacherRatingRoutes from './teacher-rating.routes';
@@ -22,6 +23,9 @@ import messageRoutes from './message.routes';
 import earningsRoutes from './earnings.routes';
 import aiToolsRoutes from './ai-tools.routes';
 import categoryRoutes from './category.routes';
+import refundRoutes from './refund.routes';
+import progressRoutes from './progress.routes';
+import chatRoutes from './chat.routes';
 import { StudyGroupController } from '../controllers/study-group.controller';
 
 const router = express.Router();
@@ -29,6 +33,10 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.use('/courses', courseRoutes);
 router.use('/categories', categoryRoutes);
+
+// Public certificate verification (no auth)
+import { ClientCertificateController } from '../controllers/certificate.controller';
+router.get('/certificates/verify/:certificateId', ClientCertificateController.verifyCertificate);
 
 // Protected routes (authentication required)
 router.use('/auth', clientAuthRoutes);
@@ -45,11 +53,15 @@ router.use('/certificates', authenticate, certificateRoutes);
 router.use('/teacher-ratings', teacherRatingRoutes);
 router.use('/course-submissions', courseSubmissionRoutes);
 router.use('/ratings', reviewRoutes); // Course reviews with teacher responses
+router.use('/course-ratings', courseRatingRoutes); // Student course ratings/reviews
 router.use('/teacher-packages', authenticate, teacherPackageRoutes);
 router.use('/wishlist', authenticate, wishlistRoutes);
+router.use('/refunds', authenticate, refundRoutes);
 router.use('/messages', messageRoutes);
 router.use('/earnings', earningsRoutes);
 router.use('/ai-tools', aiToolsRoutes);
+router.use('/progress', authenticate, progressRoutes);
+router.use('/chat', authenticate, chatRoutes);
 
 // Protected Study Group endpoints (must be before public routes to avoid conflicts)
 router.use('/study-groups', authenticate, studyGroupRoutes);

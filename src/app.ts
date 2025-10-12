@@ -8,7 +8,7 @@ import connectDB from './shared/config/database';
 import { applySecurityMiddleware } from './shared/middleware/security';
 import adminRoutes from './admin/routes/index.route';
 import clientRoutes from './client/routes/index.route';
-import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes, verificationRoutes, googleOAuthRoutes, commentRoutes, enhancedCourseRoutes } from './shared/routes';
+import { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes, verificationRoutes, googleOAuthRoutes, commentRoutes, enhancedCourseRoutes, publicRoutes } from './shared/routes';
 import { metricsMiddleware } from './shared/controllers/metrics.controller';
 import crypto from 'crypto';
 import { reloadAllSchedules, scheduleRunner } from './shared/services/reports/schedule.service';
@@ -139,6 +139,7 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/auth/google', createOAuthSessionMiddleware(), googleOAuthRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/public', publicRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/payments', paymentsRoutes);

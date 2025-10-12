@@ -3,17 +3,27 @@ import mongoose, { Document, Schema } from 'mongoose';
 // RefundRequest interface
 export interface IRefundRequest extends Document {
   studentId: mongoose.Types.ObjectId;
+  teacherId: mongoose.Types.ObjectId;
   courseId: mongoose.Types.ObjectId;
+  enrollmentId: mongoose.Types.ObjectId;
   billId: mongoose.Types.ObjectId;
   reason: string;
   description?: string;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  contactMethod: {
+    type: 'email' | 'phone' | 'both';
+    email?: string;
+    phone?: string;
+  };
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed';
   refundMethod?: 'original_payment' | 'bank_transfer' | 'credit';
   processedBy?: mongoose.Types.ObjectId;
   processedAt?: Date;
   adminNotes?: string;
+  teacherNotes?: string;
   studentNotes?: string;
+  rejectionReason?: string;
+  refundedAt?: Date;
   attachments?: {
     name: string;
     url: string;
@@ -22,6 +32,11 @@ export interface IRefundRequest extends Document {
   }[];
   createdAt: Date;
   updatedAt: Date;
+
+  // Methods
+  approve(teacherId: mongoose.Types.ObjectId, notes?: string, refundMethod?: string): Promise<void>;
+  reject(teacherId: mongoose.Types.ObjectId, reason: string, notes?: string): Promise<void>;
+  cancel(): Promise<void>;
 }
 
 // RefundRequest schema
@@ -33,10 +48,22 @@ const refundRequestSchema = new Schema<IRefundRequest>(
       required: [true, 'Student ID is required'],
       index: true,
     },
+    teacherId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Teacher ID is required'],
+      index: true,
+    },
     courseId: {
       type: Schema.Types.ObjectId,
       ref: 'Course',
       required: [true, 'Course ID is required'],
+      index: true,
+    },
+    enrollmentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Enrollment',
+      required: [true, 'Enrollment ID is required'],
       index: true,
     },
     billId: {
@@ -61,11 +88,36 @@ const refundRequestSchema = new Schema<IRefundRequest>(
       required: [true, 'Refund amount is required'],
       min: [0, 'Amount cannot be negative'],
     },
+    contactMethod: {
+      type: {
+        type: String,
+        enum: ['email', 'phone', 'both'],
+        required: true
+      },
+      email: {
+        type: String,
+        validate: {
+          validator: function (v: string) {
+            return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+          },
+          message: 'Invalid email format'
+        }
+      },
+      phone: {
+        type: String,
+        validate: {
+          validator: function (v: string) {
+            return !v || /^[0-9]{10,11}$/.test(v);
+          },
+          message: 'Invalid phone format'
+        }
+      }
+    },
     status: {
       type: String,
       required: [true, 'Refund status is required'],
       enum: {
-        values: ['pending', 'approved', 'rejected', 'completed'],
+        values: ['pending', 'approved', 'rejected', 'cancelled', 'completed'],
         message: 'Please select a valid status',
       },
       default: 'pending',
@@ -79,16 +131,7 @@ const refundRequestSchema = new Schema<IRefundRequest>(
     },
     processedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
-      validate: {
-        validator: async function (processedBy: mongoose.Types.ObjectId) {
-          if (!processedBy) return true;
-          const User = mongoose.model('User');
-          const user = await User.findById(processedBy);
-          return user && user.roles.includes('admin');
-        },
-        message: 'Processor must be a valid admin',
-      },
+      ref: 'User'
     },
     processedAt: {
       type: Date,
@@ -97,9 +140,20 @@ const refundRequestSchema = new Schema<IRefundRequest>(
       type: String,
       maxlength: [1000, 'Admin notes cannot exceed 1000 characters'],
     },
+    teacherNotes: {
+      type: String,
+      maxlength: [1000, 'Teacher notes cannot exceed 1000 characters'],
+    },
     studentNotes: {
       type: String,
       maxlength: [1000, 'Student notes cannot exceed 1000 characters'],
+    },
+    rejectionReason: {
+      type: String,
+      maxlength: [500, 'Rejection reason cannot exceed 500 characters'],
+    },
+    refundedAt: {
+      type: Date,
     },
     attachments: [
       {
@@ -176,7 +230,7 @@ refundRequestSchema.virtual('formattedAmount').get(function () {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-  }).format(this.amount);
+  }).format((this as any).amount);
 });
 
 // Virtual for status color
@@ -186,19 +240,20 @@ refundRequestSchema.virtual('statusColor').get(function () {
     approved: 'success',
     rejected: 'danger',
     completed: 'info',
+    cancelled: 'info'
   };
-  return colors[this.status as keyof typeof colors] || 'secondary';
+  return colors[(this as any).status as keyof typeof colors] || 'secondary';
 });
 
 // Virtual for isProcessed
 refundRequestSchema.virtual('isProcessed').get(function () {
-  return this.status !== 'pending';
+  return (this as any).status !== 'pending';
 });
 
 // Virtual for timeSinceCreation
 refundRequestSchema.virtual('timeSinceCreation').get(function () {
   const now = new Date();
-  const created = new Date(this.createdAt);
+  const created = new Date((this as any).createdAt);
   const diff = now.getTime() - created.getTime();
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -213,12 +268,13 @@ refundRequestSchema.virtual('timeSinceCreation').get(function () {
 
 // Pre-save middleware to update timestamps
 refundRequestSchema.pre('save', function (next) {
+  const doc = this as any;
   if (
     this.isModified('status') &&
-    this.status !== 'pending' &&
-    !this.processedAt
+    doc.status !== 'pending' &&
+    !doc.processedAt
   ) {
-    this.processedAt = new Date();
+    doc.processedAt = new Date();
   }
   next();
 });
@@ -226,14 +282,15 @@ refundRequestSchema.pre('save', function (next) {
 // Pre-save middleware to validate amount
 refundRequestSchema.pre('save', async function (next) {
   try {
+    const doc = this as any;
     const Bill = mongoose.model('Bill');
-    const bill = await Bill.findById(this.billId);
+    const bill: any = await Bill.findById(doc.billId);
 
     if (!bill) {
       return next(new Error('Bill not found'));
     }
 
-    if (this.amount > bill.amount) {
+    if (doc.amount > (bill.amount || 0)) {
       return next(new Error('Refund amount cannot exceed bill amount'));
     }
   } catch (error) {
@@ -247,70 +304,108 @@ refundRequestSchema.pre('save', async function (next) {
 refundRequestSchema.statics.findByStudent = function (
   studentId: mongoose.Types.ObjectId
 ) {
-  return this.find({ studentId }).sort({ createdAt: -1 });
+  return this.find({ studentId } as any).sort({ createdAt: -1 });
 };
 
 // Static method to find by course
 refundRequestSchema.statics.findByCourse = function (
   courseId: mongoose.Types.ObjectId
 ) {
-  return this.find({ courseId }).sort({ createdAt: -1 });
+  return this.find({ courseId } as any).sort({ createdAt: -1 });
 };
 
 // Static method to find by status
 refundRequestSchema.statics.findByStatus = function (status: string) {
-  return this.find({ status }).sort({ createdAt: -1 });
+  return this.find({ status } as any).sort({ createdAt: -1 });
 };
 
 // Static method to find pending requests
 refundRequestSchema.statics.findPending = function () {
-  return this.find({ status: 'pending' }).sort({ createdAt: 1 });
+  return this.find({ status: 'pending' } as any).sort({ createdAt: 1 });
 };
 
 // Static method to find approved requests
 refundRequestSchema.statics.findApproved = function () {
-  return this.find({ status: 'approved' }).sort({ createdAt: -1 });
+  return this.find({ status: 'approved' } as any).sort({ createdAt: -1 });
 };
 
-// Instance method to approve
+// Instance method to approve (by teacher)
 refundRequestSchema.methods.approve = async function (
-  adminId: mongoose.Types.ObjectId,
+  teacherId: mongoose.Types.ObjectId,
   notes?: string,
   refundMethod?: string
 ) {
-  this.status = 'approved';
-  this.processedBy = adminId;
-  this.processedAt = new Date();
-  if (notes) this.adminNotes = notes;
-  if (refundMethod) this.refundMethod = refundMethod;
+  (this as any).status = 'approved';
+  (this as any).processedBy = teacherId;
+  (this as any).processedAt = new Date();
+  if (notes) (this as any).teacherNotes = notes;
+  if (refundMethod) (this as any).refundMethod = refundMethod;
 
   await this.save();
 
-  // Update bill status
+  // Update bill status to refunded
   try {
     const Bill = mongoose.model('Bill');
-    await Bill.findByIdAndUpdate(this.billId, { status: 'refunded' });
+    await Bill.findByIdAndUpdate((this as any).billId, {
+      status: 'refunded',
+      refundedAt: new Date()
+    });
   } catch (error) {
     console.error('Error updating bill status:', error);
   }
+
+  // KICK USER FROM COURSE - Deactivate enrollment
+  try {
+    const Enrollment = mongoose.model('Enrollment');
+    await Enrollment.findByIdAndUpdate((this as any).enrollmentId, {
+      isActive: false,
+      status: 'refunded',
+      refundedAt: new Date()
+    });
+
+    // Decrease course student count
+    const Course = mongoose.model('Course');
+    await Course.findByIdAndUpdate((this as any).courseId, {
+      $inc: { totalStudents: -1 }
+    });
+
+    // Note: User stats are now calculated dynamically in getDashboardData
+    // No need to manually update stored stats
+
+    console.log(`Student kicked from course - Enrollment ${(this as any).enrollmentId} deactivated`);
+  } catch (error) {
+    console.error('Error deactivating enrollment:', error);
+  }
 };
 
-// Instance method to reject
+// Instance method to reject (by teacher)
 refundRequestSchema.methods.reject = async function (
-  adminId: mongoose.Types.ObjectId,
+  teacherId: mongoose.Types.ObjectId,
+  reason: string,
   notes?: string
 ) {
-  this.status = 'rejected';
-  this.processedBy = adminId;
-  this.processedAt = new Date();
-  if (notes) this.adminNotes = notes;
+  (this as any).status = 'rejected';
+  (this as any).processedBy = teacherId;
+  (this as any).processedAt = new Date();
+  (this as any).rejectionReason = reason;
+  if (notes) (this as any).teacherNotes = notes;
 
+  await this.save();
+};
+
+// Instance method to cancel (by student)
+refundRequestSchema.methods.cancel = async function () {
+  if ((this as any).status !== 'pending') {
+    throw new Error('Can only cancel pending refund requests');
+  }
+
+  (this as any).status = 'cancelled';
   await this.save();
 };
 
 // Instance method to complete
 refundRequestSchema.methods.complete = async function () {
-  this.status = 'completed';
+  (this as any).status = 'completed';
   await this.save();
 };
 

@@ -31,6 +31,8 @@ export interface ILesson extends Document {
   order: number;
   isRequired: boolean;
   isPreview: boolean;
+  isVisible: boolean;
+  isPublished: boolean;
   estimatedTime: number;
   attachments?: {
     name: string;
@@ -173,6 +175,14 @@ const lessonSchema = new Schema<ILesson>(
       type: Boolean,
       default: false,
     },
+    isVisible: {
+      type: Boolean,
+      default: true,
+    },
+    isPublished: {
+      type: Boolean,
+      default: false,
+    },
     estimatedTime: {
       type: Number,
       required: [true, 'Estimated time is required'],
@@ -213,6 +223,9 @@ lessonSchema.index({ sectionId: 1, order: 1 });
 lessonSchema.index({ courseId: 1 });
 lessonSchema.index({ type: 1 });
 lessonSchema.index({ isPreview: 1 });
+lessonSchema.index({ isVisible: 1 });
+lessonSchema.index({ isPublished: 1 });
+lessonSchema.index({ sectionId: 1, isVisible: 1 });
 lessonSchema.index({ createdAt: -1 });
 
 // Virtual for section

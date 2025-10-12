@@ -8,5 +8,6 @@ import verificationRoutes from './verification.routes';
 import googleOAuthRoutes from './google-oauth.routes';
 import commentRoutes from './comment.routes';
 import enhancedCourseRoutes from './enhanced-course.routes';
+import publicRoutes from './public.routes';
 
-export { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes, verificationRoutes, googleOAuthRoutes, commentRoutes, enhancedCourseRoutes };
+export { authRoutes, uploadRoutes, paymentsRoutes, cartRoutes, reportsRoutes, metricsRoutes, verificationRoutes, googleOAuthRoutes, commentRoutes, enhancedCourseRoutes, publicRoutes };
