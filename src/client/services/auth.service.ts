@@ -328,26 +328,12 @@ export class ClientAuthService extends BaseAuthService {
 
   /**
    * Get user's certificates
+   * Use ClientCertificateService to get certificates with auto-generation
    */
   static async getCertificates(userId: string) {
-    // This would typically query a separate Certificates model
-    // For now, return mock data based on completed enrollments
-    const enrollments = await Enrollment.find({
-      studentId: userId,
-      status: 'completed',
-      certificateIssued: true,
-    }).populate('courseId', 'title description thumbnail');
-
-    return enrollments.map(enrollment => ({
-      id: enrollment._id.toString(),
-      courseId: enrollment.courseId._id,
-      courseName: (enrollment.courseId as any).title,
-      courseDescription: (enrollment.courseId as any).description,
-      courseThumbnail: (enrollment.courseId as any).thumbnail,
-      issuedAt: enrollment.completedAt,
-      certificateUrl: (enrollment as any).certificateUrl || null,
-      score: (enrollment as any).score || null,
-    }));
+    // Use ClientCertificateService which has auto-generation logic
+    const { ClientCertificateService } = await import('./certificate.service');
+    return await ClientCertificateService.getUserCertificates(userId);
   }
 
   /**

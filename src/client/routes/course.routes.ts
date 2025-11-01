@@ -3,7 +3,7 @@ import { ClientCourseController } from '../controllers/course.controller';
 import { authenticate, optionalAuth } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { clientCourseValidation } from '../validators/course.validator';
-import { Enrollment, Course, User, UserActivityLog } from '../../shared/models';
+import { Enrollment, Course, User, UserActivityLog, Bill, LessonProgress } from '../../shared/models';
 
 const router = Router();
 
@@ -35,16 +35,25 @@ router.put('/:id', authenticate, ClientCourseController.updateCourse);
 router.delete('/:id', authenticate, ClientCourseController.deleteCourse);
 router.patch('/:id/status', authenticate, ClientCourseController.updateCourseStatus);
 
-// Course enrollment endpoint
+// Course enrollment endpoint - Similar to package subscription, create Bill and Enrollment together
 router.post('/:id/enroll', authenticate, async (req: any, res) => {
     try {
         const { id } = req.params;
-        const { paymentMethod, couponCode, agreeToTerms } = req.body;
+        const { paymentMethod = 'bank_transfer', couponCode, agreeToTerms } = req.body;
 
         if (!agreeToTerms) {
             return res.status(400).json({
                 success: false,
                 error: 'Bạn phải đồng ý với điều khoản để đăng ký khóa học'
+            });
+        }
+
+        // Get user details for payment information
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
             });
         }
 
@@ -62,10 +71,11 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
             });
         }
 
-        // Check if already enrolled
+        // Check if already enrolled (only active enrollments)
         const existingEnrollment = await Enrollment.findOne({
             studentId: req.user.id,
-            courseId: id
+            courseId: id,
+            isActive: true
         });
 
         if (existingEnrollment) {
@@ -75,20 +85,87 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
             });
         }
 
-        // Create enrollment
-        const enrollment = new Enrollment({
+        // Check if there's an inactive enrollment (refunded/cancelled)
+        const inactiveEnrollment = await Enrollment.findOne({
             studentId: req.user.id,
             courseId: id,
-            instructorId: course.instructorId,
-            enrolledAt: new Date(),
-            progress: 0,
-            isActive: true,
-            isCompleted: false
+            isActive: false
         });
 
-        await enrollment.save();
+        let enrollment;
+        let bill;
 
-        // activity log
+        // If course has price, create Bill with completed status immediately (like package subscription)
+        if (course.price > 0) {
+            // Get user payment information from profile
+            const userFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Customer';
+            const userEmail = user.email || '';
+            const userPhone = user.phone || '';
+
+            // Create Bill with completed status immediately (no checkout needed)
+            bill = new Bill({
+                studentId: req.user.id,
+                courseId: id,
+                amount: course.price,
+                currency: 'VND',
+                purpose: 'course_purchase',
+                status: 'completed', // Completed immediately, like package subscription
+                paymentMethod: paymentMethod as 'stripe' | 'paypal' | 'bank_transfer' | 'cash' | 'vnpay',
+                description: `Payment for course: ${course.title}`,
+                paidAt: new Date(),
+                transactionId: `COURSE_${Date.now()}_${req.user.id}_${id}`,
+                metadata: {
+                    userInfo: {
+                        fullName: userFullName,
+                        email: userEmail,
+                        phone: userPhone
+                    },
+                    courseTitle: course.title,
+                    couponCode: couponCode || null,
+                    noCheckout: true // Flag to indicate no separate checkout process
+                }
+            });
+            await bill.save();
+            console.log('✅ Created Bill with completed status:', bill._id);
+        }
+
+        // Create enrollment (reactivate if exists, or create new)
+        if (inactiveEnrollment) {
+            // Reactivate the old enrollment instead of creating a new one
+            inactiveEnrollment.isActive = true;
+            inactiveEnrollment.enrolledAt = new Date();
+            inactiveEnrollment.progress = 0;
+            inactiveEnrollment.isCompleted = false;
+            inactiveEnrollment.completedAt = undefined;
+            inactiveEnrollment.certificateIssued = false;
+            inactiveEnrollment.certificateUrl = undefined;
+            inactiveEnrollment.currentLesson = undefined;
+            inactiveEnrollment.currentSection = undefined;
+            inactiveEnrollment.totalTimeSpent = 0;
+            enrollment = await inactiveEnrollment.save();
+
+            // Delete all LessonProgress records for this enrollment to reset progress
+            await LessonProgress.deleteMany({
+                studentId: req.user.id,
+                courseId: id
+            });
+            console.log('✅ Reactivated inactive enrollment and reset all progress:', enrollment._id);
+        } else {
+            // Create new enrollment
+            enrollment = new Enrollment({
+                studentId: req.user.id,
+                courseId: id,
+                instructorId: course.instructorId,
+                enrolledAt: new Date(),
+                progress: 0,
+                isActive: true,
+                isCompleted: false
+            });
+            await enrollment.save();
+            console.log('✅ Created new enrollment:', enrollment._id);
+        }
+
+        // Activity log
         UserActivityLog.create({
             userId: req.user.id,
             action: 'course_enroll',
@@ -111,12 +188,20 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
         res.status(201).json({
             success: true,
             message: 'Successfully enrolled in course',
-            data: enrollment
+            data: {
+                enrollment,
+                bill: bill ? {
+                    id: bill._id,
+                    amount: bill.amount,
+                    status: bill.status
+                } : null
+            }
         });
     } catch (error: any) {
+        console.error('Enrollment error:', error);
         res.status(500).json({
             success: false,
-            error: 'Có lỗi xảy ra khi đăng ký khóa học'
+            error: error.message || 'Có lỗi xảy ra khi đăng ký khóa học'
         });
     }
 });

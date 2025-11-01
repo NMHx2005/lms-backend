@@ -6,7 +6,13 @@ import { clientSectionValidation } from '../validators/section.validator';
 
 const router = Router();
 
-// All section routes require authentication (enrolled students and teachers)
+// ========== PUBLIC ROUTES (No authentication required) ==========
+// MUST be BEFORE authenticate middleware
+// Get sections for preview (public - anyone can view course structure)
+router.get('/course/:courseId/preview', validateRequest(clientSectionValidation.getSectionsByCourse), ClientSectionController.getSectionsForPreview);
+
+// ========== PROTECTED ROUTES (Authentication required) ==========
+// All section routes below require authentication (enrolled students and teachers)
 router.use(authenticate);
 
 // Get sections by course (for enrolled students and teachers)

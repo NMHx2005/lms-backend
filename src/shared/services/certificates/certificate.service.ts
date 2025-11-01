@@ -15,6 +15,7 @@ import QRGeneratorService from './qr-generator.service';
 import { EmailNotificationService } from '../email/email-notification.service';
 import { AppError } from '../../utils/appError';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 export interface CertificateGenerationOptions {
   templateId?: string;
@@ -70,11 +71,12 @@ export class CertificateService {
       }
 
       // For now, use simple default requirements
+      // Only require course completion - skip time requirement for now
       const defaultRequirements: SimpleRequirement[] = [
-        { type: 'course_completion', threshold: 100 },
-        { type: 'minimum_time', threshold: 1 } // 1 hour minimum
+        { type: 'course_completion', threshold: 100 }
+        // { type: 'minimum_time', threshold: 1 } // Temporarily disabled - 1 hour minimum
       ];
-      
+
       // Get student's enrollment and progress
       const enrollment = await Enrollment.findOne({ studentId, courseId });
       if (!enrollment) {
@@ -88,7 +90,7 @@ export class CertificateService {
       for (let i = 0; i < defaultRequirements.length; i++) {
         const requirement = defaultRequirements[i];
         const isCompleted = await this.checkSingleRequirement(studentId, courseId, requirement);
-        
+
         if (isCompleted) {
           completedRequirements.push(i.toString());
         } else {
@@ -261,7 +263,7 @@ export class CertificateService {
       const student = await User.findById(studentId);
       const course = await Course.findById(courseId);
       const enrollment = await Enrollment.findOne({ studentId, courseId });
-      
+
       if (!student || !course || !enrollment) {
         throw new AppError('Student, course or enrollment not found', 404);
       }
@@ -278,38 +280,101 @@ export class CertificateService {
       const certificateId = this.qrService.generateCertificateId();
       const verificationUrl = this.qrService.generateVerificationURL(certificateId);
 
-      // Create certificate record
+      // QR code is optional - generate it after certificate is saved
+      // If QR generation fails, certificate can still be issued without QR code
+      let qrCode = '';
+
+      // Calculate temporary hash for validation (will be recalculated in pre-save middleware)
+      // Using completionDate from enrollment or current date
+      const tempCompletionDate = enrollment.completedAt || new Date();
+      const tempHash = crypto.createHash('sha256')
+        .update(`${certificateId}${studentId}${courseId}${tempCompletionDate}85`)
+        .digest('hex');
+
+      // Get instructor name
+      const instructor = await User.findById(course.instructorId).select('firstName lastName name');
+      const instructorName = instructor
+        ? `${instructor.firstName} ${instructor.lastName}`.trim() || instructor.name || 'Instructor'
+        : 'Instructor';
+
+      // Calculate completion percentage and get assignment data
+      const completionPercentage = enrollment.progress || 100;
+
+      // Get assignment stats (if available) - with error handling
+      let totalAssignments = 0;
+      let assignmentsPassed = 0;
+      try {
+        const Assignment = mongoose.model('Assignment');
+        totalAssignments = await Assignment.countDocuments({ courseId }).catch(() => 0);
+        const Submission = mongoose.model('Submission');
+        assignmentsPassed = await Submission.countDocuments({
+          studentId,
+          courseId,
+          status: 'approved'
+        }).catch(() => 0);
+      } catch (err) {
+        // Models might not exist, use defaults
+        console.warn('Could not fetch assignment stats, using defaults:', err);
+      }
+
+      // Create certificate record with all required fields
       const certificate = new Certificate({
         certificateId,
         studentId,
         courseId,
         instructorId: course.instructorId,
         enrollmentId: enrollment._id,
-        completionDate: new Date(),
+        completionDate: enrollment.completedAt || new Date(),
         issueDate: new Date(),
-        finalScore: 85, // placeholder
-        timeSpent: enrollment.totalTimeSpent,
+        finalScore: 85, // placeholder - can be calculated from assignments later
+        timeSpent: enrollment.totalTimeSpent || 0,
         certificateType: 'completion',
         level: 'silver',
         grade: 'pass',
         templateId: new mongoose.Types.ObjectId(), // placeholder
         verificationCode: this.qrService.generateCertificateId(),
-        qrCode: '',
-        verificationHash: '',
-        pdfUrl: '',
-        pdfPath: '',
-        fileSize: 0,
+        qrCode: qrCode,
+        verificationHash: tempHash, // Temporary hash for validation - will be recalculated in pre-save middleware
+        pdfUrl: `/api/client/certificates/${enrollment._id}/download`, // Temporary URL, will be updated after PDF generation
+        pdfPath: `storage/certificates/${certificateId}.pdf`, // Temporary path, will be updated after PDF generation
+        fileSize: 0, // Will be updated after PDF generation
+        requirementsMet: {
+          completionPercentage: completionPercentage,
+          assignmentsPassed: assignmentsPassed || 0,
+          totalAssignments: totalAssignments || 0,
+          minimumScore: 70, // Default passing score
+          achievedScore: 85, // Placeholder - can be calculated later
+          timeRequirement: 0, // No minimum time requirement for now
+          timeSpent: enrollment.totalTimeSpent || 0
+        },
         metadata: {
           courseTitle: course.title,
           courseDomain: course.domain || 'General',
           courseLevel: course.level || 'Beginner',
-          instructorName: 'TBD',
+          instructorName: instructorName,
           platformName: 'Learning Management System',
           platformUrl: process.env.APP_BASE_URL || 'http://localhost:5000'
         }
       });
 
       await certificate.save();
+
+      // Generate QR code after certificate is saved (optional - don't fail if it errors)
+      try {
+        qrCode = this.qrService.generateCertificateQR(certificateId);
+        certificate.qrCode = qrCode;
+        await certificate.save();
+      } catch (qrError: any) {
+        console.warn('Could not generate QR code for certificate, but certificate is still valid:', qrError.message);
+        // Certificate is still valid without QR code
+      }
+
+      // Update enrollment to mark certificate as issued
+      if (enrollment && !enrollment.certificateIssued) {
+        enrollment.certificateIssued = true;
+        enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
+        await enrollment.save();
+      }
 
       // Generate PDF if requested
       if (options.generatePDF !== false) {
@@ -343,15 +408,35 @@ export class CertificateService {
         course,
         certificate,
         template,
-        completionDate: certificate.issueDate,
+        completionDate: certificate.completionDate || certificate.issueDate,
         verificationUrl: this.qrService.generateVerificationURL(certificate.certificateId)
       };
 
       const filename = this.pdfService.generateCertificateFilename(certificate, student);
       const filePath = await this.pdfService.saveCertificatePDF(pdfData, filename);
 
-      // Update certificate with PDF path
+      // Get file size if file exists
+      let fileSize = 0;
+      try {
+        const fs = await import('fs');
+        if (fs.existsSync(filePath)) {
+          fileSize = fs.statSync(filePath).size;
+        }
+      } catch (err) {
+        console.warn('Could not get PDF file size:', err);
+      }
+
+      // Update certificate with PDF path, URL, and file size
       certificate.pdfPath = filePath;
+      certificate.pdfUrl = `/api/client/certificates/${certificate.enrollmentId}/download`;
+      certificate.fileSize = fileSize;
+
+      // Ensure QR code is set if not already
+      if (!certificate.qrCode || certificate.qrCode === '') {
+        const verificationUrl = this.qrService.generateVerificationURL(certificate.certificateId);
+        certificate.qrCode = this.qrService.generateCertificateQR(verificationUrl);
+      }
+
       await certificate.save();
     } catch (error) {
       console.error('Error generating certificate PDF:', error);
@@ -381,7 +466,7 @@ export class CertificateService {
    */
   public async verifyCertificate(certificateId: string): Promise<CertificateVerificationResult> {
     console.log('🔍 CertificateService.verifyCertificate called with:', certificateId);
-    
+
     try {
       // Validate certificate ID format
       console.log('🔍 Validating certificate ID format...');

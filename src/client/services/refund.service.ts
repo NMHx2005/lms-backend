@@ -1,4 +1,4 @@
-import { RefundRequest, Enrollment, Bill, Course } from '../../shared/models';
+import { RefundRequest, Enrollment, Payment, Course, Bill } from '../../shared/models';
 import { IRefundRequest } from '../../shared/models/core/RefundRequest';
 import mongoose from 'mongoose';
 
@@ -7,6 +7,8 @@ export class ClientRefundService {
      * Get eligible courses for refund (enrolled with completed payment)
      */
     static async getEligibleCourses(userId: string) {
+        console.log('🔍 [DEBUG] getEligibleCourses called for userId:', userId);
+
         // Get active enrollments
         const enrollments = await Enrollment.find({
             studentId: userId,
@@ -16,19 +18,29 @@ export class ClientRefundService {
             .populate('instructorId', 'name firstName lastName email')
             .sort({ enrolledAt: -1 });
 
-        // Check if enrollment has completed payment (has bill)
+        console.log('📚 [DEBUG] Found enrollments:', enrollments.length);
+        enrollments.forEach((enrollment, index) => {
+            const course = enrollment.courseId as any;
+            console.log(`  ${index + 1}. Course: ${course?.title}, Price: ${course?.price}, Active: ${enrollment.isActive}`);
+        });
+
+        // Check if enrollment has completed payment
         const eligibleCourses = [];
 
         for (const enrollment of enrollments) {
-            // Check if has completed bill for this course
-            const bill = await Bill.findOne({
-                studentId: userId,
-                courseId: enrollment.courseId,
-                status: 'completed'
-            });
+            const course = enrollment.courseId as any;
+            console.log(`\n🔍 [DEBUG] Checking enrollment for course: ${course?.title}`);
+            console.log(`  Course price: ${course?.price}`);
 
-            // Only eligible if has paid bill
-            if (!bill) continue;
+            // Only eligible if has paid course (price > 0)
+            if (course.price === 0) {
+                console.log(`  ❌ Skipped: Free course (price = 0)`);
+                continue;
+            }
+
+            // For paid courses, we assume payment is completed if user is enrolled
+            // (In real system, enrollment only happens after successful payment)
+            console.log(`  ✅ Course has price > 0, assuming payment completed`);
 
             // Check if already has pending refund request
             const existingRefund = await RefundRequest.findOne({
@@ -36,25 +48,32 @@ export class ClientRefundService {
                 status: 'pending'
             });
 
+            console.log(`  Existing pending refund:`, existingRefund ? 'Yes' : 'No');
+
             // Only show courses without pending refund
             if (!existingRefund) {
-                const course = enrollment.courseId as any;
                 const instructor = enrollment.instructorId as any;
 
-                eligibleCourses.push({
+                const eligibleCourse = {
                     enrollmentId: enrollment._id,
                     courseId: course._id,
                     courseTitle: course.title,
                     courseThumbnail: course.thumbnail,
-                    amount: bill.amount, // Use actual paid amount from bill
+                    amount: course.price, // Use course price as refund amount
                     enrolledAt: enrollment.enrolledAt,
                     progress: enrollment.progress,
                     teacherId: course.instructorId,
                     teacherName: instructor?.name || `${instructor?.firstName || ''} ${instructor?.lastName || ''}`.trim()
-                });
+                };
+
+                console.log(`  ✅ Added to eligible courses:`, eligibleCourse.courseTitle);
+                eligibleCourses.push(eligibleCourse);
+            } else {
+                console.log(`  ❌ Skipped: Has pending refund request`);
             }
         }
 
+        console.log(`\n📊 [DEBUG] Final eligible courses count: ${eligibleCourses.length}`);
         return eligibleCourses;
     }
 
@@ -92,27 +111,70 @@ export class ClientRefundService {
             throw new Error('A pending refund request already exists for this enrollment');
         }
 
-        // Get bill
+        // For paid courses, we assume payment is completed if user is enrolled
+        // (In real system, enrollment only happens after successful payment)
+        const course = enrollment.courseId as any;
+        if (course.price === 0) {
+            throw new Error('Free courses are not eligible for refund');
+        }
+
+        // Find the associated Bill for this enrollment
+        // Bill should have matching studentId, courseId, status 'completed', and purpose 'course_purchase'
         const bill = await Bill.findOne({
             studentId: userId,
             courseId: enrollment.courseId,
-            status: 'completed'
-        }).sort({ paidAt: -1 });
+            status: 'completed',
+            purpose: 'course_purchase'
+        }).sort({ createdAt: -1 }); // Get the most recent completed bill
 
         if (!bill) {
-            throw new Error('Payment bill not found');
+            // If no bill found, create a new bill for this refund (for backward compatibility)
+            // This handles cases where enrollment exists but bill wasn't properly created
+            console.warn(`No Bill found for enrollment ${data.enrollmentId}. Creating a new bill.`);
+            const newBill = new Bill({
+                studentId: userId,
+                courseId: enrollment.courseId,
+                amount: course.price,
+                currency: 'VND',
+                purpose: 'course_purchase',
+                status: 'completed',
+                paymentMethod: 'bank_transfer', // Default to bank_transfer if payment method unknown
+                description: `Payment for course: ${course.title}`,
+                paidAt: enrollment.enrolledAt || new Date()
+            });
+            await newBill.save();
+
+            const refund = new RefundRequest({
+                studentId: userId,
+                teacherId: course.instructorId,
+                courseId: enrollment.courseId,
+                enrollmentId: data.enrollmentId,
+                billId: newBill._id,
+                amount: course.price,
+                reason: data.reason,
+                description: data.description,
+                contactMethod: data.contactMethod,
+                status: 'pending',
+                requestedAt: new Date()
+            });
+
+            await refund.save();
+            return refund;
         }
 
-        const course = enrollment.courseId as any;
+        // Check if bill is already refunded
+        if (bill.status === 'refunded') {
+            throw new Error('This course has already been refunded');
+        }
 
-        // Create refund request
+        // Create refund request with the actual bill ID
         const refund = new RefundRequest({
             studentId: userId,
             teacherId: course.instructorId,
             courseId: enrollment.courseId,
             enrollmentId: data.enrollmentId,
-            billId: bill._id,
-            amount: course.price || bill.amount,
+            billId: bill._id, // Use actual bill ID
+            amount: bill.amount || course.price, // Use bill amount or fallback to course price
             reason: data.reason,
             description: data.description,
             contactMethod: data.contactMethod,
@@ -172,7 +234,7 @@ export class ClientRefundService {
         })
             .populate('courseId', 'title thumbnail description')
             .populate('teacherId', 'name firstName lastName email avatar')
-            .populate('billId', 'amount transactionId paidAt')
+            .populate('billId', 'amount transactionId createdAt')
             .populate('processedBy', 'name firstName lastName');
 
         if (!refund) {

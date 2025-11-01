@@ -72,10 +72,32 @@ router.post('/', async (req: any, res) => {
       });
     }
 
-    // Check if already enrolled
+    // Check if course requires payment
+    if (course.price > 0) {
+      // For paid courses, check if user has completed payment
+      const payment = await require('../../shared/models').Payment.findOne({
+        studentId: req.user.id,
+        courseId: courseId,
+        status: 'completed',
+        purpose: 'course_purchase'
+      });
+
+      if (!payment) {
+        return res.status(403).json({
+          success: false,
+          error: 'Payment required for this course. Please complete payment first.',
+          requiresPayment: true
+        });
+      }
+
+      console.log('✅ Payment verified for user:', req.user.id);
+    }
+
+    // Check if already enrolled (only active enrollments)
     const existingEnrollment = await Enrollment.findOne({
       studentId: req.user.id,
-      courseId: courseId
+      courseId: courseId,
+      isActive: true  // Only check active enrollments
     });
 
     if (existingEnrollment) {
@@ -85,18 +107,49 @@ router.post('/', async (req: any, res) => {
       });
     }
 
-    // Create enrollment
-    const enrollment = new Enrollment({
+    // Check if there's an inactive enrollment (refunded/cancelled)
+    const inactiveEnrollment = await Enrollment.findOne({
       studentId: req.user.id,
       courseId: courseId,
-      instructorId: course.instructorId,
-      enrolledAt: new Date(),
-      progress: 0,
-      isActive: true,
-      isCompleted: false
+      isActive: false
     });
 
-    await enrollment.save();
+    let enrollment;
+
+    if (inactiveEnrollment) {
+      // Reactivate the old enrollment instead of creating a new one
+      inactiveEnrollment.isActive = true;
+      inactiveEnrollment.enrolledAt = new Date();
+      inactiveEnrollment.progress = 0;  // Reset progress
+      inactiveEnrollment.isCompleted = false;
+      inactiveEnrollment.completedAt = undefined;
+      inactiveEnrollment.certificateIssued = false;
+      inactiveEnrollment.certificateUrl = undefined;
+      inactiveEnrollment.currentLesson = undefined;
+      inactiveEnrollment.currentSection = undefined;
+      inactiveEnrollment.totalTimeSpent = 0;
+      enrollment = await inactiveEnrollment.save();
+
+      // Delete all LessonProgress records for this enrollment to reset progress
+      await LessonProgress.deleteMany({
+        studentId: req.user.id,
+        courseId: courseId
+      });
+      console.log('✅ Reactivated inactive enrollment and reset all progress:', enrollment._id);
+    } else {
+      // Create new enrollment
+      enrollment = new Enrollment({
+        studentId: req.user.id,
+        courseId: courseId,
+        instructorId: course.instructorId,
+        enrolledAt: new Date(),
+        progress: 0,
+        isActive: true,
+        isCompleted: false
+      });
+      await enrollment.save();
+      console.log('✅ Created new enrollment:', enrollment._id);
+    }
     // activity log
     UserActivityLog.create({ userId: req.user.id, action: 'course_enroll', resource: 'enrollment', resourceId: enrollment._id, courseId: courseId });
 

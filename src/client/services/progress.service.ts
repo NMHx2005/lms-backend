@@ -62,8 +62,29 @@ export class ProgressService {
 
             // Auto-issue certificate if completed (check separately to handle edge cases)
             if (progressPercentage >= 100 && course.certificate && !enrollment.certificateIssued) {
-                enrollment.certificateIssued = true;
-                enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
+                try {
+                    // Import CertificateService to generate certificate
+                    const CertificateService = (await import('../../shared/services/certificates/certificate.service')).default;
+
+                    // Generate certificate (this creates the Certificate record)
+                    await CertificateService.generateCertificate(
+                        userId,
+                        courseId,
+                        {
+                            generatePDF: true,
+                            sendEmail: false // Can set to true if email service is ready
+                        }
+                    );
+
+                    // Mark certificate as issued
+                    enrollment.certificateIssued = true;
+                    enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
+                    console.log(`✅ Certificate generated for user ${userId} in course ${courseId}`);
+                } catch (certError: any) {
+                    console.error('Error generating certificate:', certError);
+                    // Still mark as completed even if certificate generation fails
+                    // Certificate can be generated later via manual trigger
+                }
             }
 
             await enrollment.save();

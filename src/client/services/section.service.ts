@@ -399,4 +399,60 @@ export class ClientSectionService {
     const updatedSections = await SectionModel.find({ courseId }).sort({ order: 1 });
     return updatedSections;
   }
+
+  // ========== PUBLIC PREVIEW OPERATIONS ==========
+
+  // Get sections for preview (public - no enrollment required)
+  static async getSectionsForPreview(courseId: string): Promise<any[]> {
+    // Verify course exists and is published
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    // Only allow preview of published and approved courses
+    if (!course.isPublished || !course.isApproved) {
+      throw new Error('This course is not available for preview');
+    }
+
+    // Get visible sections with limited lesson information (for preview only)
+    const sections = await SectionModel.find({
+      courseId,
+      isVisible: true
+    })
+      .populate({
+        path: 'lessons',
+        match: { isVisible: true },
+        // Only show basic info for preview - NO video URLs or content
+        select: 'title type order estimatedTime isPreview duration',
+        options: { sort: { order: 1 } }
+      })
+      .sort({ order: 1 });
+
+    // Format response for preview with lesson count and total duration
+    const sectionsForPreview = sections.map((section: any) => {
+      const sectionObj = section.toObject();
+      const lessons = sectionObj.lessons || [];
+
+      return {
+        _id: sectionObj._id,
+        title: sectionObj.title,
+        description: sectionObj.description,
+        order: sectionObj.order,
+        totalLessons: lessons.length,
+        totalDuration: lessons.reduce((sum: number, lesson: any) => sum + (lesson.duration || lesson.estimatedTime || 0), 0),
+        lessons: lessons.map((lesson: any) => ({
+          _id: lesson._id,
+          title: lesson.title,
+          type: lesson.type,
+          order: lesson.order,
+          duration: lesson.duration || lesson.estimatedTime || 0,
+          isPreview: lesson.isPreview || false,
+          // NO videoUrl, content, fileUrl for security
+        }))
+      };
+    });
+
+    return sectionsForPreview;
+  }
 }

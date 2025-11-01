@@ -1,4 +1,4 @@
-import { Course as CourseModel, Enrollment as EnrollmentModel, User as UserModel, Bill as BillModel } from '../../shared/models';
+import { Course as CourseModel, Enrollment as EnrollmentModel, User as UserModel, Bill as BillModel, LessonProgress as LessonProgressModel } from '../../shared/models';
 import {
   CourseListResponse,
   CourseSearchFilters,
@@ -360,14 +360,23 @@ export class ClientCourseService {
     }
 
     const totalLessons = course.totalLessons || 0;
-    const completedLessons = 0; // Will be implemented when lesson completion tracking is added
-    const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+    // Calculate actual completed lessons count from LessonProgress
+    const completedLessonsCount = await LessonProgressModel.countDocuments({
+      studentId: userId,
+      courseId: courseId,
+      isCompleted: true
+    });
+
+    // Use enrollment.progress (updated when lessons are completed) or calculate it
+    // Enrollment.progress should already be accurate from markLessonCompleted
+    const progress = enrollment.progress || (totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0);
 
     return {
       courseId,
       userId,
       progress,
-      completedLessons,
+      completedLessons: completedLessonsCount,
       totalLessons,
       currentLesson: enrollment.currentLesson?.toString(),
       lastAccessed: enrollment.updatedAt,

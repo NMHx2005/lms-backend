@@ -294,8 +294,29 @@ export class ClientLessonService {
 
         // Issue certificate if course has certification
         if (course.certificate && !enrollment.certificateIssued) {
-          enrollment.certificateIssued = true;
-          enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
+          try {
+            // Import CertificateService to generate certificate
+            const CertificateService = (await import('../../shared/services/certificates/certificate.service')).default;
+
+            // Generate certificate (this creates the Certificate record)
+            await CertificateService.generateCertificate(
+              userId,
+              lesson.courseId.toString(),
+              {
+                generatePDF: true,
+                sendEmail: false // Can set to true if email service is ready
+              }
+            );
+
+            // Mark certificate as issued
+            enrollment.certificateIssued = true;
+            enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
+            console.log(`✅ Certificate generated for user ${userId} in course ${lesson.courseId}`);
+          } catch (certError: any) {
+            console.error('Error generating certificate:', certError);
+            // Still mark as completed even if certificate generation fails
+            // Certificate can be generated later via manual trigger
+          }
         }
 
         // Update user stats

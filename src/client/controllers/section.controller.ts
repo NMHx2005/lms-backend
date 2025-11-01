@@ -296,4 +296,31 @@ export class ClientSectionController {
       });
     }
   }
+
+  // ========== PUBLIC PREVIEW OPERATIONS ==========
+
+  // Get sections for preview (public - no authentication required)
+  static async getSectionsForPreview(req: Request, res: Response) {
+    try {
+      const { courseId } = req.params;
+
+      console.log('🔍 getSectionsForPreview - Public preview:', {
+        courseId
+      });
+
+      const sections = await ClientSectionService.getSectionsForPreview(courseId);
+
+      res.json({
+        success: true,
+        data: sections,
+        message: 'Course preview - Enroll to access full content'
+      });
+    } catch (error: any) {
+      console.error('Get sections for preview error:', error);
+      res.status(error.message.includes('not found') ? 404 : 400).json({
+        success: false,
+        error: error.message || 'Failed to get course preview'
+      });
+    }
+  }
 }

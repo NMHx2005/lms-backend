@@ -6,25 +6,25 @@ export interface ICertificate extends Document {
   certificateId: string; // Unique human-readable ID (CERT-2024-001234)
   verificationCode: string; // Unique verification code for public verification
   qrCode: string; // QR code data for quick verification
-  
+
   // Course & Student Information
   courseId: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
   instructorId: mongoose.Types.ObjectId;
   enrollmentId: mongoose.Types.ObjectId;
-  
+
   // Achievement Data
   completionDate: Date;
   issueDate: Date;
   expiryDate?: Date; // Some certificates may expire
   finalScore: number; // Overall course score (0-100)
   timeSpent: number; // Total hours spent on course
-  
+
   // Certificate Level & Type
   certificateType: 'completion' | 'achievement' | 'mastery' | 'professional' | 'expert';
   level: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
   grade: 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'pass';
-  
+
   // Template & Design
   templateId: mongoose.Types.ObjectId;
   customization: {
@@ -34,7 +34,7 @@ export interface ICertificate extends Document {
     signatureUrl?: string;
     watermarkUrl?: string;
   };
-  
+
   // Requirements Met
   requirementsMet: {
     completionPercentage: number;
@@ -47,7 +47,7 @@ export interface ICertificate extends Document {
     finalExamPassed?: boolean;
     finalExamScore?: number;
   };
-  
+
   // Additional Achievements
   achievements: {
     name: string;
@@ -55,50 +55,50 @@ export interface ICertificate extends Document {
     iconUrl?: string;
     earnedDate: Date;
   }[];
-  
+
   // Skills Earned
   skillsEarned: {
     skillName: string;
     proficiencyLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
     verifiedDate: Date;
   }[];
-  
+
   // Verification & Security
   isVerified: boolean;
   verificationHash: string; // Cryptographic hash for tamper detection
   blockchainHash?: string; // Optional blockchain verification
   ipfsHash?: string; // IPFS storage hash for decentralized verification
-  
+
   // File Information
   pdfUrl: string; // Generated PDF file URL
   pdfPath: string; // Local file path
   imageUrl?: string; // Certificate as image (PNG/JPG)
   fileSize: number; // File size in bytes
-  
+
   // Status & Validity
   status: 'active' | 'revoked' | 'expired' | 'replaced';
   isPublic: boolean; // Can be viewed publicly
   isShareable: boolean; // Can be shared on social media
-  
+
   // Tracking & Analytics
   viewCount: number;
   downloadCount: number;
   shareCount: number;
   verificationCount: number;
   lastVerifiedAt?: Date;
-  
+
   // Social Sharing
   linkedInShareUrl?: string;
   twitterShareUrl?: string;
   facebookShareUrl?: string;
-  
+
   // Professional Recognition
   industryRecognition: {
     organizationName: string;
     recognitionLevel: string;
     validUntil?: Date;
   }[];
-  
+
   // Metadata
   metadata: {
     courseTitle: string;
@@ -109,7 +109,7 @@ export interface ICertificate extends Document {
     platformUrl: string;
     certificationBody?: string;
   };
-  
+
   // Audit Trail
   auditLog: {
     action: string;
@@ -118,15 +118,15 @@ export interface ICertificate extends Document {
     details: string;
     ipAddress?: string;
   }[];
-  
+
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Virtual Properties
   isExpired: boolean;
   displayUrl: string;
   shareableUrl: string;
-  
+
   // Instance Methods
   generateVerificationCode(): string;
   generateQRCode(): Promise<string>;
@@ -154,7 +154,8 @@ const certificateSchema = new Schema<ICertificate>({
   },
   qrCode: {
     type: String,
-    required: true
+    required: false, // QR code is optional - can be added later for verification
+    default: ''
   },
   courseId: {
     type: Schema.Types.ObjectId,
@@ -353,23 +354,23 @@ certificateSchema.index({ completionDate: -1 });
 certificateSchema.index({ 'metadata.courseDomain': 1 });
 
 // Virtual for expiry check
-certificateSchema.virtual('isExpired').get(function() {
+certificateSchema.virtual('isExpired').get(function () {
   if (!this.expiryDate) return false;
   return new Date() > this.expiryDate;
 });
 
 // Virtual for display URL
-certificateSchema.virtual('displayUrl').get(function() {
+certificateSchema.virtual('displayUrl').get(function () {
   return `${process.env.FRONTEND_URL}/certificates/${this.certificateId}`;
 });
 
 // Virtual for shareable URL
-certificateSchema.virtual('shareableUrl').get(function() {
+certificateSchema.virtual('shareableUrl').get(function () {
   return `${process.env.FRONTEND_URL}/verify/${this.verificationCode}`;
 });
 
 // Pre-save middleware to generate codes and hash
-certificateSchema.pre('save', async function(next) {
+certificateSchema.pre('save', async function (next) {
   if (this.isNew) {
     // Generate unique certificate ID
     if (!this.certificateId) {
@@ -377,15 +378,15 @@ certificateSchema.pre('save', async function(next) {
       const count = await Certificate.countDocuments();
       this.certificateId = `CERT-${year}-${String(count + 1).padStart(6, '0')}`;
     }
-    
+
     // Generate verification code
     if (!this.verificationCode) {
       this.verificationCode = this.generateVerificationCode();
     }
-    
+
     // Generate verification hash
     this.verificationHash = this.calculateHash();
-    
+
     // Add creation audit log
     this.auditLog.push({
       action: 'created',
@@ -394,17 +395,17 @@ certificateSchema.pre('save', async function(next) {
       details: 'Certificate generated automatically'
     });
   }
-  
+
   next();
 });
 
 // Instance method to generate verification code
-certificateSchema.methods.generateVerificationCode = function(): string {
+certificateSchema.methods.generateVerificationCode = function (): string {
   return crypto.randomBytes(8).toString('hex').toUpperCase();
 };
 
 // Instance method to generate QR code data
-certificateSchema.methods.generateQRCode = async function(): Promise<string> {
+certificateSchema.methods.generateQRCode = async function (): Promise<string> {
   const qrData = {
     certificateId: this.certificateId,
     verificationCode: this.verificationCode,
@@ -415,13 +416,13 @@ certificateSchema.methods.generateQRCode = async function(): Promise<string> {
 };
 
 // Instance method to calculate verification hash
-certificateSchema.methods.calculateHash = function(): string {
+certificateSchema.methods.calculateHash = function (): string {
   const data = `${this.certificateId}${this.studentId}${this.courseId}${this.completionDate}${this.finalScore}`;
   return crypto.createHash('sha256').update(data).digest('hex');
 };
 
 // Instance method to revoke certificate
-certificateSchema.methods.revoke = async function(reason: string, adminId: mongoose.Types.ObjectId): Promise<void> {
+certificateSchema.methods.revoke = async function (reason: string, adminId: mongoose.Types.ObjectId): Promise<void> {
   this.status = 'revoked';
   this.auditLog.push({
     action: 'revoked',
@@ -433,36 +434,36 @@ certificateSchema.methods.revoke = async function(reason: string, adminId: mongo
 };
 
 // Instance method to verify certificate
-certificateSchema.methods.verify = async function(): Promise<boolean> {
+certificateSchema.methods.verify = async function (): Promise<boolean> {
   if (this.status !== 'active') return false;
   if (this.isExpired) return false;
-  
+
   const currentHash = this.calculateHash();
   const isValid = currentHash === this.verificationHash;
-  
+
   if (isValid) {
     this.verificationCount += 1;
     this.lastVerifiedAt = new Date();
     await this.save();
   }
-  
+
   return isValid;
 };
 
 // Instance method to increment view count
-certificateSchema.methods.incrementView = async function(): Promise<void> {
+certificateSchema.methods.incrementView = async function (): Promise<void> {
   this.viewCount += 1;
   await this.save();
 };
 
 // Instance method to increment download count
-certificateSchema.methods.incrementDownload = async function(): Promise<void> {
+certificateSchema.methods.incrementDownload = async function (): Promise<void> {
   this.downloadCount += 1;
   await this.save();
 };
 
 // Instance method to add to blockchain (placeholder)
-certificateSchema.methods.addToBlockchain = async function(): Promise<string> {
+certificateSchema.methods.addToBlockchain = async function (): Promise<string> {
   // Placeholder for blockchain integration
   // In real implementation, this would interact with blockchain API
   const blockchainHash = crypto.createHash('sha256').update(this.verificationHash).digest('hex');
@@ -472,22 +473,22 @@ certificateSchema.methods.addToBlockchain = async function(): Promise<string> {
 };
 
 // Static method to find by verification code
-certificateSchema.statics.findByVerificationCode = function(code: string) {
+certificateSchema.statics.findByVerificationCode = function (code: string) {
   return this.findOne({ verificationCode: code.toUpperCase(), status: 'active' });
 };
 
 // Static method to find by student
-certificateSchema.statics.findByStudent = function(studentId: mongoose.Types.ObjectId) {
+certificateSchema.statics.findByStudent = function (studentId: mongoose.Types.ObjectId) {
   return this.find({ studentId, status: 'active' }).sort({ issueDate: -1 });
 };
 
 // Static method to find by course
-certificateSchema.statics.findByCourse = function(courseId: mongoose.Types.ObjectId) {
+certificateSchema.statics.findByCourse = function (courseId: mongoose.Types.ObjectId) {
   return this.find({ courseId, status: 'active' }).sort({ issueDate: -1 });
 };
 
 // Static method to get statistics
-certificateSchema.statics.getStatistics = async function() {
+certificateSchema.statics.getStatistics = async function () {
   const stats = await this.aggregate([
     {
       $group: {
@@ -505,7 +506,7 @@ certificateSchema.statics.getStatistics = async function() {
       }
     }
   ]);
-  
+
   return stats[0] || {
     totalCertificates: 0,
     activeCertificates: 0,

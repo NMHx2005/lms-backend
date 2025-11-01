@@ -11,7 +11,7 @@ export interface QRCodeOptions {
 export class QRGeneratorService {
   private static instance: QRGeneratorService;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): QRGeneratorService {
     if (!QRGeneratorService.instance) {
@@ -35,10 +35,25 @@ export class QRGeneratorService {
     } = options;
 
     try {
+      // If URL is too long, extract just the certificate ID
+      // QR codes work best with shorter data, and we can reconstruct the full URL on verification page
+      let dataToEncode = verificationUrl;
+
+      // Extract certificate ID if URL is too long (>200 chars to be safe)
+      if (verificationUrl.length > 200) {
+        const urlParts = verificationUrl.split('/');
+        const certificateId = urlParts[urlParts.length - 1];
+        if (certificateId && certificateId.length < verificationUrl.length && certificateId.length <= 100) {
+          // Use just the certificate ID - shorter and more reliable
+          dataToEncode = certificateId;
+          console.log(`QR code data shortened from ${verificationUrl.length} to ${dataToEncode.length} chars`);
+        }
+      }
+
       // Create QR code instance with error correction level
-      const typeNumber = this.getOptimalTypeNumber(verificationUrl) as any;
+      const typeNumber = this.getOptimalTypeNumber(dataToEncode) as any;
       const qr = QRCodeGenerator(typeNumber, errorCorrectionLevel);
-      qr.addData(verificationUrl);
+      qr.addData(dataToEncode);
       qr.make();
 
       // Generate SVG string
@@ -76,7 +91,7 @@ export class QRGeneratorService {
       // In a real implementation, you might want to use a canvas library
       const modules = qr.getModuleCount();
       const cellSize = Math.floor(size / modules);
-      
+
       // For now, return the SVG as data URL
       const svgString = qr.createSvgTag({
         cellSize: cellSize,
@@ -132,8 +147,10 @@ export class QRGeneratorService {
    */
   private getOptimalTypeNumber(data: string): number {
     const length = data.length;
-    
+
     // Type number determines the size/capacity of the QR code
+    // Maximum capacity for type 10 with error correction M is around 395 characters
+    // If data is longer, we should have shortened it already, but return 10 as max
     if (length <= 25) return 1;      // 21x21
     if (length <= 47) return 2;      // 25x25  
     if (length <= 77) return 3;      // 29x29
@@ -144,8 +161,9 @@ export class QRGeneratorService {
     if (length <= 279) return 8;     // 49x49
     if (length <= 335) return 9;     // 53x53
     if (length <= 395) return 10;    // 57x57
-    
-    return 10; // Maximum we'll support
+
+    // If data is still too long (shouldn't happen after shortening), return 10 and let it handle
+    return 10; // Maximum we'll support with qrcode-generator
   }
 
   /**
@@ -159,10 +177,10 @@ export class QRGeneratorService {
     options: QRCodeOptions = {}
   ): string {
     const verificationUrl = this.generateVerificationURL(certificateId);
-    
+
     // Add metadata as query parameters for verification
     const urlWithMetadata = `${verificationUrl}?student=${encodeURIComponent(studentName)}&course=${encodeURIComponent(courseName)}&date=${completionDate.toISOString()}`;
-    
+
     return this.generateCertificateQR(urlWithMetadata, options);
   }
 
