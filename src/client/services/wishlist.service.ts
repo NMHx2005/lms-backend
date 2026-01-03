@@ -28,7 +28,9 @@ export class ClientWishlistService {
                         as: 'course'
                     }
                 },
-                { $unwind: '$course' },
+                { $unwind: { path: '$course', preserveNullAndEmptyArrays: false } },
+                // Filter out deleted courses early
+                { $match: { 'course._id': { $exists: true, $ne: null } } },
                 {
                     $lookup: {
                         from: 'users',
@@ -37,7 +39,7 @@ export class ClientWishlistService {
                         as: 'instructor'
                     }
                 },
-                { $unwind: '$instructor' },
+                { $unwind: { path: '$instructor', preserveNullAndEmptyArrays: false } },
                 {
                     $addFields: {
                         'course.instructor': '$instructor',
@@ -108,7 +110,15 @@ export class ClientWishlistService {
             // Execute aggregation
             const wishlistItems = await Wishlist.aggregate(pipeline);
 
-            // Get total count for pagination
+            // Filter out items where course is null or deleted (course might be deleted)
+            const validWishlistItems = wishlistItems.filter(item => 
+                item.course && 
+                item.course._id && 
+                item.instructor && 
+                item.instructor._id
+            );
+
+            // Get total count for pagination (only valid courses)
             const countPipeline: any[] = [
                 { $match: { studentId: new Types.ObjectId(studentId) } },
                 {
@@ -119,7 +129,9 @@ export class ClientWishlistService {
                         as: 'course'
                     }
                 },
-                { $unwind: '$course' }
+                { $unwind: '$course' },
+                // Filter out deleted courses
+                { $match: { 'course._id': { $exists: true, $ne: null } } }
             ];
 
             if (category) {
@@ -143,25 +155,32 @@ export class ClientWishlistService {
             const countResult = await Wishlist.aggregate(countPipeline);
             const total = countResult.length > 0 ? countResult[0].total : 0;
 
-            // Transform data to match frontend interface
-            const transformedItems = wishlistItems.map(item => ({
-                _id: item._id.toString(),
-                courseId: item.courseId.toString(),
-                title: item.course.title,
-                thumbnail: item.course.thumbnail || '/images/default-course.jpg',
-                instructor: item.instructor.name,
-                price: item.course.price || 0,
-                originalPrice: item.course.originalPrice || item.course.price || 0,
-                rating: item.course.rating || 0,
-                totalStudents: item.course.enrolledStudents?.length || 0,
-                duration: item.course.duration || 0,
-                level: item.course.level || 'beginner',
-                category: item.course.domain || 'General',
-                addedAt: item.addedAt.toISOString(),
-                isOnSale: item.course.isOnSale || false,
-                discountPercentage: item.course.discountPercentage || 0,
-                notes: item.notes
-            }));
+            // Transform data to match frontend interface (only valid items)
+            const transformedItems = validWishlistItems.map(item => {
+                const course = item.course || {};
+                const instructor = item.instructor || {};
+                
+                return {
+                    _id: item._id.toString(),
+                    courseId: item.courseId.toString(),
+                    title: course.title || 'Khóa học đã bị xóa',
+                    thumbnail: course.thumbnail || '/images/default-course.jpg',
+                    instructor: instructor.name || instructor.firstName && instructor.lastName 
+                        ? `${instructor.firstName} ${instructor.lastName}`.trim()
+                        : 'Giảng viên không xác định',
+                    price: course.price || 0,
+                    originalPrice: course.originalPrice || course.price || 0,
+                    rating: course.averageRating || course.rating || 0,
+                    totalStudents: course.totalStudents || course.enrolledStudents?.length || 0,
+                    duration: course.totalDuration || course.duration || 0,
+                    level: course.level || 'beginner',
+                    category: course.domain || 'General',
+                    addedAt: item.addedAt ? item.addedAt.toISOString() : new Date().toISOString(),
+                    isOnSale: item.course?.isOnSale || false,
+                    discountPercentage: item.course?.discountPercentage || 0,
+                    notes: item.notes
+                };
+            });
 
             return {
                 success: true,
@@ -374,6 +393,8 @@ export class ClientWishlistService {
                     }
                 },
                 { $unwind: '$course' },
+                // Filter out deleted courses
+                { $match: { 'course._id': { $exists: true, $ne: null } } },
                 {
                     $group: {
                         _id: null,
@@ -429,6 +450,39 @@ export class ClientWishlistService {
                 message: 'Failed to get wishlist statistics',
                 error: error instanceof Error ? error.message : 'Unknown error'
             };
+        }
+    }
+
+    // Clean up wishlist items with deleted courses (utility method)
+    static async cleanupDeletedCourses() {
+        try {
+            const pipeline = [
+                {
+                    $lookup: {
+                        from: 'courses',
+                        localField: 'courseId',
+                        foreignField: '_id',
+                        as: 'course'
+                    }
+                },
+                { $unwind: { path: '$course', preserveNullAndEmptyArrays: true } },
+                { $match: { 'course._id': { $exists: false } } },
+                { $project: { _id: 1 } }
+            ];
+
+            const deletedWishlistItems = await Wishlist.aggregate(pipeline);
+            const deletedIds = deletedWishlistItems.map(item => item._id);
+
+            if (deletedIds.length > 0) {
+                const result = await Wishlist.deleteMany({ _id: { $in: deletedIds } });
+                console.log(`Cleaned up ${result.deletedCount} wishlist items with deleted courses`);
+                return result.deletedCount;
+            }
+
+            return 0;
+        } catch (error) {
+            console.error('Error cleaning up deleted courses from wishlist:', error);
+            return 0;
         }
     }
 }

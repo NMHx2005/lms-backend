@@ -82,32 +82,43 @@ export class ClientAuthService extends BaseAuthService {
       .sort({ enrolledAt: -1 })
       .limit(5);
 
+    // Filter out enrollments with null courseId (course might have been deleted)
+    const validEnrollments = enrollments.filter((e: any) => e.courseId !== null && e.courseId !== undefined);
+
     // Recent activity: lấy từ enrollment và gần đây (đơn giản hoá)
-    const recentActivity = enrollments.map((e: any) => ({
+    const recentActivity = validEnrollments.map((e: any) => ({
       type: 'course_enrolled',
-      message: `Enrolled in ${(e.courseId as any).title || 'Course'}`,
+      message: `Enrolled in ${(e.courseId as any)?.title || 'Course'}`,
       timestamp: e.enrolledAt,
       courseId: e.courseId?._id || e.courseId
     }));
 
     // Upcoming assignments: trong 14 ngày tới theo course đã ghi danh
-    const courseIds = enrollments.map((e: any) => e.courseId?._id || e.courseId);
+    const courseIds = validEnrollments
+      .map((e: any) => e.courseId?._id || e.courseId)
+      .filter((id: any) => id !== null && id !== undefined);
+
     const now = new Date();
     const in14 = new Date(Date.now() + 14 * 24 * 3600 * 1000);
-    const upcomingAssignments = await (await import('../../shared/models')).Assignment.find({
-      courseId: { $in: courseIds },
-      dueDate: { $gte: now, $lte: in14 },
-      isActive: true
-    }).select('title dueDate courseId');
+    const upcomingAssignments = courseIds.length > 0
+      ? await (await import('../../shared/models')).Assignment.find({
+        courseId: { $in: courseIds },
+        dueDate: { $gte: now, $lte: in14 },
+        isActive: true
+      }).select('title dueDate courseId')
+      : [];
 
     // Get course progress
-    const courseProgress = enrollments.map(enrollment => ({
-      courseId: enrollment.courseId._id,
-      courseName: (enrollment.courseId as any).title,
-      progress: enrollment.progress || 0,
-      completedLessons: (enrollment as any).completedLessons || 0,
-      totalLessons: (enrollment.courseId as any).totalLessons || 0,
-    }));
+    const courseProgress = validEnrollments.map(enrollment => {
+      const course = enrollment.courseId as any;
+      return {
+        courseId: course?._id || null,
+        courseName: course?.title || 'Unknown Course',
+        progress: enrollment.progress || 0,
+        completedLessons: (enrollment as any).completedLessons || 0,
+        totalLessons: course?.totalLessons || 0,
+      };
+    });
 
     // Calculate real-time stats from active enrollments
     const completedCount = await Enrollment.countDocuments({
@@ -124,7 +135,7 @@ export class ClientAuthService extends BaseAuthService {
     // Override user stats with real-time data
     const userObj = user.toObject();
     userObj.stats = {
-      totalCoursesEnrolled: enrollments.length,  // Count active enrollments
+      totalCoursesEnrolled: validEnrollments.length,  // Count active enrollments with valid courses
       totalCoursesCompleted: completedCount,
       totalAssignmentsSubmitted: userObj.stats?.totalAssignmentsSubmitted || 0,
       averageScore: userObj.stats?.averageScore || 0,
@@ -133,13 +144,16 @@ export class ClientAuthService extends BaseAuthService {
 
     return {
       user: userObj,
-      enrolledCourses: enrollments.map(e => {
+      enrolledCourses: validEnrollments.map(e => {
         const course = e.courseId as any;
+        if (!course) {
+          return null;
+        }
         return {
           ...course.toObject(),
           instructor: course.instructorId
         };
-      }),
+      }).filter((course: any) => course !== null), // Filter out null courses
       recentActivity,
       upcomingAssignments,
       courseProgress,
@@ -223,17 +237,21 @@ export class ClientAuthService extends BaseAuthService {
     }
 
     const course = enrollment.courseId as any;
+    if (!course) {
+      throw new NotFoundError('Course not found or has been deleted');
+    }
+
     const progress = enrollment.progress || 0;
     const completedLessons = (enrollment as any).completedLessons || 0;
     const totalLessons = course.totalLessons || 0;
 
     return {
       courseId,
-      courseName: course.title,
+      courseName: course.title || 'Unknown Course',
       progress,
       completedLessons,
       totalLessons,
-      estimatedTimeRemaining: this.calculateTimeRemaining(progress, course.totalDuration),
+      estimatedTimeRemaining: this.calculateTimeRemaining(progress, course.totalDuration || 0),
       lastActivity: enrollment.lastActivityAt,
       enrolledAt: enrollment.enrolledAt,
     };
