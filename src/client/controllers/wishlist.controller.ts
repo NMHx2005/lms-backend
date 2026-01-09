@@ -37,7 +37,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in getUserWishlist controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -74,7 +74,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in addToWishlist controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -111,7 +111,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in removeFromWishlist controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -149,7 +149,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in updateWishlistItem controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -186,7 +186,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in isInWishlist controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -214,7 +214,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in clearWishlist controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -251,7 +251,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in moveToCart controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -279,7 +279,7 @@ export class ClientWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in getWishlistStats controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',

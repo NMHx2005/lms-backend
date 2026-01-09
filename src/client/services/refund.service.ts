@@ -7,7 +7,6 @@ export class ClientRefundService {
      * Get eligible courses for refund (enrolled with completed payment)
      */
     static async getEligibleCourses(userId: string) {
-        console.log('🔍 [DEBUG] getEligibleCourses called for userId:', userId);
 
         // Get active enrollments
         const enrollments = await Enrollment.find({
@@ -18,10 +17,8 @@ export class ClientRefundService {
             .populate('instructorId', 'name firstName lastName email')
             .sort({ enrolledAt: -1 });
 
-        console.log('📚 [DEBUG] Found enrollments:', enrollments.length);
         enrollments.forEach((enrollment, index) => {
             const course = enrollment.courseId as any;
-            console.log(`  ${index + 1}. Course: ${course?.title}, Price: ${course?.price}, Active: ${enrollment.isActive}`);
         });
 
         // Check if enrollment has completed payment
@@ -29,8 +26,7 @@ export class ClientRefundService {
 
         for (const enrollment of enrollments) {
             const course = enrollment.courseId as any;
-            console.log(`\n🔍 [DEBUG] Checking enrollment for course: ${course?.title}`);
-            console.log(`  Course price: ${course?.price}`);
+
 
             // Only eligible if has paid course (price > 0)
             if (course.price === 0) {
@@ -40,7 +36,6 @@ export class ClientRefundService {
 
             // For paid courses, we assume payment is completed if user is enrolled
             // (In real system, enrollment only happens after successful payment)
-            console.log(`  ✅ Course has price > 0, assuming payment completed`);
 
             // Check if already has pending refund request
             const existingRefund = await RefundRequest.findOne({
@@ -48,7 +43,6 @@ export class ClientRefundService {
                 status: 'pending'
             });
 
-            console.log(`  Existing pending refund:`, existingRefund ? 'Yes' : 'No');
 
             // Only show courses without pending refund
             if (!existingRefund) {
@@ -66,14 +60,12 @@ export class ClientRefundService {
                     teacherName: instructor?.name || `${instructor?.firstName || ''} ${instructor?.lastName || ''}`.trim()
                 };
 
-                console.log(`  ✅ Added to eligible courses:`, eligibleCourse.courseTitle);
                 eligibleCourses.push(eligibleCourse);
             } else {
-                console.log(`  ❌ Skipped: Has pending refund request`);
+
             }
         }
 
-        console.log(`\n📊 [DEBUG] Final eligible courses count: ${eligibleCourses.length}`);
         return eligibleCourses;
     }
 

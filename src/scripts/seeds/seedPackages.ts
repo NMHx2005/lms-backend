@@ -27,7 +27,7 @@ async function run() {
     await mongoose.connection.close();
     console.log('Done.');
   } catch (err) {
-    console.error(err);
+
     process.exit(1);
   }
 }

@@ -8,10 +8,18 @@ export class ProgressController {
             const { courseId, lessonId } = req.params;
             const userId = (req as any).user?.id;
 
+
             if (!userId) {
                 return res.status(401).json({
                     success: false,
                     error: 'Authentication required'
+                });
+            }
+
+            if (!courseId || !lessonId) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Course ID and Lesson ID are required'
                 });
             }
 
@@ -23,7 +31,6 @@ export class ProgressController {
                 message: 'Lesson marked as completed'
             });
         } catch (error: any) {
-            console.error('Mark lesson completed error:', error);
             res.status(400).json({
                 success: false,
                 error: error.message || 'Failed to mark lesson as completed'
@@ -51,7 +58,7 @@ export class ProgressController {
                 data: progress
             });
         } catch (error: any) {
-            console.error('Get lesson progress error:', error);
+
             res.status(400).json({
                 success: false,
                 error: error.message || 'Failed to get lesson progress'
@@ -79,7 +86,6 @@ export class ProgressController {
                 data: progress
             });
         } catch (error: any) {
-            console.error('Get course progress error:', error);
             res.status(400).json({
                 success: false,
                 error: error.message || 'Failed to get course progress'
@@ -108,7 +114,6 @@ export class ProgressController {
                 data: result
             });
         } catch (error: any) {
-            console.error('Add time spent error:', error);
             res.status(400).json({
                 success: false,
                 error: error.message || 'Failed to add time spent'

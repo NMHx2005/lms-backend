@@ -78,7 +78,7 @@ export const getSupportTickets = async (req: Request, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error('Error getting support tickets:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -117,7 +117,7 @@ export const getSupportTicketById = async (req: Request, res: Response) => {
             data: ticket
         });
     } catch (error: any) {
-        console.error('Error getting support ticket by id:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -173,7 +173,7 @@ export const assignTicket = async (req: Request, res: Response) => {
             data: ticket
         });
     } catch (error: any) {
-        console.error('Error assigning ticket:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -231,7 +231,7 @@ export const updateTicketStatus = async (req: Request, res: Response) => {
             data: ticket
         });
     } catch (error: any) {
-        console.error('Error updating ticket status:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -284,7 +284,7 @@ export const addTicketNote = async (req: Request, res: Response) => {
             data: { message: 'Thêm ghi chú thành công' }
         });
     } catch (error: any) {
-        console.error('Error adding ticket note:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -330,7 +330,7 @@ export const getSupportStaff = async (req: Request, res: Response) => {
             data: staff
         });
     } catch (error: any) {
-        console.error('Error getting support staff:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -396,7 +396,7 @@ export const getSupportStats = async (req: Request, res: Response) => {
             data: stats
         });
     } catch (error: any) {
-        console.error('Error getting support stats:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -422,7 +422,7 @@ export const getFAQs = async (req: Request, res: Response) => {
             data: faqs
         });
     } catch (error: any) {
-        console.error('Error getting FAQs:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -461,7 +461,7 @@ export const getFAQById = async (req: Request, res: Response) => {
             data: faq
         });
     } catch (error: any) {
-        console.error('Error getting FAQ by id:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -494,7 +494,7 @@ export const createFAQ = async (req: Request, res: Response) => {
             data: faq
         });
     } catch (error: any) {
-        console.error('Error creating FAQ:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -539,7 +539,7 @@ export const updateFAQ = async (req: Request, res: Response) => {
             data: faq
         });
     } catch (error: any) {
-        console.error('Error updating FAQ:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -578,7 +578,7 @@ export const deleteFAQ = async (req: Request, res: Response) => {
             data: { message: 'Xóa FAQ thành công' }
         });
     } catch (error: any) {
-        console.error('Error deleting FAQ:', error);
+
         res.status(500).json({
             success: false,
             error: {
@@ -620,7 +620,7 @@ export const toggleFAQStatus = async (req: Request, res: Response) => {
             data: faq
         });
     } catch (error: any) {
-        console.error('Error toggling FAQ status:', error);
+
         res.status(500).json({
             success: false,
             error: {

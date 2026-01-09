@@ -14,7 +14,7 @@ export class AIToolsController {
                 data: tools
             });
         } catch (error) {
-            console.error('Error getting AI tools:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -35,7 +35,7 @@ export class AIToolsController {
                 data: stats
             });
         } catch (error) {
-            console.error('Error getting usage stats:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -64,7 +64,7 @@ export class AIToolsController {
                 data: content
             });
         } catch (error: any) {
-            console.error('Error generating content:', error);
+
             res.status(500).json({
                 success: false,
                 error: error.message || 'Internal server error'
@@ -92,7 +92,7 @@ export class AIToolsController {
                 data: quiz
             });
         } catch (error) {
-            console.error('Error generating quiz:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -119,7 +119,7 @@ export class AIToolsController {
                 data: translation
             });
         } catch (error) {
-            console.error('Error translating:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -146,7 +146,7 @@ export class AIToolsController {
                 data: summary
             });
         } catch (error) {
-            console.error('Error summarizing:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -172,7 +172,7 @@ export class AIToolsController {
                 data: improved
             });
         } catch (error) {
-            console.error('Error improving text:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -202,7 +202,7 @@ export class AIToolsController {
                 data: avatar
             });
         } catch (error) {
-            console.error('Error generating avatar:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -222,7 +222,7 @@ export class AIToolsController {
                 data: templates
             });
         } catch (error) {
-            console.error('Error getting templates:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -248,7 +248,7 @@ export class AIToolsController {
                 data: avatar
             });
         } catch (error) {
-            console.error('Error customizing avatar:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -269,7 +269,7 @@ export class AIToolsController {
                 message: 'Avatar uploaded successfully'
             });
         } catch (error) {
-            console.error('Error uploading avatar:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -296,7 +296,7 @@ export class AIToolsController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting avatar history:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -327,7 +327,7 @@ export class AIToolsController {
                 data: thumbnail
             });
         } catch (error) {
-            console.error('Error generating thumbnail:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -347,7 +347,7 @@ export class AIToolsController {
                 data: templates
             });
         } catch (error) {
-            console.error('Error getting templates:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -373,7 +373,7 @@ export class AIToolsController {
                 data: thumbnail
             });
         } catch (error) {
-            console.error('Error customizing thumbnail:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -392,7 +392,7 @@ export class AIToolsController {
                 message: 'Thumbnail uploaded successfully'
             });
         } catch (error) {
-            console.error('Error uploading thumbnail:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -419,7 +419,7 @@ export class AIToolsController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting thumbnail history:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -448,7 +448,7 @@ export class AIToolsController {
                 data: result
             });
         } catch (error) {
-            console.error('Error checking content:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -476,7 +476,7 @@ export class AIToolsController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting moderation history:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -499,7 +499,7 @@ export class AIToolsController {
                 data: results
             });
         } catch (error) {
-            console.error('Error bulk checking content:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -520,7 +520,7 @@ export class AIToolsController {
                 data: stats
             });
         } catch (error) {
-            console.error('Error getting moderation stats:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -549,7 +549,7 @@ export class AIToolsController {
                 data: report
             });
         } catch (error) {
-            console.error('Error reporting content:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'

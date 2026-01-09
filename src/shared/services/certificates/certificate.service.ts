@@ -107,7 +107,6 @@ export class CertificateService {
         missingRequirements
       };
     } catch (error) {
-      console.error('Error checking certificate eligibility:', error);
       throw error;
     }
   }
@@ -142,7 +141,6 @@ export class CertificateService {
           return false;
       }
     } catch (error) {
-      console.error('Error checking single requirement:', error);
       return false;
     }
   }
@@ -161,7 +159,6 @@ export class CertificateService {
 
       return enrollment.progress >= threshold;
     } catch (error) {
-      console.error('Error checking course completion:', error);
       return false;
     }
   }
@@ -179,7 +176,7 @@ export class CertificateService {
       // For now, return true as placeholder
       return true;
     } catch (error) {
-      console.error('Error checking quiz score:', error);
+
       return false;
     }
   }
@@ -196,7 +193,6 @@ export class CertificateService {
       // For now, return true as placeholder
       return true;
     } catch (error) {
-      console.error('Error checking assignment submission:', error);
       return false;
     }
   }
@@ -215,7 +211,7 @@ export class CertificateService {
 
       return enrollment.totalTimeSpent >= threshold;
     } catch (error) {
-      console.error('Error checking minimum time:', error);
+
       return false;
     }
   }
@@ -233,7 +229,6 @@ export class CertificateService {
       // For now, return true as placeholder
       return true;
     } catch (error) {
-      console.error('Error checking attendance:', error);
       return false;
     }
   }
@@ -388,7 +383,7 @@ export class CertificateService {
 
       return certificate;
     } catch (error) {
-      console.error('Error generating certificate:', error);
+
       throw error;
     }
   }
@@ -439,7 +434,6 @@ export class CertificateService {
 
       await certificate.save();
     } catch (error) {
-      console.error('Error generating certificate PDF:', error);
       throw error;
     }
   }
@@ -454,9 +448,8 @@ export class CertificateService {
   ): Promise<void> {
     try {
       // For now, skip email notification as we need to implement this properly
-      console.log(`Certificate email would be sent to ${student.email}`);
     } catch (error) {
-      console.error('Error sending certificate email:', error);
+
       // Don't throw error here, certificate generation should still succeed
     }
   }
@@ -465,39 +458,32 @@ export class CertificateService {
    * Verify certificate
    */
   public async verifyCertificate(certificateId: string): Promise<CertificateVerificationResult> {
-    console.log('🔍 CertificateService.verifyCertificate called with:', certificateId);
-
     try {
       // Validate certificate ID format
-      console.log('🔍 Validating certificate ID format...');
       if (!this.qrService.validateCertificateId(certificateId)) {
-        console.log('❌ Certificate ID format validation failed');
         return {
           isValid: false,
           message: 'Invalid certificate ID format'
         };
       }
-      console.log('✅ Certificate ID format validation passed');
 
       // Find certificate
-      console.log('🔍 Searching for certificate in database...');
+
       const certificate = await Certificate.findOne({ certificateId })
         .populate('studentId')
         .populate('courseId');
 
       if (!certificate) {
-        console.log('❌ Certificate not found in database');
         return {
           isValid: false,
           message: 'Certificate not found'
         };
       }
-      console.log('✅ Certificate found in database');
 
       // Check certificate status
-      console.log('🔍 Checking certificate status...');
+
       if (certificate.status === 'revoked') {
-        console.log('❌ Certificate has been revoked');
+
         return {
           isValid: false,
           certificate,
@@ -506,7 +492,7 @@ export class CertificateService {
       }
 
       if (certificate.status === 'expired') {
-        console.log('❌ Certificate has expired');
+
         return {
           isValid: false,
           certificate,
@@ -514,7 +500,6 @@ export class CertificateService {
         };
       }
 
-      console.log('✅ Certificate verification successful');
       return {
         isValid: true,
         certificate,
@@ -523,7 +508,7 @@ export class CertificateService {
         message: 'Certificate is valid'
       };
     } catch (error) {
-      console.error('❌ Error in verifyCertificate:', error);
+
       return {
         isValid: false,
         message: 'Error verifying certificate'
@@ -565,7 +550,7 @@ export class CertificateService {
         console.log(`Certificate revocation email would be sent to ${student.email}`);
       }
     } catch (error) {
-      console.error('Error revoking certificate:', error);
+
       throw error;
     }
   }
@@ -580,7 +565,7 @@ export class CertificateService {
         .populate('templateId')
         .sort({ issuedDate: -1 });
     } catch (error) {
-      console.error('Error getting student certificates:', error);
+
       throw error;
     }
   }
@@ -595,7 +580,7 @@ export class CertificateService {
         .populate('templateId')
         .sort({ issuedDate: -1 });
     } catch (error) {
-      console.error('Error getting course certificates:', error);
+
       throw error;
     }
   }
@@ -648,12 +633,12 @@ export class CertificateService {
             }
           }
         } catch (error) {
-          console.error(`Error auto-generating certificate for enrollment ${enrollment._id}:`, error);
+
           // Continue with next enrollment
         }
       }
     } catch (error) {
-      console.error('Error in auto-generate certificates:', error);
+
       throw error;
     }
   }

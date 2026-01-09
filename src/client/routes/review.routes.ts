@@ -88,7 +88,7 @@ router.get('/course/:courseId', async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Error getting course reviews:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -177,7 +177,7 @@ router.get('/stats/:courseId', async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Error getting review stats:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -236,7 +236,7 @@ router.post('/teacher-response/:ratingId', async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Error adding teacher response:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -297,7 +297,7 @@ router.put('/teacher-response/:responseId', async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Error updating teacher response:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -343,7 +343,7 @@ router.delete('/teacher-response/:responseId', async (req: any, res) => {
             message: 'Teacher response deleted successfully'
         });
     } catch (error: any) {
-        console.error('Error deleting teacher response:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -379,7 +379,7 @@ router.post('/:id/helpful', async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Error marking review as helpful:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -424,7 +424,7 @@ router.post('/:id/report', async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Error reporting review:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'

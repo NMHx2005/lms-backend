@@ -37,7 +37,7 @@ async function revokeGoogleTokens(userId: string): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error('Error revoking Google tokens:', error);
+
     return false;
   }
 }
@@ -73,7 +73,7 @@ async function getGoogleProfile(userId: string): Promise<any | null> {
 
     return await response.json();
   } catch (error) {
-    console.error('Error getting Google profile:', error);
+
     return null;
   }
 }
@@ -113,7 +113,7 @@ async function refreshGoogleToken(userId: string): Promise<string | null> {
 
     return data.access_token as string;
   } catch (error) {
-    console.error('Error refreshing Google token:', error);
+
     return null;
   }
 }
@@ -168,12 +168,12 @@ export const initiateGoogleAuth = asyncHandler(async (req: Request, res: Respons
 export const handleGoogleCallback = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('google', { session: false }, (err: any, user: any, info: any) => {
     if (err) {
-      console.error('Google OAuth Error:', err);
+
       return redirectWithError(res, req, 'Authentication failed');
     }
 
     if (!user) {
-      console.error('Google OAuth - No user returned:', info);
+
       return redirectWithError(res, req, 'Authentication failed - no user data');
     }
 
@@ -236,7 +236,7 @@ async function handleSuccessfulAuth(req: Request, res: Response, user: any) {
     const finalRedirectUrl = `${returnUrl}?${urlParams.toString()}`;
     res.redirect(finalRedirectUrl);
   } catch (error) {
-    console.error('Error in handleSuccessfulAuth:', error);
+
     redirectWithError(res, req, 'Authentication completed but failed to process user data');
   }
 }
@@ -441,9 +441,7 @@ export const getOAuthConfig = asyncHandler(async (req: Request, res: Response) =
  */
 export const handleOAuthError = asyncHandler(async (req: Request, res: Response) => {
   const { error, error_description } = req.query;
-  
-  console.error('OAuth Error:', { error, error_description });
-  
+
   // Use FRONTEND_URL directly instead of session
   const returnUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   

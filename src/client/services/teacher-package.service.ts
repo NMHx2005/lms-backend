@@ -1,9 +1,54 @@
 import { PackagePlan } from '../../shared/models/extended/TeacherPackage';
 import { TeacherPackageSubscription } from '../../shared/models/extended/TeacherPackage';
 import { User } from '../../shared/models/core/User';
-import crypto from 'crypto';
+import Bill from '../../shared/models/core/Bill';
+import { buildVnpayPaymentUrl } from '../../shared/services/payments/vnpay.service';
 
 export class TeacherPackageService {
+    // Helper function to create bill for package subscription
+    private static async createPackageBill(
+        teacherId: string,
+        packageId: string,
+        packageName: string,
+        amount: number,
+        paymentMethod: string,
+        subscriptionId: string,
+        orderId: string,
+        status: 'pending' | 'completed' = 'pending',
+        transactionId?: string,
+        metadata?: any
+    ) {
+        try {
+            const bill = new Bill({
+                studentId: teacherId, // Using studentId field for teacher (Bill model uses studentId for all users)
+                courseId: undefined, // No course for package subscription
+                amount: amount,
+                currency: 'VND',
+                purpose: 'subscription',
+                status: status,
+                paymentMethod: paymentMethod as 'stripe' | 'paypal' | 'bank_transfer' | 'cash' | 'vnpay',
+                description: `Payment for package: ${packageName}`,
+                transactionId: transactionId || orderId,
+                paidAt: status === 'completed' ? new Date() : undefined,
+                metadata: {
+                    ...metadata,
+                    subscriptionId: subscriptionId,
+                    packageId: packageId,
+                    packageName: packageName,
+                    isPackageSubscription: true
+                }
+            });
+
+            await bill.save();
+            console.log(`Bill created for package subscription: ${bill._id}, Status: ${status}`);
+            return bill;
+        } catch (error) {
+            console.error('Error creating bill for package subscription:', error);
+            // Don't throw error - bill creation failure shouldn't break subscription
+            return null;
+        }
+    }
+
     // Get available packages for teachers
     static async getAvailablePackages(status: string = 'active') {
         const filter: any = {};
@@ -114,12 +159,26 @@ export class TeacherPackageService {
         };
     }
 
+    // Helper to get client IP (should be passed from controller)
+    private static getClientIp(req?: any): string {
+        if (req) {
+            return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                req.headers['x-real-ip'] ||
+                req.connection?.remoteAddress ||
+                req.socket?.remoteAddress ||
+                req.ip ||
+                '127.0.0.1';
+        }
+        return '127.0.0.1';
+    }
+
     // Subscribe to a package
     static async subscribeToPackage(
         teacherId: string,
         packageId: string,
         paymentMethod: string = 'wallet',
-        couponCode?: string
+        couponCode?: string,
+        req?: any // Optional request object to get IP address
     ) {
         // Verify user exists and has appropriate role
         const user = await User.findById(teacherId);
@@ -167,6 +226,21 @@ export class TeacherPackageService {
             existingActiveSamePackage.status = 'active';
             await existingActiveSamePackage.save();
 
+            // Create bill for renewal
+            const orderId = `PKG_RENEW_${Date.now()}_${teacherId}_${packageId}`;
+            await this.createPackageBill(
+                teacherId,
+                packageId.toString(),
+                existingActiveSamePackage.snapshot.name || pkg.name,
+                existingActiveSamePackage.snapshot.price || pkg.price,
+                paymentMethod,
+                existingActiveSamePackage._id.toString(),
+                orderId,
+                'completed',
+                orderId,
+                { couponCode, isRenewal: true, autoRenewal: true }
+            );
+
             return {
                 id: existingActiveSamePackage._id,
                 packageId: existingActiveSamePackage.packageId,
@@ -198,6 +272,7 @@ export class TeacherPackageService {
 
             if (useMockPayment) {
                 // Mock payment - create active subscription directly
+                const orderId = `MOCK_PKG_${Date.now()}_${teacherId}_${packageId}`;
                 const subscription = await TeacherPackageSubscription.create({
                     teacherId,
                     packageId: pkg._id,
@@ -216,9 +291,23 @@ export class TeacherPackageService {
                     couponCode,
                     metadata: {
                         mockPayment: true,
-                        mockOrderId: `MOCK_PKG_${Date.now()}_${teacherId}_${packageId}`
+                        mockOrderId: orderId
                     }
                 });
+
+                // Create bill for mock payment
+                await this.createPackageBill(
+                    teacherId,
+                    packageId.toString(),
+                    pkg.name,
+                    pkg.price,
+                    'vnpay',
+                    subscription._id.toString(),
+                    orderId,
+                    'completed',
+                    orderId,
+                    { mockPayment: true, couponCode }
+                );
 
                 return {
                     id: subscription._id,
@@ -234,6 +323,7 @@ export class TeacherPackageService {
                 };
             } else {
                 // Real VNPay payment
+                const orderId = `PKG_${Date.now()}_${teacherId}_${packageId}`;
                 const subscription = await TeacherPackageSubscription.create({
                     teacherId,
                     packageId: pkg._id,
@@ -252,15 +342,38 @@ export class TeacherPackageService {
                     couponCode
                 });
 
-                // Generate VNPay payment URL
-                const paymentUrl = generateVNPayPaymentUrl({
-                    orderId: `PKG_${Date.now()}_${teacherId}_${packageId}`,
-                    amount: pkg.price,
-                    packageName: pkg.name,
+                // Create bill with pending status for VNPay payment
+                await this.createPackageBill(
                     teacherId,
-                    subscriptionId: subscription._id.toString(),
-                    userEmail: user.email,
-                    userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Customer'
+                    packageId.toString(),
+                    pkg.name,
+                    pkg.price,
+                    'vnpay',
+                    subscription._id.toString(),
+                    orderId,
+                    'pending',
+                    undefined,
+                    { vnpayOrderId: orderId, couponCode }
+                );
+
+                // Generate VNPay payment URL using shared service
+                const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+                const returnUrl = `${frontendUrl}/teacher/advanced/packages?payment=success&orderId=${orderId}`;
+                const ipnUrl = process.env.VNPAY_IPN_URL || `${process.env.BACKEND_URL || 'https://lms-backend-cf11.onrender.com'}/api/client/teacher-packages/vnpay/callback`;
+                
+                // Get client IP address
+                const clientIp = this.getClientIp(req);
+                
+                const paymentUrl = buildVnpayPaymentUrl({
+                    orderId: orderId,
+                    amount: pkg.price,
+                    orderInfo: `Thanh toan goi: ${pkg.name}`,
+                    ipAddr: clientIp,
+                    returnUrl: returnUrl,
+                    ipnUrl: ipnUrl,
+                    email: user.email,
+                    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Customer',
+                    expireMinutes: 15
                 });
 
                 return {
@@ -277,6 +390,7 @@ export class TeacherPackageService {
             }
         } else {
             // For wallet or other methods, create active subscription directly
+            const orderId = `PKG_${Date.now()}_${teacherId}_${packageId}`;
             const subscription = await TeacherPackageSubscription.create({
                 teacherId,
                 packageId: pkg._id,
@@ -294,6 +408,20 @@ export class TeacherPackageService {
                 paymentMethod,
                 couponCode
             });
+
+            // Create bill with completed status for wallet payment
+            await this.createPackageBill(
+                teacherId,
+                packageId.toString(),
+                pkg.name,
+                pkg.price,
+                paymentMethod,
+                subscription._id.toString(),
+                orderId,
+                'completed',
+                orderId,
+                { couponCode }
+            );
 
             return {
                 id: subscription._id,
@@ -319,6 +447,10 @@ export class TeacherPackageService {
             throw new Error('No active subscription found to renew');
         }
 
+        // Get package details for bill creation
+        const subscriptionDoc = await TeacherPackageSubscription.findById(currentSubscription.id).populate('packageId');
+        const pkg = subscriptionDoc?.packageId as any;
+
         // Calculate new period based on current snapshot
         const now = new Date();
         const newEndAt = new Date(now);
@@ -339,6 +471,23 @@ export class TeacherPackageService {
             },
             { new: true }
         );
+
+        // Create bill for renewal
+        if (subscription && pkg) {
+            const orderId = `PKG_RENEW_${Date.now()}_${teacherId}_${pkg._id}`;
+            await this.createPackageBill(
+                teacherId,
+                pkg._id.toString(),
+                currentSubscription.snapshot.name || pkg.name,
+                currentSubscription.snapshot.price || pkg.price,
+                paymentMethod,
+                subscription._id.toString(),
+                orderId,
+                'completed',
+                orderId,
+                { couponCode, isRenewal: true }
+            );
+        }
 
         return {
             id: subscription!._id,
@@ -425,59 +574,4 @@ export class TeacherPackageService {
     }
 }
 
-// Helper function to generate VNPay payment URL for package subscription
-function generateVNPayPaymentUrl(params: {
-    orderId: string;
-    amount: number;
-    packageName: string;
-    teacherId: string;
-    subscriptionId: string;
-    userEmail: string;
-    userName: string;
-}) {
-    const baseUrl = process.env.VNPAY_PAYMENT_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-    const tmnCode = process.env.VNPAY_TMN_CODE || 'J7FE4EZ7';
-    const hashSecret = process.env.VNPAY_HASH_SECRET || 'R2AVUE6ZP6SNYCGWBUXMYM4X507IPVNV';
-
-    // Create payment URL with required VNPay parameters
-    const url = new URL(baseUrl);
-
-    // Required parameters
-    url.searchParams.set('vnp_Version', '2.1.0');
-    url.searchParams.set('vnp_Command', 'pay');
-    url.searchParams.set('vnp_TmnCode', tmnCode);
-    url.searchParams.set('vnp_Amount', (params.amount * 100).toString()); // Convert to smallest currency unit
-    url.searchParams.set('vnp_CurrCode', 'VND');
-    url.searchParams.set('vnp_TxnRef', params.orderId);
-    url.searchParams.set('vnp_OrderInfo', `Thanh toan goi: ${params.packageName}`);
-    url.searchParams.set('vnp_OrderType', 'other');
-    url.searchParams.set('vnp_Locale', 'vn');
-    url.searchParams.set('vnp_ReturnUrl', process.env.VNPAY_RETURN_URL || 'http://localhost:3000/vnpay/return-url');
-    url.searchParams.set('vnp_IpnUrl', process.env.VNPAY_IPN_URL || 'https://lms-backend-cf11.onrender.com/api/client/payments/vnpay/ipn');
-
-    // Add custom metadata for package subscription
-    url.searchParams.set('vnp_Email', params.userEmail);
-    url.searchParams.set('vnp_Name', params.userName);
-
-    // Add timestamp
-    const date = new Date();
-    const createDate = date.toISOString().split('T')[0].split('-').join('');
-    url.searchParams.set('vnp_CreateDate', createDate);
-
-    // Add expire time (15 minutes from now)
-    const expireDate = new Date(date.getTime() + 15 * 60 * 1000);
-    const expireDateStr = expireDate.toISOString().split('T')[0].split('-').join('');
-    url.searchParams.set('vnp_ExpireDate', expireDateStr);
-
-    // Generate checksum hash
-    const queryString = url.searchParams.toString();
-    const hashData = queryString;
-    const hmac = crypto.createHmac('sha512', hashSecret);
-    hmac.update(hashData);
-    const vnp_SecureHash = hmac.digest('hex');
-
-    // Add secure hash
-    url.searchParams.set('vnp_SecureHash', vnp_SecureHash);
-
-    return url.toString();
-}
+// Removed duplicate generateVNPayPaymentUrl function - now using shared buildVnpayPaymentUrl service

@@ -14,7 +14,7 @@ export class UserController {
         data: user
       });
     } catch (error: any) {
-      console.error('Create user error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to create user'
@@ -33,7 +33,7 @@ export class UserController {
         data: user
       });
     } catch (error: any) {
-      console.error('Get user by ID error:', error);
+
       res.status(404).json({
         success: false,
         error: error.message || 'User not found'
@@ -81,7 +81,7 @@ export class UserController {
         data: result
       });
     } catch (error: any) {
-      console.error('Get users error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get users'
@@ -103,7 +103,7 @@ export class UserController {
         data: user
       });
     } catch (error: any) {
-      console.error('Update user error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to update user'
@@ -122,7 +122,7 @@ export class UserController {
         message: result.message
       });
     } catch (error: any) {
-      console.error('Delete user error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to delete user'
@@ -140,7 +140,7 @@ export class UserController {
         data: stats
       });
     } catch (error: any) {
-      console.error('Get user stats error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get user statistics'
@@ -175,7 +175,7 @@ export class UserController {
         data: result
       });
     } catch (error: any) {
-      console.error('Bulk update user status error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to bulk update user status'
@@ -202,7 +202,7 @@ export class UserController {
         data: users
       });
     } catch (error: any) {
-      console.error('Search users error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to search users'
@@ -222,7 +222,7 @@ export class UserController {
         data: result
       });
     } catch (error: any) {
-      console.error('Activate user error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to activate user'
@@ -242,7 +242,7 @@ export class UserController {
         data: result
       });
     } catch (error: any) {
-      console.error('Deactivate user error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to deactivate user'
@@ -277,7 +277,7 @@ export class UserController {
         data: result
       });
     } catch (error: any) {
-      console.error('Bulk update user roles error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to bulk update user roles'
@@ -305,7 +305,7 @@ export class UserController {
         data: { avatar }
       });
     } catch (error: any) {
-      console.error('Update user avatar error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to update avatar'

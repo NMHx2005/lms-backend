@@ -126,7 +126,7 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
                 }
             });
             await bill.save();
-            console.log('✅ Created Bill with completed status:', bill._id);
+
         }
 
         // Create enrollment (reactivate if exists, or create new)
@@ -149,7 +149,7 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
                 studentId: req.user.id,
                 courseId: id
             });
-            console.log('✅ Reactivated inactive enrollment and reset all progress:', enrollment._id);
+
         } else {
             // Create new enrollment
             enrollment = new Enrollment({
@@ -162,7 +162,7 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
                 isCompleted: false
             });
             await enrollment.save();
-            console.log('✅ Created new enrollment:', enrollment._id);
+
         }
 
         // Activity log
@@ -198,7 +198,7 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
             }
         });
     } catch (error: any) {
-        console.error('Enrollment error:', error);
+
         res.status(500).json({
             success: false,
             error: error.message || 'Có lỗi xảy ra khi đăng ký khóa học'
@@ -284,7 +284,7 @@ router.post('/:id/enroll-direct', authenticate, async (req: any, res) => {
             data: enrollment
         });
     } catch (error) {
-        console.error('Direct enrollment error:', error);
+
         res.status(500).json({
             success: false,
             error: 'Có lỗi xảy ra khi đăng ký khóa học'

@@ -22,7 +22,7 @@ const mongoOptions = {
 // MongoDB connection function
 export const connectDB = async (): Promise<void> => {
   try {
-    console.log('🔄 Connecting to MongoDB...');
+
     console.log(`📍 URI: ${MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`);
 
     const conn = await mongoose.connect(MONGODB_URI, mongoOptions);
@@ -32,38 +32,33 @@ export const connectDB = async (): Promise<void> => {
       throw new Error(`MongoDB connection not ready. State: ${mongoose.connection.readyState}`);
     }
 
-    console.log(`✅ MongoDB Connected Successfully`);
-    console.log(`📊 Database: ${conn.connection.name}`);
-    console.log(`🔌 Host: ${conn.connection.host}`);
+
+
     console.log(`📡 Ready State: ${mongoose.connection.readyState} (1 = connected)`);
 
     // Handle connection events
     mongoose.connection.on('error', err => {
-      console.error('❌ MongoDB connection error:', err);
+
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.log('⚠️ MongoDB disconnected');
+
     });
 
     mongoose.connection.on('reconnected', () => {
-      console.log('🔄 MongoDB reconnected');
+
     });
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      console.log('🛑 Received SIGINT, closing MongoDB connection...');
+
       await mongoose.connection.close();
-      console.log('✅ MongoDB connection closed');
+
       process.exit(0);
     });
   } catch (error) {
-    console.error('❌ MongoDB connection failed:', error);
-    console.error('🔍 Connection details:', {
-      readyState: mongoose.connection.readyState,
-      host: mongoose.connection.host,
-      name: mongoose.connection.name
-    });
+
+
     process.exit(1);
   }
 };
@@ -72,14 +67,14 @@ export const connectDB = async (): Promise<void> => {
 export const testConnection = async (): Promise<boolean> => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      console.log(`❌ DB not ready. State: ${mongoose.connection.readyState}`);
+
       return false;
     }
     await mongoose.connection.db.admin().ping();
-    console.log('✅ DB ping successful');
+
     return true;
   } catch (error) {
-    console.error('❌ DB ping failed:', error);
+
     return false;
   }
 };
@@ -99,7 +94,7 @@ export const getDBStats = async () => {
       indexSize: stats.indexSize,
     };
   } catch (error) {
-    console.error('Error getting DB stats:', error);
+
     return null;
   }
 };

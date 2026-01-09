@@ -182,7 +182,7 @@ class RevenueDistributionService {
 
       return revenueDistribution;
     } catch (error) {
-      console.error('Error processing payment distribution:', error);
+
       throw error;
     }
   }
@@ -582,7 +582,7 @@ class RevenueDistributionService {
       try {
         await this.processInstructorPayout(distribution);
       } catch (error) {
-        console.error(`Failed to process payout for ${distribution.distributionId}:`, error);
+
       }
     }
   }

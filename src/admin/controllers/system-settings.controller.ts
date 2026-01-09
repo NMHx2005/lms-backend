@@ -57,7 +57,6 @@ export class SystemSettingsController {
     static uploadLogo = asyncHandler<AuthenticatedRequest>(async (req, res: Response) => {
         const file = req.file;
 
-        console.log('📤 Upload logo request received');
         console.log('File:', file);
 
         if (!file) {
@@ -72,14 +71,10 @@ export class SystemSettingsController {
 
         const logoUrl = result.secureUrl;
 
-        console.log('🔗 Logo uploaded to Cloudinary:', logoUrl);
-
         // Update settings with new logo
         const settings = await SystemSettingsService.updateSettings({
             siteLogo: logoUrl
         } as any);
-
-        console.log('✅ Logo updated in settings');
 
         res.status(200).json({
             success: true,
@@ -98,7 +93,6 @@ export class SystemSettingsController {
     static uploadFavicon = asyncHandler<AuthenticatedRequest>(async (req, res: Response) => {
         const file = req.file;
 
-        console.log('📤 Upload favicon request received');
         console.log('File:', file);
 
         if (!file) {
@@ -113,14 +107,10 @@ export class SystemSettingsController {
 
         const faviconUrl = result.secureUrl;
 
-        console.log('🔗 Favicon uploaded to Cloudinary:', faviconUrl);
-
         // Update settings with new favicon
         const settings = await SystemSettingsService.updateSettings({
             siteFavicon: faviconUrl
         } as any);
-
-        console.log('✅ Favicon updated in settings');
 
         res.status(200).json({
             success: true,

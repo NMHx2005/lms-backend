@@ -97,7 +97,7 @@ export class AnnouncementService {
     });
 
     this.schedulerInitialized = true;
-    console.log('📅 Announcement scheduler initialized');
+
   }
 
   // Create new announcement
@@ -117,11 +117,10 @@ export class AnnouncementService {
       });
 
       await announcement.save();
-      console.log(`📢 Announcement created: ${announcement.title}`);
 
       return announcement;
     } catch (error) {
-      console.error('Error creating announcement:', error);
+
       throw error;
     }
   }
@@ -151,11 +150,10 @@ export class AnnouncementService {
       }
 
       await announcement.save();
-      console.log(`📝 Announcement updated: ${announcement.title}`);
 
       return announcement;
     } catch (error) {
-      console.error('Error updating announcement:', error);
+
       throw error;
     }
   }
@@ -165,12 +163,12 @@ export class AnnouncementService {
     try {
       const result = await Announcement.findByIdAndDelete(id);
       if (result) {
-        console.log(`🗑️ Announcement deleted: ${result.title}`);
+
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error deleting announcement:', error);
+
       return false;
     }
   }
@@ -180,7 +178,7 @@ export class AnnouncementService {
     try {
       return await Announcement.findById(id);
     } catch (error) {
-      console.error('Error getting announcement:', error);
+
       return null;
     }
   }
@@ -213,7 +211,7 @@ export class AnnouncementService {
         pages: Math.ceil(total / limit)
       };
     } catch (error) {
-      console.error('Error getting announcements:', error);
+
       throw error;
     }
   }
@@ -255,7 +253,7 @@ export class AnnouncementService {
 
       return { announcements, total };
     } catch (error) {
-      console.error('Error getting user announcements:', error);
+
       throw error;
     }
   }
@@ -276,10 +274,9 @@ export class AnnouncementService {
       // Send notifications
       await this.sendAnnouncementNotifications(announcement);
 
-      console.log(`📢 Announcement published: ${announcement.title}`);
       return announcement;
     } catch (error) {
-      console.error('Error publishing announcement:', error);
+
       throw error;
     }
   }
@@ -292,11 +289,10 @@ export class AnnouncementService {
 
       announcement.status = 'cancelled';
       await announcement.save();
-      console.log(`❌ Announcement cancelled: ${announcement.title}`);
 
       return announcement;
     } catch (error) {
-      console.error('Error cancelling announcement:', error);
+
       throw error;
     }
   }
@@ -318,11 +314,10 @@ export class AnnouncementService {
         acknowledgedAt: new Date()
       });
       await announcement.save();
-      console.log(`✅ Announcement acknowledged by user ${userId}`);
 
       return true;
     } catch (error) {
-      console.error('Error acknowledging announcement:', error);
+
       return false;
     }
   }
@@ -337,7 +332,7 @@ export class AnnouncementService {
       await announcement.save();
       return true;
     } catch (error) {
-      console.error('Error tracking announcement view:', error);
+
       return false;
     }
   }
@@ -352,7 +347,7 @@ export class AnnouncementService {
       await announcement.save();
       return true;
     } catch (error) {
-      console.error('Error tracking announcement click:', error);
+
       return false;
     }
   }
@@ -373,7 +368,7 @@ export class AnnouncementService {
         totalTargetUsers: await this.calculateTargetUserCount(announcement)
       };
     } catch (error) {
-      console.error('Error getting announcement analytics:', error);
+
       return null;
     }
   }
@@ -390,10 +385,10 @@ export class AnnouncementService {
         announcement.status = 'published';
         await announcement.save();
         await this.sendAnnouncementNotifications(announcement);
-        console.log(`⏰ Scheduled announcement published: ${announcement.title}`);
+
       }
     } catch (error) {
-      console.error('Error processing scheduled announcements:', error);
+
     }
   }
 
@@ -409,10 +404,10 @@ export class AnnouncementService {
       );
 
       if (result.modifiedCount > 0) {
-        console.log(`⏳ Expired ${result.modifiedCount} announcements`);
+
       }
     } catch (error) {
-      console.error('Error expiring announcements:', error);
+
     }
   }
 
@@ -439,7 +434,7 @@ export class AnnouncementService {
         }
       }
     } catch (error) {
-      console.error('Error sending expiry reminders:', error);
+
     }
   }
 
@@ -471,7 +466,7 @@ export class AnnouncementService {
         await this.sendAnnouncementEmails(announcement);
       }
     } catch (error) {
-      console.error('Error sending announcement notifications:', error);
+
     }
   }
 
@@ -520,7 +515,7 @@ export class AnnouncementService {
 
       await Promise.allSettled(emailPromises);
     } catch (error) {
-      console.error('Error sending announcement emails:', error);
+
     }
   }
 

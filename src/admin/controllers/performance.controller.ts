@@ -27,7 +27,7 @@ export class PerformanceController {
                 data: systemOverview
             });
         } catch (error: any) {
-            console.error('Error in getSystemOverview:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Unknown error'
@@ -80,7 +80,7 @@ export class PerformanceController {
                 data: performanceMetrics
             });
         } catch (error: any) {
-            console.error('Error in getPerformanceMetrics:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Unknown error'
@@ -114,7 +114,7 @@ export class PerformanceController {
                 data: activitySummary
             });
         } catch (error: any) {
-            console.error('Error in getActivitySummary:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Unknown error'
@@ -182,7 +182,7 @@ export class PerformanceController {
                 data: paginatedLogs
             });
         } catch (error: any) {
-            console.error('Error in getSystemLogs:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Unknown error'
@@ -227,7 +227,7 @@ export class PerformanceController {
                 data: backupPerformance
             });
         } catch (error: any) {
-            console.error('Error in getBackupPerformance:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Unknown error'

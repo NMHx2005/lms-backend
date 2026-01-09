@@ -263,7 +263,7 @@ export const getPackageSubscribers = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('getPackageSubscribers error:', error);
+
     res.status(500).json({ success: false, error: (error as Error).message });
   }
 };

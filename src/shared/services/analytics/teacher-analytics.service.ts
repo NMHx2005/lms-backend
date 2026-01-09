@@ -735,7 +735,7 @@ class TeacherAnalyticsService {
       try {
         await this.generateTeacherScore(teacher._id, periodType);
       } catch (error) {
-        console.error(`Failed to generate score for teacher ${teacher._id}:`, error);
+
       }
     }
   }

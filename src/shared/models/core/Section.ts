@@ -105,7 +105,7 @@ sectionSchema.pre('save', async function (next) {
         },
       });
     } catch (error) {
-      console.error('Error updating course stats:', error);
+
     }
   }
   next();

@@ -22,7 +22,7 @@ export class ClientRefundController {
         data: courses
       });
     } catch (error: any) {
-      console.error('Get eligible courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to fetch eligible courses'
@@ -51,7 +51,7 @@ export class ClientRefundController {
         data: refund
       });
     } catch (error: any) {
-      console.error('Create refund request error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to create refund request'
@@ -85,7 +85,7 @@ export class ClientRefundController {
         pagination: result.pagination
       });
     } catch (error: any) {
-      console.error('Get refund requests error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to fetch refund requests'
@@ -114,7 +114,7 @@ export class ClientRefundController {
         data: refund
       });
     } catch (error: any) {
-      console.error('Get refund details error:', error);
+
       res.status(error.message.includes('not found') ? 404 : 500).json({
         success: false,
         error: error.message || 'Failed to fetch refund details'
@@ -144,7 +144,7 @@ export class ClientRefundController {
         data: refund
       });
     } catch (error: any) {
-      console.error('Cancel refund request error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to cancel refund request'
@@ -178,7 +178,7 @@ export class ClientRefundController {
         pagination: result.pagination
       });
     } catch (error: any) {
-      console.error('Get teacher refund requests error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to fetch refund requests'
@@ -208,7 +208,7 @@ export class ClientRefundController {
         data: refund
       });
     } catch (error: any) {
-      console.error('Approve refund error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to approve refund'
@@ -238,7 +238,7 @@ export class ClientRefundController {
         data: refund
       });
     } catch (error: any) {
-      console.error('Reject refund error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to reject refund'

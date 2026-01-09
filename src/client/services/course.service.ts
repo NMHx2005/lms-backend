@@ -159,26 +159,13 @@ export class ClientCourseService {
 
     const isPublicCourse = courseDoc.isPublished && courseDoc.isApproved;
 
-    // Debug logging
-    console.log('🔍 Access Check:', {
-      courseId,
-      userId,
-      instructorId: courseDoc.instructorId?.toString(),
-      isInstructor,
-      isPublished: courseDoc.isPublished,
-      isApproved: courseDoc.isApproved,
-      isPublicCourse
-    });
-
     // Allow access if:
     // 1. User is the instructor (can see draft/pending courses)
     // 2. Course is published and approved (public access)
     if (!isInstructor && !isPublicCourse) {
-      console.log('❌ Access denied');
+
       throw new Error('Course not found or not available');
     }
-
-    console.log('✅ Access granted');
 
     // Now populate and return
     const course = await CourseModel.findById(courseId)
@@ -456,7 +443,7 @@ export class ClientCourseService {
         }))
       };
     } catch (error) {
-      console.error('Error getting filter options:', error);
+
       throw error;
     }
   }
@@ -477,7 +464,7 @@ export class ClientCourseService {
         count: tag.count
       }));
     } catch (error) {
-      console.error('Error getting popular tags:', error);
+
       throw error;
     }
   }
@@ -684,7 +671,6 @@ export class ClientCourseService {
       throw new Error(`Bạn đã đạt giới hạn ${maxAllowed} khóa học của gói ${packageName}. Hiện tại: ${currentCoursesCount}/${maxAllowed}. Vui lòng nâng cấp gói để tạo thêm khóa học.`);
     }
 
-    console.log(`✅ Course quota check passed: ${currentCoursesCount}/${maxAllowed} courses (Package: ${bestPackage?.snapshot?.name})`);
     // ========== END VALIDATION ==========
 
     // Map frontend field names to model field names
@@ -808,7 +794,7 @@ export class ClientCourseService {
     // If editing a published course, mark it as having unsaved changes
     if (currentCourse.status === 'published') {
       mappedUpdates.hasUnsavedChanges = true;
-      console.log('📝 Published course edited, marking hasUnsavedChanges = true');
+
     }
 
     // Manual validation for price/discount fields
@@ -831,14 +817,6 @@ export class ClientCourseService {
     }
 
     // Debug logging for important fields
-    console.log('🔍 Update Course - Mapped Updates:', {
-      originalPrice: mappedUpdates.originalPrice,
-      discountPercentage: mappedUpdates.discountPercentage,
-      maxStudents: mappedUpdates.maxStudents,
-      certificate: mappedUpdates.certificate,
-      benefits: mappedUpdates.benefits,
-      isFree: mappedUpdates.isFree
-    });
 
     // Use $set to update fields properly, especially nested ones
     // Note: runValidators is set to false because validation runs on OLD document context
@@ -899,26 +877,11 @@ export class ClientCourseService {
       throw new Error('Course not found or you do not have permission to update this course');
     }
 
-    console.log('🔍 UpdateCourseStatus:', {
-      courseId,
-      currentStatus: course.status,
-      requestedStatus: status,
-      title: course.title
-    });
-
     const updates: any = {};
 
     // Handle submit for review
     if (status === 'submit' || status === 'submitted') {
       const currentStatus = course.status || 'draft'; // Default to draft if undefined
-      console.log('🔍 Submit Debug:', {
-        courseId,
-        currentStatus,
-        requestedStatus: status,
-        courseStatus: course.status,
-        submittedForReview: course.submittedForReview,
-        submittedAt: course.submittedAt
-      });
 
       // Allowed statuses for submission:
       // - draft: Initial submission (one-time only)
@@ -942,7 +905,7 @@ export class ClientCourseService {
         updates.submittedForReview = true;
         updates.isPublished = false; // Unpublish when resubmitting
         updates.hasUnsavedChanges = false; // Reset after submitting
-        console.log('📝 Published course resubmission');
+
       }
       // For rejected or needs_revision courses, allow resubmission
       else if (currentStatus === 'rejected' || currentStatus === 'needs_revision') {
@@ -950,7 +913,7 @@ export class ClientCourseService {
         updates.submittedAt = new Date();
         updates.submittedForReview = true;
         updates.hasUnsavedChanges = false;
-        console.log(`📝 ${currentStatus} course resubmission`);
+
       }
       // For draft courses, one-time submission only
       else {
@@ -963,7 +926,7 @@ export class ClientCourseService {
         updates.submittedAt = new Date();
         updates.submittedForReview = true;
         updates.hasUnsavedChanges = false; // Reset after submitting
-        console.log('📝 Draft course submission');
+
       }
     }
     // Handle withdraw submission (revert to draft)
@@ -985,14 +948,6 @@ export class ClientCourseService {
       updates,
       { new: true }
     ).populate('instructorId', 'name email avatar');
-
-    console.log('✅ Course status updated:', {
-      courseId,
-      newStatus: updatedCourse?.status,
-      submittedAt: updatedCourse?.submittedAt,
-      submittedForReview: updatedCourse?.submittedForReview,
-      hasUnsavedChanges: updatedCourse?.hasUnsavedChanges
-    });
 
     if (!updatedCourse) {
       throw new Error('Failed to update course status');

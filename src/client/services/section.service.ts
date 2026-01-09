@@ -28,13 +28,6 @@ export class ClientSectionService {
       query.isVisible = true;
     }
 
-    console.log('🔍 getSectionsByCourse - Query:', {
-      courseId,
-      userId,
-      isInstructor,
-      query
-    });
-
     // Populate lessons - instructors see all, students only see visible ones
     const lessonMatch = isInstructor ? {} : { isVisible: true };
 

@@ -9,7 +9,6 @@ export class ClientCertificateService {
    * Auto-generates certificates for completed courses that don't have certificates yet
    */
   static async getUserCertificates(userId: string) {
-    console.log(`🔍 Getting certificates for user ${userId}`);
 
     // First, find all completed enrollments
     const allCompletedEnrollments = await EnrollmentModel.find({
@@ -23,8 +22,6 @@ export class ClientCertificateService {
         options: { lean: false }
       })
       .sort({ completedAt: -1 });
-
-    console.log(`📚 Found ${allCompletedEnrollments.length} completed enrollments for user ${userId}`);
 
     // Auto-generate certificates for completed courses that have certificate enabled but haven't been issued yet
     for (const enrollment of allCompletedEnrollments) {
@@ -41,37 +38,22 @@ export class ClientCertificateService {
             course.assessment = fullCourse.assessment as any;
             course._id = fullCourse._id;
             if (!course.title) course.title = fullCourse.title;
-            console.log(`📥 Fetched course certificate status from DB:`, {
-              courseId: fullCourse._id,
-              certificate: fullCourse.certificate,
-              assessment: fullCourse.assessment
-            });
+
           } else {
             console.warn(`⚠️ Course ${enrollment.courseId} not found in database`);
           }
         } catch (err) {
-          console.error(`❌ Error fetching course details for ${enrollment.courseId}:`, err);
+
         }
       }
 
       // Log enrollment and course details for debugging
-      console.log(`📋 Checking enrollment ${enrollment._id} for course ${course?._id}:`, {
-        enrollmentId: enrollment._id,
-        courseId: course?._id,
-        courseTitle: course?.title,
-        courseCertificate: course?.certificate,
-        courseAssessment: course?.assessment,
-        certificateIssued: enrollment.certificateIssued,
-        isCompleted: enrollment.isCompleted,
-        progress: enrollment.progress
-      });
 
       // Check if course has certificate enabled (check both certificate field and assessment.hasCertification)
       const hasCertificate = course?.certificate === true || course?.assessment?.hasCertification === true;
 
       if (hasCertificate && !enrollment.certificateIssued) {
         try {
-          console.log(`🔄 Attempting to auto-generate certificate for user ${userId}, course ${course._id}`);
 
           // Import CertificateService to generate certificate
           const CertificateService = (await import('../../shared/services/certificates/certificate.service')).default;
@@ -94,28 +76,13 @@ export class ClientCertificateService {
           enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
           await enrollment.save();
 
-          console.log(`✅ Certificate auto-generated for user ${userId} in course ${course._id}`);
         } catch (certError: any) {
-          console.error(`❌ Error auto-generating certificate for enrollment ${enrollment._id}:`, certError);
-          console.error('Certificate generation error details:', {
-            message: certError.message,
-            stack: certError.stack,
-            enrollmentId: enrollment._id,
-            courseId: course._id,
-            userId: userId
-          });
+
+
           // Continue with other enrollments even if one fails
         }
       } else {
-        console.log(`⏭️ Skipping certificate generation:`, {
-          courseHasCertificate: course?.certificate,
-          courseAssessment: course?.assessment?.hasCertification,
-          hasCertificate: hasCertificate,
-          certificateIssued: enrollment.certificateIssued,
-          courseId: course?._id,
-          enrollmentId: enrollment._id,
-          reason: !hasCertificate ? 'Course does not have certificate enabled' : 'Certificate already issued'
-        });
+
       }
     }
 

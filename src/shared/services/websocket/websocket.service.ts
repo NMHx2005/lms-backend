@@ -71,7 +71,6 @@ export class WebSocketService {
     this.setupMiddleware();
     this.setupEventHandlers();
 
-    console.log('🔌 WebSocket service initialized');
   }
 
   private setupMiddleware(): void {
@@ -180,7 +179,7 @@ export class WebSocketService {
         // Send updated count
         this.sendUnreadNotificationsCount(socket.userId!);
       } catch (error) {
-        console.error('Error marking notification as read:', error);
+
       }
     });
 
@@ -205,7 +204,7 @@ export class WebSocketService {
           hasMore: notifications.length === limit
         });
       } catch (error) {
-        console.error('Error getting notifications:', error);
+
       }
     });
 
@@ -233,7 +232,7 @@ export class WebSocketService {
 
   private handleDisconnection(socket: Socket & { userId?: string }): void {
     if (socket.userId) {
-      console.log(`👤 User disconnected: ${socket.userId}`);
+
       this.connectedUsers.delete(socket.userId);
       this.socketToUser.delete(socket.id);
     }
@@ -250,10 +249,9 @@ export class WebSocketService {
         id: new mongoose.Types.ObjectId().toString()
       });
 
-      console.log(`📢 Notification sent to user ${userId}: ${notification.title}`);
       return true;
     } catch (error) {
-      console.error('Error sending notification to user:', error);
+
       return false;
     }
   }
@@ -269,10 +267,9 @@ export class WebSocketService {
         id: new mongoose.Types.ObjectId().toString()
       });
 
-      console.log(`📢 Notification sent to role ${role}: ${notification.title}`);
       return true;
     } catch (error) {
-      console.error('Error sending notification to role:', error);
+
       return false;
     }
   }
@@ -289,10 +286,9 @@ export class WebSocketService {
         id: new mongoose.Types.ObjectId().toString()
       });
 
-      console.log(`📢 Notification sent to course ${courseId}: ${notification.title}`);
       return true;
     } catch (error) {
-      console.error('Error sending notification to course:', error);
+
       return false;
     }
   }
@@ -308,10 +304,9 @@ export class WebSocketService {
         id: new mongoose.Types.ObjectId().toString()
       });
 
-      console.log(`📢 Notification broadcasted to all users: ${notification.title}`);
       return true;
     } catch (error) {
-      console.error('Error broadcasting notification:', error);
+
       return false;
     }
   }
@@ -347,10 +342,9 @@ export class WebSocketService {
           break;
       }
 
-      console.log(`📣 Announcement sent: ${announcement.title}`);
       return true;
     } catch (error) {
-      console.error('Error sending announcement:', error);
+
       return false;
     }
   }
@@ -369,10 +363,9 @@ export class WebSocketService {
         timestamp: new Date()
       });
 
-      console.log(`📚 Course update sent to ${courseId}: ${updateData.type}`);
       return true;
     } catch (error) {
-      console.error('Error sending course update:', error);
+
       return false;
     }
   }
@@ -395,10 +388,9 @@ export class WebSocketService {
         timestamp: new Date()
       });
 
-      console.log(`📝 Assignment update sent: ${updateData.title}`);
       return true;
     } catch (error) {
-      console.error('Error sending assignment update:', error);
+
       return false;
     }
   }
@@ -432,7 +424,7 @@ export class WebSocketService {
         priority: 'low'
       });
     } catch (error) {
-      console.error('Error sending unread count:', error);
+
     }
   }
 

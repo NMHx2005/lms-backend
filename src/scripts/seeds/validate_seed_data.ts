@@ -20,11 +20,9 @@ import Assignment from '../../shared/models/core/Assignment';
 
 // Validation functions
 async function validateUserData() {
-  console.log('🔍 Validating User Data...');
-  
+
   const users = await User.find({});
-  console.log(`✅ Found ${users.length} users`);
-  
+
   // Check role distribution
   const adminUsers = users.filter(u => u.role === 'admin');
   const teacherUsers = users.filter(u => u.role === 'teacher');
@@ -37,26 +35,23 @@ async function validateUserData() {
   // Validate required fields
   const invalidUsers = users.filter(u => !u.email || !u.name || !u.role);
   if (invalidUsers.length > 0) {
-    console.error(`❌ Found ${invalidUsers.length} users with missing required fields`);
+
     return false;
   }
-  
-  console.log('✅ User data validation passed');
+
   return true;
 }
 
 async function validateCourseData() {
-  console.log('🔍 Validating Course Data...');
-  
+
   const courses = await Course.find({});
-  console.log(`✅ Found ${courses.length} courses`);
-  
+
   // Check required fields
   const invalidCourses = courses.filter(c => 
     !c.title || !c.description || !c.instructorId || !c.price
   );
   if (invalidCourses.length > 0) {
-    console.error(`❌ Found ${invalidCourses.length} courses with missing required fields`);
+
     return false;
   }
   
@@ -69,26 +64,23 @@ async function validateCourseData() {
   );
   
   if (coursesWithInvalidInstructors.length > 0) {
-    console.error(`❌ Found ${coursesWithInvalidInstructors.length} courses with invalid instructors`);
+
     return false;
   }
-  
-  console.log('✅ Course data validation passed');
+
   return true;
 }
 
 async function validateEnrollmentData() {
-  console.log('🔍 Validating Enrollment Data...');
-  
+
   const enrollments = await Enrollment.find({});
-  console.log(`✅ Found ${enrollments.length} enrollments`);
-  
+
   // Check required fields
   const invalidEnrollments = enrollments.filter(e => 
     !e.studentId || !e.courseId || !e.instructorId
   );
   if (invalidEnrollments.length > 0) {
-    console.error(`❌ Found ${invalidEnrollments.length} enrollments with missing required fields`);
+
     return false;
   }
   
@@ -101,7 +93,7 @@ async function validateEnrollmentData() {
   );
   
   if (enrollmentsWithInvalidStudents.length > 0) {
-    console.error(`❌ Found ${enrollmentsWithInvalidStudents.length} enrollments with invalid students`);
+
     return false;
   }
   
@@ -114,7 +106,7 @@ async function validateEnrollmentData() {
   );
   
   if (enrollmentsWithInvalidCourses.length > 0) {
-    console.error(`❌ Found ${enrollmentsWithInvalidCourses.length} enrollments with invalid courses`);
+
     return false;
   }
   
@@ -128,26 +120,23 @@ async function validateEnrollmentData() {
   // All completed enrollments should have completion date
   const completedWithoutDate = completedEnrollments.filter(e => !e.completedAt);
   if (completedWithoutDate.length > 0) {
-    console.error(`❌ Found ${completedWithoutDate.length} completed enrollments without completion date`);
+
     return false;
   }
-  
-  console.log('✅ Enrollment data validation passed');
+
   return true;
 }
 
 async function validateCommentData() {
-  console.log('🔍 Validating Comment Data...');
-  
+
   const comments = await Comment.find({});
-  console.log(`✅ Found ${comments.length} comments`);
-  
+
   // Check required fields
   const invalidComments = comments.filter(c => 
     !c.commentId || !c.content || !c.authorId || !c.contentType || !c.contentId
   );
   if (invalidComments.length > 0) {
-    console.error(`❌ Found ${invalidComments.length} comments with missing required fields`);
+
     return false;
   }
   
@@ -160,26 +149,23 @@ async function validateCommentData() {
   );
   
   if (commentsWithInvalidAuthors.length > 0) {
-    console.error(`❌ Found ${commentsWithInvalidAuthors.length} comments with invalid authors`);
+
     return false;
   }
-  
-  console.log('✅ Comment data validation passed');
+
   return true;
 }
 
 async function validateCertificateData() {
-  console.log('🔍 Validating Certificate Data...');
-  
+
   const certificates = await Certificate.find({});
-  console.log(`✅ Found ${certificates.length} certificates`);
-  
+
   // Check required fields
   const invalidCertificates = certificates.filter(c => 
     !c.certificateId || !c.verificationCode || !c.courseId || !c.studentId || !c.instructorId
   );
   if (invalidCertificates.length > 0) {
-    console.error(`❌ Found ${invalidCertificates.length} certificates with missing required fields`);
+
     return false;
   }
   
@@ -192,17 +178,15 @@ async function validateCertificateData() {
   );
   
   if (certificatesWithInvalidCourses.length > 0) {
-    console.error(`❌ Found ${certificatesWithInvalidCourses.length} certificates with invalid courses`);
+
     return false;
   }
-  
-  console.log('✅ Certificate data validation passed');
+
   return true;
 }
 
 async function validateRelationships() {
-  console.log('🔍 Validating Overall Relationships...');
-  
+
   // Check enrollment-course-instructor consistency
   const enrollments = await Enrollment.find({}).populate('courseId');
   const inconsistentEnrollments = enrollments.filter(e => {
@@ -211,7 +195,7 @@ async function validateRelationships() {
   });
   
   if (inconsistentEnrollments.length > 0) {
-    console.error(`❌ Found ${inconsistentEnrollments.length} enrollments with inconsistent instructor-course relationships`);
+
     return false;
   }
   
@@ -223,20 +207,17 @@ async function validateRelationships() {
     console.error(`❌ Certificate count (${certificates.length}) doesn't match completed enrollments (${enrollmentsForCertificates.length})`);
     return false;
   }
-  
-  console.log('✅ Relationship validation passed');
+
   return true;
 }
 
 // Main validation function
 async function validateSeedData() {
   try {
-    console.log('🚀 Starting Seed Data Validation...');
-    
+
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/lms');
-    console.log('✅ Connected to MongoDB');
-    
+
     // Run all validations
     const results = await Promise.all([
       validateUserData(),
@@ -250,19 +231,19 @@ async function validateSeedData() {
     const allPassed = results.every(result => result === true);
     
     if (allPassed) {
-      console.log('\n🎉 All validations passed! Seed data is consistent and logical.');
+
     } else {
-      console.log('\n❌ Some validations failed. Please check the errors above.');
+
     }
     
     return allPassed;
     
   } catch (error) {
-    console.error('❌ Validation error:', error);
+
     return false;
   } finally {
     await mongoose.disconnect();
-    console.log('🔌 Disconnected from MongoDB');
+
   }
 }
 
@@ -273,7 +254,7 @@ if (require.main === module) {
       process.exit(success ? 0 : 1);
     })
     .catch((error) => {
-      console.error('❌ Validation failed:', error);
+
       process.exit(1);
     });
 }

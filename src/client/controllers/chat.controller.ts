@@ -34,7 +34,7 @@ export class ChatController {
         message: 'Message processed successfully'
       });
     } catch (error: any) {
-      console.error('Send message error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to process message'
@@ -66,7 +66,7 @@ export class ChatController {
         message: 'Chat history retrieved successfully'
       });
     } catch (error: any) {
-      console.error('Get chat history error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to retrieve chat history'
@@ -96,7 +96,7 @@ export class ChatController {
         message: 'Active session retrieved successfully'
       });
     } catch (error: any) {
-      console.error('Get active session error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to retrieve active session'
@@ -125,7 +125,7 @@ export class ChatController {
         message: 'Session ended successfully'
       });
     } catch (error: any) {
-      console.error('End session error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to end session'
@@ -155,7 +155,7 @@ export class ChatController {
         message: 'Chat statistics retrieved successfully'
       });
     } catch (error: any) {
-      console.error('Get chat stats error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to retrieve chat statistics'
@@ -177,7 +177,7 @@ export class ChatController {
         message: isConnected ? 'AI connection successful' : 'AI connection failed'
       });
     } catch (error: any) {
-      console.error('Test connection error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to test AI connection'

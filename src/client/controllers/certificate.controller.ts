@@ -22,7 +22,7 @@ export class ClientCertificateController {
         data: certificates
       });
     } catch (error: any) {
-      console.error('Get certificates error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to fetch certificates'
@@ -51,7 +51,7 @@ export class ClientCertificateController {
         data: certificate
       });
     } catch (error: any) {
-      console.error('Get certificate details error:', error);
+
       res.status(error.message.includes('not found') ? 404 : 500).json({
         success: false,
         error: error.message || 'Failed to fetch certificate details'
@@ -82,7 +82,7 @@ export class ClientCertificateController {
 
       res.send(pdfBuffer);
     } catch (error: any) {
-      console.error('Download certificate error:', error);
+
       res.status(error.message.includes('not found') ? 404 : 500).json({
         success: false,
         error: error.message || 'Failed to download certificate'
@@ -103,7 +103,7 @@ export class ClientCertificateController {
         data: result
       });
     } catch (error: any) {
-      console.error('Verify certificate error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to verify certificate'

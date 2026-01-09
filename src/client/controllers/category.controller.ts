@@ -17,7 +17,7 @@ export const getCategories = async (req: Request, res: Response) => {
             data: categories
         });
     } catch (error) {
-        console.error('Error fetching categories:', error);
+
         res.status(500).json({
             success: false,
             message: 'Lỗi khi tải danh mục',
@@ -44,7 +44,7 @@ export const getCategoryDomains = async (req: Request, res: Response) => {
             data: domains
         });
     } catch (error) {
-        console.error('Error fetching category domains:', error);
+
         res.status(500).json({
             success: false,
             message: 'Lỗi khi tải danh mục',
@@ -68,7 +68,7 @@ export const getCategoryStats = async (req: Request, res: Response) => {
             data: categories
         });
     } catch (error) {
-        console.error('Error fetching category stats:', error);
+
         res.status(500).json({
             success: false,
             message: 'Lỗi khi tải thống kê danh mục',

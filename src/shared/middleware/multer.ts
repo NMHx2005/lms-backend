@@ -6,7 +6,7 @@ import { cloudinaryUtils, CLOUDINARY_UPLOAD_OPTIONS } from '../config/cloudinary
 // File size limits (in bytes)
 export const FILE_SIZE_LIMITS = {
   image: 5 * 1024 * 1024,      // 5MB
-  video: 100 * 1024 * 1024,    // 100MB
+  video: 524288000,             // 500MB (for video lessons)
   audio: 20 * 1024 * 1024,     // 20MB
   document: 10 * 1024 * 1024,  // 10MB
   archive: 50 * 1024 * 1024,   // 50MB
@@ -42,11 +42,22 @@ export const ALLOWED_MIME_TYPES = {
   ],
   document: [
     'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain',
-    'text/rtf',
-    'application/vnd.oasis.opendocument.text',
+    'application/msword', // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // Excel .xlsx
+    'application/vnd.ms-excel', // Excel .xls
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // PowerPoint .pptx
+    'application/vnd.ms-powerpoint', // PowerPoint .ppt
+    'text/plain', // .txt
+    'text/csv', // CSV files
+    'text/rtf', // .rtf
+    'text/markdown', // .md
+    'text/html', // .html
+    'application/vnd.oasis.opendocument.text', // .odt
+    'application/vnd.oasis.opendocument.spreadsheet', // .ods
+    'application/vnd.oasis.opendocument.presentation', // .odp
+    'application/rtf', // Alternative RTF MIME type
+    'application/x-rtf', // Another RTF variant
   ],
   archive: [
     'application/zip',
@@ -272,16 +283,50 @@ export const validateUploadedFiles = (
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      // Handle both array format (from multer.array) and object format (from multer.fields)
+      let filesObj: { [fieldname: string]: Express.Multer.File[] } = {};
+      
+      if (!req.files) {
+        // No files at all - this is an error if required fields are specified
+        if (requiredFields.length > 0) {
+          const error = ErrorFactory.fileUpload(
+            `Required file field '${requiredFields[0]}' is missing`,
+            {
+              requiredFields,
+              providedFields: [],
+            }
+          );
+          return res.status(error.statusCode).json({
+            success: false,
+            error: {
+              message: error.message,
+              code: error.errorCode,
+              statusCode: error.statusCode,
+              details: error.details,
+              timestamp: new Date().toISOString(),
+              path: req.originalUrl || req.url,
+            },
+          });
+        }
+        return next();
+      }
+      
+      if (Array.isArray(req.files)) {
+        // Direct array from multer.array() - convert to object format with 'files' key
+        filesObj = { files: req.files };
+      } else if (typeof req.files === 'object') {
+        // Object format from multer.fields()
+        filesObj = req.files as { [fieldname: string]: Express.Multer.File[] };
+      }
       
       // Check required fields
       for (const field of requiredFields) {
-        if (!files[field] || files[field].length === 0) {
+        if (!filesObj[field] || filesObj[field].length === 0) {
           const error = ErrorFactory.fileUpload(
             `Required file field '${field}' is missing`,
             {
               requiredFields,
-              providedFields: Object.keys(files),
+              providedFields: Object.keys(filesObj),
             }
           );
           return res.status(error.statusCode).json({
@@ -300,12 +345,12 @@ export const validateUploadedFiles = (
       
       // Check file count per field
       for (const [field, maxCount] of Object.entries(maxFilesPerField)) {
-        if (files[field] && files[field].length > maxCount) {
+        if (filesObj[field] && filesObj[field].length > maxCount) {
           const error = ErrorFactory.fileUpload(
             `Too many files for field '${field}'. Maximum allowed: ${maxCount}`,
             {
               field,
-              fileCount: files[field].length,
+              fileCount: filesObj[field].length,
               maxCount,
             }
           );

@@ -33,7 +33,7 @@ export class BillsController {
                 }
             });
         } catch (error) {
-            console.error('Get bills error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -61,7 +61,7 @@ export class BillsController {
                 data: bill
             });
         } catch (error) {
-            console.error('Get bill by ID error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -83,7 +83,7 @@ export class BillsController {
                 message: 'Bill created successfully'
             });
         } catch (error) {
-            console.error('Create bill error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -113,7 +113,7 @@ export class BillsController {
                 message: 'Bill updated successfully'
             });
         } catch (error) {
-            console.error('Update bill error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -141,7 +141,7 @@ export class BillsController {
                 message: 'Bill deleted successfully'
             });
         } catch (error) {
-            console.error('Delete bill error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -169,7 +169,7 @@ export class BillsController {
             res.setHeader('Content-Disposition', `attachment; filename=bills_export_${new Date().toISOString().split('T')[0]}.csv`);
             res.send(csvData);
         } catch (error) {
-            console.error('Export bills CSV error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -197,7 +197,7 @@ export class BillsController {
             res.setHeader('Content-Disposition', `attachment; filename=bills_export_${new Date().toISOString().split('T')[0]}.xlsx`);
             res.send(excelData);
         } catch (error) {
-            console.error('Export bills Excel error:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'

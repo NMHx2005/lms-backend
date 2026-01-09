@@ -258,15 +258,14 @@ export const gracefulShutdown = (server: any, signal: string): void => {
   
   // Force close after 30 seconds
   setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
+
     process.exit(1);
   }, 30000);
 };
 
 // Unhandled rejection handler
 export const unhandledRejectionHandler = (reason: any, promise: Promise<any>): void => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  
+
   // Log the error and continue running
   // In production, you might want to exit the process
   if (process.env.NODE_ENV === 'production') {
@@ -276,8 +275,7 @@ export const unhandledRejectionHandler = (reason: any, promise: Promise<any>): v
 
 // Uncaught exception handler
 export const uncaughtExceptionHandler = (error: Error): void => {
-  console.error('Uncaught Exception:', error);
-  
+
   // Log the error and exit the process
   // This is critical and should always exit
   process.exit(1);

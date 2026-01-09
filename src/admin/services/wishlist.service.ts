@@ -196,7 +196,7 @@ export class AdminWishlistService {
                 totalPages: Math.ceil(total / limit)
             };
         } catch (error) {
-            console.error('Error getting all wishlists:', error);
+
             return {
                 success: false,
                 message: 'Failed to get wishlists',
@@ -224,7 +224,7 @@ export class AdminWishlistService {
                 data: wishlistItem
             };
         } catch (error) {
-            console.error('Error getting wishlist by ID:', error);
+
             return {
                 success: false,
                 message: 'Failed to get wishlist item',
@@ -250,7 +250,7 @@ export class AdminWishlistService {
                 message: 'Wishlist item deleted successfully'
             };
         } catch (error) {
-            console.error('Error deleting wishlist item:', error);
+
             return {
                 success: false,
                 message: 'Failed to delete wishlist item',
@@ -327,7 +327,7 @@ export class AdminWishlistService {
                 }
             };
         } catch (error) {
-            console.error('Error getting wishlist stats:', error);
+
             return {
                 success: false,
                 message: 'Failed to get wishlist statistics',
@@ -399,7 +399,7 @@ export class AdminWishlistService {
                 }
             };
         } catch (error) {
-            console.error('Error getting user wishlist stats:', error);
+
             return {
                 success: false,
                 message: 'Failed to get user wishlist statistics',
@@ -418,7 +418,7 @@ export class AdminWishlistService {
                 message: `Deleted ${result.deletedCount} wishlist items successfully`
             };
         } catch (error) {
-            console.error('Error bulk deleting wishlist items:', error);
+
             return {
                 success: false,
                 message: 'Failed to bulk delete wishlist items',

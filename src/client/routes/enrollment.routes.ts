@@ -90,7 +90,6 @@ router.post('/', async (req: any, res) => {
         });
       }
 
-      console.log('✅ Payment verified for user:', req.user.id);
     }
 
     // Check if already enrolled (only active enrollments)
@@ -135,7 +134,7 @@ router.post('/', async (req: any, res) => {
         studentId: req.user.id,
         courseId: courseId
       });
-      console.log('✅ Reactivated inactive enrollment and reset all progress:', enrollment._id);
+
     } else {
       // Create new enrollment
       enrollment = new Enrollment({
@@ -148,7 +147,7 @@ router.post('/', async (req: any, res) => {
         isCompleted: false
       });
       await enrollment.save();
-      console.log('✅ Created new enrollment:', enrollment._id);
+
     }
     // activity log
     UserActivityLog.create({ userId: req.user.id, action: 'course_enroll', resource: 'enrollment', resourceId: enrollment._id, courseId: courseId });
@@ -446,7 +445,7 @@ router.get('/course/:courseId', async (req: any, res) => {
       }
     });
   } catch (error: any) {
-    console.error('Get course enrollments error:', error);
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get enrollments'
@@ -494,7 +493,7 @@ router.get('/:id/progress', async (req: any, res) => {
       }
     });
   } catch (error: any) {
-    console.error('Get enrollment progress error:', error);
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get progress'
@@ -555,7 +554,7 @@ router.get('/stats/:courseId', async (req: any, res) => {
       }
     });
   } catch (error: any) {
-    console.error('Get enrollment stats error:', error);
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get stats'
@@ -603,7 +602,7 @@ router.post('/:id/message', async (req: any, res) => {
       message: 'Message sent successfully'
     });
   } catch (error: any) {
-    console.error('Send message error:', error);
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to send message'
@@ -645,7 +644,7 @@ router.get('/:id/activity', async (req: any, res) => {
       data: activities
     });
   } catch (error: any) {
-    console.error('Get activity error:', error);
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to get activity'
@@ -707,7 +706,7 @@ router.post('/export', async (req: any, res) => {
       });
     }
   } catch (error: any) {
-    console.error('Export error:', error);
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to export data'

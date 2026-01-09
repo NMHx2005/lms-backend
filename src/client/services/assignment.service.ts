@@ -18,6 +18,9 @@ interface SubmissionData {
   fileSize?: number;
   fileType?: string;
   textAnswer?: string;
+  isDraft?: boolean;
+  status?: 'draft' | 'submitted' | 'graded' | 'late' | 'overdue' | 'returned';
+  comment?: string;
 }
 
 export class ClientAssignmentService {
@@ -262,10 +265,10 @@ export class ClientAssignmentService {
     }
   }
 
-  // Submit assignment
+  // Save draft or submit assignment
   async submitAssignment(submissionData: SubmissionData): Promise<ISubmission> {
     try {
-      const { assignmentId, studentId, courseId } = submissionData;
+      const { assignmentId, studentId, courseId, isDraft = false } = submissionData;
 
       if (!mongoose.Types.ObjectId.isValid(assignmentId)) {
         throw new Error('Invalid assignment ID');
@@ -293,40 +296,74 @@ export class ClientAssignmentService {
         throw new Error('Assignment does not belong to the specified course');
       }
 
-      // Check if assignment is still open
-      if (assignment.dueDate && new Date() > assignment.dueDate) {
-        throw new Error('Assignment deadline has passed');
+      // For drafts, skip deadline and attempt checks
+      if (!isDraft) {
+        // Check if assignment is still open (allow late if setting enabled)
+        if (assignment.dueDate && new Date() > assignment.dueDate && !assignment.allowLateSubmission) {
+          throw new Error('Assignment deadline has passed and late submission is not allowed');
+        }
+
+        // Check attempt limit
+        const existingSubmissions = await Submission.find({
+          assignmentId,
+          studentId,
+          status: { $ne: 'draft' } // Don't count drafts
+        });
+
+        if (assignment.attempts > 0 && existingSubmissions.length >= assignment.attempts) {
+          throw new Error('Maximum attempts reached for this assignment');
+        }
+
+        // Validate submission content based on assignment type
+        if (assignment.type === 'file' && !submissionData.fileUrl) {
+          throw new Error('File upload is required for this assignment');
+        }
+
+        if (assignment.type === 'text' && !submissionData.textAnswer) {
+          throw new Error('Text answer is required for this assignment');
+        }
       }
 
-      // Check attempt limit
-      const existingSubmissions = await Submission.find({
-        assignmentId,
-        studentId
-      });
-
-      if (assignment.attempts && existingSubmissions.length >= assignment.attempts) {
-        throw new Error('Maximum attempts reached for this assignment');
-      }
-
-      // Validate submission content based on assignment type
-      if (assignment.type === 'file' && !submissionData.fileUrl) {
-        throw new Error('File upload is required for this assignment');
-      }
-
-      if (assignment.type === 'text' && !submissionData.textAnswer) {
-        throw new Error('Text answer is required for this assignment');
-      }
-
-      if (assignment.type === 'quiz' && (!submissionData.answers || submissionData.answers.length === 0)) {
+      if (assignment.type === 'quiz' && (!submissionData.answers || submissionData.answers.length === 0) && !isDraft) {
         throw new Error('Quiz answers are required for this assignment');
       }
 
-      // Create submission
+      // Check for existing draft
+      const existingDraft = await Submission.findOne({
+        assignmentId,
+        studentId,
+        status: 'draft'
+      });
+
+      if (existingDraft) {
+        // Update existing draft
+        existingDraft.answers = submissionData.answers;
+        existingDraft.fileUrl = submissionData.fileUrl;
+        existingDraft.fileSize = submissionData.fileSize;
+        existingDraft.fileType = submissionData.fileType;
+        existingDraft.textAnswer = submissionData.textAnswer;
+        existingDraft.status = isDraft ? 'draft' : 'submitted';
+        existingDraft.submittedAt = isDraft ? existingDraft.submittedAt : new Date();
+        existingDraft.isDraft = isDraft;
+        existingDraft.draftSavedAt = isDraft ? new Date() : undefined;
+        await existingDraft.save();
+        return existingDraft.populate('assignmentId', 'title description maxScore');
+      }
+
+      // Create new submission
+      const attemptNumber = await Submission.countDocuments({
+        assignmentId,
+        studentId,
+        status: { $ne: 'draft' }
+      }) + 1;
+
       const submission = new Submission({
         ...submissionData,
-        attemptNumber: existingSubmissions.length + 1,
-        submittedAt: new Date(),
-        status: 'submitted'
+        attemptNumber,
+        submittedAt: isDraft ? undefined : new Date(),
+        status: isDraft ? 'draft' : 'submitted',
+        isDraft: isDraft,
+        draftSavedAt: isDraft ? new Date() : undefined,
       });
 
       await submission.save();

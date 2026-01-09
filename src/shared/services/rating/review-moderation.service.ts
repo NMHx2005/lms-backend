@@ -111,7 +111,7 @@ export class ReviewModerationService {
       };
 
     } catch (error) {
-      console.error('Error getting reviews needing moderation:', error);
+
       throw error;
     }
   }
@@ -148,11 +148,10 @@ export class ReviewModerationService {
       // Send notifications
       await this.notifyModerationAction(review, moderationData);
 
-      console.log(`✅ Review ${reviewId} moderated: ${moderationData.action} by admin ${moderationData.adminId}`);
       return review;
 
     } catch (error) {
-      console.error('Error moderating review:', error);
+
       throw error;
     }
   }
@@ -179,8 +178,6 @@ export class ReviewModerationService {
         }
       }
 
-      console.log(`✅ Bulk moderation completed: ${successCount} success, ${failedCount} failed`);
-
       return {
         success: successCount,
         failed: failedCount,
@@ -188,7 +185,7 @@ export class ReviewModerationService {
       };
 
     } catch (error) {
-      console.error('Error bulk moderating reviews:', error);
+
       throw error;
     }
   }
@@ -208,11 +205,10 @@ export class ReviewModerationService {
 
       await review.save();
 
-      console.log(`✅ Review ${reviewId} ${featured ? 'featured' : 'unfeatured'} by admin ${adminId}`);
       return review;
 
     } catch (error) {
-      console.error('Error featuring review:', error);
+
       throw error;
     }
   }
@@ -228,11 +224,10 @@ export class ReviewModerationService {
       review.isHighlighted = highlighted;
       await review.save();
 
-      console.log(`✅ Review ${reviewId} ${highlighted ? 'highlighted' : 'unhighlighted'} by admin ${adminId}`);
       return review;
 
     } catch (error) {
-      console.error('Error highlighting review:', error);
+
       throw error;
     }
   }
@@ -272,7 +267,7 @@ export class ReviewModerationService {
       };
 
     } catch (error) {
-      console.error('Error getting moderation stats:', error);
+
       throw error;
     }
   }
@@ -288,7 +283,7 @@ export class ReviewModerationService {
         .populate('moderatedBy.adminId', 'firstName lastName');
 
     } catch (error) {
-      console.error('Error getting review for moderation:', error);
+
       throw error;
     }
   }
@@ -354,7 +349,7 @@ export class ReviewModerationService {
       };
 
     } catch (error) {
-      console.error('Error getting moderation history:', error);
+
       throw error;
     }
   }
@@ -385,7 +380,7 @@ export class ReviewModerationService {
       console.log(`✅ Course ${courseId} rating updated after moderation: ${averageRating} (${totalRatings} reviews)`);
 
     } catch (error) {
-      console.error('Error updating course rating after moderation:', error);
+
     }
   }
 
@@ -447,7 +442,7 @@ export class ReviewModerationService {
       }
 
     } catch (error) {
-      console.error('Error notifying moderation action:', error);
+
     }
   }
 }

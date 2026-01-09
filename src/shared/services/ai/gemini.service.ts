@@ -63,7 +63,7 @@ export class GeminiService {
 
             return response.text || 'Không có phản hồi';
         } catch (error: any) {
-            console.error('Gemini API error:', error);
+
             throw error;
         }
     }
@@ -89,7 +89,7 @@ Hãy trả lời bằng tiếng Việt, thân thiện và hữu ích. Sử dụn
 
             return await this.generateContent(fullPrompt);
         } catch (error) {
-            console.error('Gemini API error:', error);
+
             return 'Xin lỗi, tôi không thể trả lời lúc này. Vui lòng thử lại sau.';
         }
     }
@@ -264,7 +264,7 @@ Nếu không biết câu trả lời, hãy nói "Xin lỗi, tôi không thể tr
 
             return await this.generateContent(prompt);
         } catch (error) {
-            console.error('Gemini API error:', error);
+
             return 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.';
         }
     }
@@ -277,7 +277,7 @@ Nếu không biết câu trả lời, hãy nói "Xin lỗi, tôi không thể tr
             const response = await this.generateContent('Hello');
             return !!response && response.length > 0;
         } catch (error) {
-            console.error('Gemini connection test failed:', error);
+
             return false;
         }
     }

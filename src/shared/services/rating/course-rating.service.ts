@@ -98,11 +98,10 @@ export class CourseRatingService {
       // Send notifications
       await this.notifyNewReview(review);
 
-      console.log(`✅ New review created for course ${data.courseId} by user ${data.userId}`);
       return review;
 
     } catch (error) {
-      console.error('Error creating review:', error);
+
       throw error;
     }
   }
@@ -136,11 +135,10 @@ export class CourseRatingService {
       // Update course rating
       await this.updateCourseRating(review.courseId.toString());
 
-      console.log(`✅ Review ${reviewId} updated`);
       return review;
 
     } catch (error) {
-      console.error('Error updating review:', error);
+
       throw error;
     }
   }
@@ -164,10 +162,8 @@ export class CourseRatingService {
       // Update course rating
       await this.updateCourseRating(review.courseId.toString());
 
-      console.log(`✅ Review ${reviewId} deleted`);
-
     } catch (error) {
-      console.error('Error deleting review:', error);
+
       throw error;
     }
   }
@@ -250,7 +246,7 @@ export class CourseRatingService {
       };
 
     } catch (error) {
-      console.error('Error getting course reviews:', error);
+
       throw error;
     }
   }
@@ -264,7 +260,7 @@ export class CourseRatingService {
         status: { $ne: 'deleted' }
       }).populate('courseId', 'title');
     } catch (error) {
-      console.error('Error getting user review:', error);
+
       throw error;
     }
   }
@@ -280,7 +276,7 @@ export class CourseRatingService {
       await review.upvote(new mongoose.Types.ObjectId(userId));
       return review;
     } catch (error) {
-      console.error('Error upvoting review:', error);
+
       throw error;
     }
   }
@@ -296,7 +292,7 @@ export class CourseRatingService {
       await review.downvote(new mongoose.Types.ObjectId(userId));
       return review;
     } catch (error) {
-      console.error('Error downvoting review:', error);
+
       throw error;
     }
   }
@@ -312,7 +308,7 @@ export class CourseRatingService {
       await review.markHelpful(new mongoose.Types.ObjectId(userId));
       return review;
     } catch (error) {
-      console.error('Error marking review helpful:', error);
+
       throw error;
     }
   }
@@ -334,7 +330,7 @@ export class CourseRatingService {
 
       return review;
     } catch (error) {
-      console.error('Error reporting review:', error);
+
       throw error;
     }
   }
@@ -368,11 +364,10 @@ export class CourseRatingService {
       // Notify the reviewer
       await this.notifyTeacherResponse(review);
 
-      console.log(`✅ Teacher response added to review ${reviewId}`);
       return review;
 
     } catch (error) {
-      console.error('Error adding teacher response:', error);
+
       throw error;
     }
   }
@@ -425,7 +420,7 @@ export class CourseRatingService {
         ratingDistribution
       };
     } catch (error) {
-      console.error('Error getting course summary:', error);
+
       throw error;
     }
   }
@@ -442,7 +437,7 @@ export class CourseRatingService {
 
       console.log(`✅ Course ${courseId} rating updated: ${summary.averageRating} (${summary.totalReviews} reviews)`);
     } catch (error) {
-      console.error('Error updating course rating:', error);
+
     }
   }
 
@@ -512,7 +507,7 @@ export class CourseRatingService {
       });
 
     } catch (error) {
-      console.error('Error notifying new review:', error);
+
     }
   }
 
@@ -554,7 +549,7 @@ export class CourseRatingService {
       });
 
     } catch (error) {
-      console.error('Error notifying teacher response:', error);
+
     }
   }
 
@@ -575,7 +570,7 @@ export class CourseRatingService {
       }
 
     } catch (error) {
-      console.error('Error notifying moderation needed:', error);
+
     }
   }
 }

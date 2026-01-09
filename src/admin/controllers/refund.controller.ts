@@ -22,7 +22,7 @@ export class AdminRefundController {
                 pagination: result.pagination
             });
         } catch (error: any) {
-            console.error('Get all refund requests error:', error);
+
             res.status(500).json({
                 success: false,
                 error: error.message || 'Failed to fetch refund requests'
@@ -43,7 +43,7 @@ export class AdminRefundController {
                 data: refund
             });
         } catch (error: any) {
-            console.error('Get refund details error:', error);
+
             res.status(error.message.includes('not found') ? 404 : 500).json({
                 success: false,
                 error: error.message || 'Failed to fetch refund details'
@@ -63,7 +63,7 @@ export class AdminRefundController {
                 data: stats
             });
         } catch (error: any) {
-            console.error('Get refund stats error:', error);
+
             res.status(500).json({
                 success: false,
                 error: error.message || 'Failed to fetch refund statistics'
@@ -102,7 +102,7 @@ export class AdminRefundController {
                 data: refund
             });
         } catch (error: any) {
-            console.error('Add admin note error:', error);
+
             res.status(400).json({
                 success: false,
                 error: error.message || 'Failed to add admin note'

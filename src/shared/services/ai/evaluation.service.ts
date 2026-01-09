@@ -85,17 +85,16 @@ export class AIEvaluationService {
 
       // Start AI evaluation process (async)
       this.processAIEvaluation(evaluation._id.toString()).catch(error => {
-        console.error('AI evaluation process failed:', error);
+
       });
 
       // Send notification to admins
       await this.notifyAdminsNewSubmission(course, evaluation);
 
-      console.log(`📤 Course ${course.title} submitted for AI evaluation`);
       return evaluation;
 
     } catch (error) {
-      console.error('Error submitting course for evaluation:', error);
+
       throw error;
     }
   }
@@ -131,11 +130,8 @@ export class AIEvaluationService {
       // Notify teacher about AI evaluation completion
       await this.notifyTeacherEvaluationComplete(evaluation);
 
-      console.log(`✅ AI evaluation completed for evaluation ${evaluationId} in ${processingTime}ms`);
-
     } catch (error: any) {
-      console.error(`❌ AI evaluation failed for evaluation ${evaluationId}:`, error);
-      
+
       if (evaluation) {
         await evaluation.markFailed(error.message);
         await this.notifyTeacherEvaluationFailed(evaluation, error.message);
@@ -196,11 +192,10 @@ export class AIEvaluationService {
       // Send notifications
       await this.notifyTeacherAdminDecision(evaluation, course);
 
-      console.log(`📋 Admin review completed for evaluation ${evaluationId}: ${reviewData.decision}`);
       return evaluation;
 
     } catch (error) {
-      console.error('Error submitting admin review:', error);
+
       throw error;
     }
   }
@@ -213,7 +208,7 @@ export class AIEvaluationService {
         .populate('submittedBy.userId', 'firstName lastName email')
         .populate('adminReview.reviewedBy.userId', 'firstName lastName email');
     } catch (error) {
-      console.error('Error getting evaluation:', error);
+
       return null;
     }
   }
@@ -249,7 +244,7 @@ export class AIEvaluationService {
         pages: Math.ceil(total / limit)
       };
     } catch (error) {
-      console.error('Error getting pending evaluations:', error);
+
       throw error;
     }
   }
@@ -286,7 +281,7 @@ export class AIEvaluationService {
         pages: Math.ceil(total / limit)
       };
     } catch (error) {
-      console.error('Error getting teacher evaluations:', error);
+
       throw error;
     }
   }
@@ -327,7 +322,7 @@ export class AIEvaluationService {
         approvalRate: totalEvaluations > 0 ? (approvedCount / totalEvaluations * 100) : 0
       };
     } catch (error) {
-      console.error('Error getting evaluation statistics:', error);
+
       throw error;
     }
   }
@@ -364,7 +359,7 @@ export class AIEvaluationService {
         });
       }
     } catch (error) {
-      console.error('Error notifying admins about new submission:', error);
+
     }
   }
 
@@ -384,7 +379,7 @@ export class AIEvaluationService {
         });
       }
     } catch (error) {
-      console.error('Error notifying admin about ready evaluation:', error);
+
     }
   }
 
@@ -421,7 +416,7 @@ export class AIEvaluationService {
         });
       }
     } catch (error) {
-      console.error('Error notifying teacher about evaluation completion:', error);
+
     }
   }
 
@@ -441,7 +436,7 @@ export class AIEvaluationService {
         });
       }
     } catch (error) {
-      console.error('Error notifying teacher about evaluation failure:', error);
+
     }
   }
 
@@ -500,7 +495,7 @@ export class AIEvaluationService {
         courseId: course._id
       });
     } catch (error) {
-      console.error('Error notifying teacher about admin decision:', error);
+
     }
   }
 }

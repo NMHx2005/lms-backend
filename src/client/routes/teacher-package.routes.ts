@@ -92,7 +92,9 @@ router.get(
     TeacherPackageController.getPackageDetails
 );
 
-// VNPay callback for package subscription
-router.post('/vnpay/callback', TeacherPackageController.handleVNPayCallback);
+// NOTE: VNPay callback has been moved to index.route.ts as public route
+// This route is kept for reference but will not be matched (public route in index.route.ts takes precedence)
+// VNPay callback for package subscription - MOVED TO PUBLIC ROUTES IN index.route.ts
+// router.post('/vnpay/callback', TeacherPackageController.handleVNPayCallback);
 
 export default router;

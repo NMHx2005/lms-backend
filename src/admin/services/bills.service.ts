@@ -109,7 +109,7 @@ export class BillsService {
                 total: filters.search ? filteredBills.length : total
             };
         } catch (error) {
-            console.error('Error getting bills:', error);
+
             throw error;
         }
     }
@@ -124,7 +124,7 @@ export class BillsService {
                 .populate('courseId', 'title')
                 .lean();
         } catch (error) {
-            console.error('Error getting bill by ID:', error);
+
             throw error;
         }
     }
@@ -142,7 +142,7 @@ export class BillsService {
                 .populate('courseId', 'title')
                 .lean();
         } catch (error) {
-            console.error('Error creating bill:', error);
+
             throw error;
         }
     }
@@ -159,7 +159,7 @@ export class BillsService {
 
             return bill;
         } catch (error) {
-            console.error('Error updating bill:', error);
+
             throw error;
         }
     }
@@ -172,7 +172,7 @@ export class BillsService {
             const bill = await Bill.findByIdAndDelete(id);
             return !!bill;
         } catch (error) {
-            console.error('Error deleting bill:', error);
+
             throw error;
         }
     }
@@ -222,7 +222,7 @@ export class BillsService {
 
             return csvContent;
         } catch (error) {
-            console.error('Error exporting bills to CSV:', error);
+
             throw error;
         }
     }
@@ -237,7 +237,7 @@ export class BillsService {
             const csvData = await this.exportBillsToCSV(filters);
             return Buffer.from(csvData, 'utf-8');
         } catch (error) {
-            console.error('Error exporting bills to Excel:', error);
+
             throw error;
         }
     }

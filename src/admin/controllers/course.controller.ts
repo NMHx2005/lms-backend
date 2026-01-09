@@ -14,7 +14,7 @@ export class CourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Create course error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to create course'
@@ -33,7 +33,7 @@ export class CourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Get course by ID error:', error);
+
       res.status(404).json({
         success: false,
         error: error.message || 'Course not found'
@@ -89,7 +89,7 @@ export class CourseController {
         data: result
       });
     } catch (error: any) {
-      console.error('Get courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get courses'
@@ -111,7 +111,7 @@ export class CourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Update course error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to update course'
@@ -130,7 +130,7 @@ export class CourseController {
         message: result.message
       });
     } catch (error: any) {
-      console.error('Delete course error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to delete course'
@@ -148,7 +148,7 @@ export class CourseController {
         data: stats
       });
     } catch (error: any) {
-      console.error('Get course stats error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course statistics'
@@ -176,7 +176,7 @@ export class CourseController {
         data: result.course
       });
     } catch (error: any) {
-      console.error('Approve course error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to approve course'
@@ -218,7 +218,7 @@ export class CourseController {
         data: result
       });
     } catch (error: any) {
-      console.error('Bulk update course status error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to bulk update course status'
@@ -245,7 +245,7 @@ export class CourseController {
         data: courses
       });
     } catch (error: any) {
-      console.error('Search courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to search courses'
@@ -274,7 +274,7 @@ export class CourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Toggle course feature error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to toggle course feature'
@@ -324,7 +324,7 @@ export class CourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Update course status error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to update course status'
@@ -343,7 +343,7 @@ export class CourseController {
         data: stats
       });
     } catch (error: any) {
-      console.error('Get course enrollment stats error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course enrollment statistics'
@@ -363,7 +363,7 @@ export class CourseController {
         data: result
       });
     } catch (error: any) {
-      console.error('Get pending approvals error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get pending approvals'
@@ -384,7 +384,7 @@ export class CourseController {
         data: analytics
       });
     } catch (error: any) {
-      console.error('Get course analytics error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course analytics'

@@ -28,7 +28,7 @@ export class SendGridService {
 
     sgMail.setApiKey(apiKey);
     this.isInitialized = true;
-    console.log('✅ SendGrid initialized successfully');
+
   }
 
   async sendEmail(emailData: EmailData): Promise<boolean> {
@@ -59,10 +59,10 @@ export class SendGridService {
       };
 
       const result = await sgMail.send(msg);
-      console.log(`✅ Email sent successfully to ${emailData.to}`);
+
       return true;
     } catch (error: any) {
-      console.error('❌ SendGrid email error:', error.response?.body || error.message);
+
       return false;
     }
   }
@@ -88,8 +88,7 @@ export class SendGridService {
     });
 
     await Promise.allSettled(promises);
-    
-    console.log(`📊 Bulk email results: ${success} sent, ${failed} failed`);
+
     return { success, failed };
   }
 
@@ -105,7 +104,7 @@ export class SendGridService {
       // This is a simplified check
       return this.isInitialized;
     } catch (error) {
-      console.error('❌ SendGrid connection test failed:', error);
+
       return false;
     }
   }
@@ -122,10 +121,10 @@ export class SendGridService {
     try {
       // Template upload functionality would require SendGrid API client
       // For now, return a mock template ID
-      console.log('📧 Template upload requested:', templateData.name);
+
       return `template_${Date.now()}`;
     } catch (error) {
-      console.error('❌ Template upload failed:', error);
+
       return null;
     }
   }

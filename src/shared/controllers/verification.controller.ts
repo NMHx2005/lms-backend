@@ -10,21 +10,19 @@ import Certificate from '../models/core/Certificate';
 export const verifyCertificate = asyncHandler(async (req: Request, res: Response) => {
   const { identifier } = req.params; // Can be certificateId or verificationCode
 
-  console.log('🔍 Starting certificate verification for:', identifier);
-
   if (!identifier) {
     throw new AppError('Certificate identifier is required', 400);
   }
 
   // Try to find by certificateId first, then by verificationCode
-  console.log('📚 Searching for certificate by certificateId...');
+
   let certificate = await Certificate.findOne({ certificateId: identifier })
     .populate('studentId', 'firstName lastName')
     .populate('courseId', 'title description domain level')
     .populate('instructorId', 'firstName lastName');
 
   if (!certificate) {
-    console.log('🔍 Certificate not found by certificateId, trying verificationCode...');
+
     certificate = await Certificate.findOne({ verificationCode: identifier.toUpperCase() })
       .populate('studentId', 'firstName lastName')
       .populate('courseId', 'title description domain level')
@@ -32,7 +30,7 @@ export const verifyCertificate = asyncHandler(async (req: Request, res: Response
   }
 
   if (!certificate) {
-    console.log('❌ Certificate not found with any identifier');
+
     return res.status(404).json({
       success: false,
       message: 'Certificate not found',
@@ -43,13 +41,9 @@ export const verifyCertificate = asyncHandler(async (req: Request, res: Response
     });
   }
 
-  console.log('✅ Certificate found:', certificate.certificateId);
-  console.log('🔍 Calling CertificateService.verifyCertificate...');
 
   // Use CertificateService to verify
   const verification = await CertificateService.verifyCertificate(certificate.certificateId);
-
-  console.log('✅ Verification result:', verification);
 
   res.json({
     success: true,

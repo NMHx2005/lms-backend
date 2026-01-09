@@ -11,7 +11,7 @@ export class ClientAssignmentController {
       const studentId = (req as any).user.id;
 
       const assignment = await assignmentService.getAssignmentById(id, studentId);
-      
+
       if (!assignment) {
         return res.status(404).json({
           success: false,
@@ -136,10 +136,10 @@ export class ClientAssignmentController {
     }
   }
 
-  // Submit assignment
+  // Submit assignment or save draft
   async submitAssignment(req: Request, res: Response) {
     try {
-      const { assignmentId, courseId, answers, fileUrl, fileSize, fileType, textAnswer } = req.body;
+      const { assignmentId, courseId, answers, fileUrl, fileSize, fileType, textAnswer, isDraft, comment } = req.body;
       const studentId = (req as any).user.id;
 
       if (!assignmentId || !courseId) {
@@ -149,6 +149,8 @@ export class ClientAssignmentController {
         });
       }
 
+      const status: 'draft' | 'submitted' = isDraft ? 'draft' : 'submitted';
+
       const submissionData = {
         assignmentId,
         studentId,
@@ -157,14 +159,17 @@ export class ClientAssignmentController {
         fileUrl,
         fileSize,
         fileType,
-        textAnswer
+        textAnswer,
+        isDraft: isDraft === true,
+        status,
+        comment
       };
 
       const submission = await assignmentService.submitAssignment(submissionData);
 
       res.json({
         success: true,
-        message: 'Assignment submitted successfully',
+        message: isDraft ? 'Draft saved successfully' : 'Assignment submitted successfully',
         data: submission
       });
     } catch (error: any) {
@@ -211,7 +216,7 @@ export class ClientAssignmentController {
       const studentId = (req as any).user.id;
 
       const submission = await assignmentService.getSubmissionById(id, studentId);
-      
+
       if (!submission) {
         return res.status(404).json({
           success: false,

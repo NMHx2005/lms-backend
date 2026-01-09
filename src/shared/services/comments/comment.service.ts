@@ -43,7 +43,11 @@ export class CommentService {
    */
   async createComment(data: CreateCommentData): Promise<IComment> {
     try {
+      // Generate commentId before creating the document
+      const commentId = `cmt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       const comment = new Comment({
+        commentId, // Set commentId explicitly
         content: data.content,
         authorId: new Types.ObjectId(data.authorId),
         authorType: data.authorType,
@@ -52,18 +56,45 @@ export class CommentService {
         parentId: data.parentId ? new Types.ObjectId(data.parentId) : undefined
       });
 
-      // If this is a reply, set the rootId
+      // Save first to get _id
+      await comment.save();
+
+      // If this is a reply, set the rootId from parent
       if (data.parentId) {
         const parentComment = await Comment.findById(data.parentId);
         if (parentComment) {
           comment.rootId = parentComment.rootId || parentComment._id;
+          await comment.save();
+        }
+      } else {
+        // For top-level comments, rootId will be set in post-save hook
+        // But we can set it here after save
+        if (!comment.rootId) {
+          comment.rootId = comment._id;
+          await comment.save();
         }
       }
 
-      await comment.save();
-      return comment.populate(['author', 'content']);
-    } catch (error) {
-      throw new AppError('Failed to create comment', 500);
+      // Populate author after save using virtual field
+      const populatedComment = await Comment.findById(comment._id)
+        .populate('author', 'name firstName lastName email avatar')
+        .lean();
+
+      if (!populatedComment) {
+        throw new AppError('Failed to retrieve created comment', 500);
+      }
+
+      return populatedComment as IComment;
+    } catch (error: any) {
+      console.error('Error creating comment:', error);
+      // Log the actual error for debugging
+      if (error.code === 11000) {
+        throw new AppError('Comment ID already exists. Please try again.', 400);
+      }
+      if (error.name === 'ValidationError') {
+        throw new AppError(`Validation error: ${error.message}`, 400);
+      }
+      throw new AppError(`Failed to create comment: ${error.message || 'Unknown error'}`, 500);
     }
   }
 
@@ -131,15 +162,16 @@ export class CommentService {
     maxDepth: number = 3
   ): Promise<CommentTree[]> {
     try {
-      // Get all top-level comments
+      // Get all top-level comments (approved comments, including pending ones that are approved)
       const topLevelComments = await Comment.find({
         contentType,
-        contentId,
+        contentId: new Types.ObjectId(contentId),
         parentId: null,
         isApproved: true,
-        moderationStatus: 'approved'
+        // Include both approved and pending comments (pending but approved means they're visible)
+        moderationStatus: { $in: ['approved', 'pending'] }
       })
-        .populate('author', 'firstName lastName email avatar')
+        .populate('author', 'firstName lastName email avatar name')
         .sort({ createdAt: -1 })
         .lean();
 
@@ -177,9 +209,10 @@ export class CommentService {
           const replies = await Comment.find({
         parentId: comment._id,
         isApproved: true,
-        moderationStatus: 'approved'
+        // Include both approved and pending comments
+        moderationStatus: { $in: ['approved', 'pending'] }
       })
-        .populate('author', 'firstName lastName email avatar')
+        .populate('author', 'firstName lastName email avatar name')
         .sort({ createdAt: 1 })
         .lean() as unknown as IComment[];
 

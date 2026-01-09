@@ -31,7 +31,7 @@ export class AdminWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in getAllWishlists controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -60,7 +60,7 @@ export class AdminWishlistController {
                 return res.status(404).json(result);
             }
         } catch (error) {
-            console.error('Error in getWishlistById controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -89,7 +89,7 @@ export class AdminWishlistController {
                 return res.status(404).json(result);
             }
         } catch (error) {
-            console.error('Error in deleteWishlistItem controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -109,7 +109,7 @@ export class AdminWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in getWishlistStats controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -138,7 +138,7 @@ export class AdminWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in getUserWishlistStats controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -167,7 +167,7 @@ export class AdminWishlistController {
                 return res.status(400).json(result);
             }
         } catch (error) {
-            console.error('Error in bulkDeleteWishlistItems controller:', error);
+
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error',

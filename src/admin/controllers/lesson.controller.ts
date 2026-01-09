@@ -14,7 +14,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Create lesson error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to create lesson'
@@ -33,7 +33,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Get lesson by ID error:', error);
+
       res.status(404).json({
         success: false,
         error: error.message || 'Lesson not found'
@@ -57,7 +57,7 @@ export class LessonController {
         data: lessons
       });
     } catch (error: any) {
-      console.error('Get lessons by section error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get lessons'
@@ -83,7 +83,7 @@ export class LessonController {
         data: lessons
       });
     } catch (error: any) {
-      console.error('Get lessons by course error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get lessons'
@@ -105,7 +105,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Update lesson error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to update lesson'
@@ -124,7 +124,7 @@ export class LessonController {
         message: result.message
       });
     } catch (error: any) {
-      console.error('Delete lesson error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to delete lesson'
@@ -153,7 +153,7 @@ export class LessonController {
         data: result
       });
     } catch (error: any) {
-      console.error('Reorder lessons error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to reorder lessons'
@@ -182,7 +182,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Toggle lesson preview error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to toggle lesson preview'
@@ -211,7 +211,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Toggle lesson required error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to toggle lesson required status'
@@ -233,7 +233,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Add attachment error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to add attachment'
@@ -254,7 +254,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Remove attachment error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to remove attachment'
@@ -273,7 +273,7 @@ export class LessonController {
         data: stats
       });
     } catch (error: any) {
-      console.error('Get lesson stats error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get lesson statistics'
@@ -302,7 +302,7 @@ export class LessonController {
         data: result
       });
     } catch (error: any) {
-      console.error('Bulk update lessons error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to bulk update lessons'
@@ -331,7 +331,7 @@ export class LessonController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Move lesson error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to move lesson'

@@ -16,8 +16,26 @@ export interface ISubmission extends Document {
   submittedAt: Date;
   gradedAt?: Date;
   attemptNumber: number;
-  status: 'submitted' | 'graded' | 'late' | 'overdue';
+  status: 'draft' | 'submitted' | 'graded' | 'late' | 'overdue' | 'returned';
   isLate: boolean;
+  // Draft tracking
+  isDraft?: boolean;
+  draftSavedAt?: Date;
+  // Feedback
+  feedbackFiles?: {
+    name: string;
+    url: string;
+    type: string;
+  }[];
+  // Voice/Video feedback
+  voiceFeedbackUrl?: string;
+  videoFeedbackUrl?: string;
+  // Rubric score
+  rubricScore?: {
+    criterion: string;
+    score: number;
+    maxScore: number;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -106,15 +124,66 @@ const submissionSchema = new Schema<ISubmission>(
     status: {
       type: String,
       enum: {
-        values: ['submitted', 'graded', 'late', 'overdue'],
-        message: 'Status must be submitted, graded, late, or overdue',
+        values: ['draft', 'submitted', 'graded', 'late', 'overdue', 'returned'],
+        message: 'Status must be draft, submitted, graded, late, overdue, or returned',
       },
-      default: 'submitted',
+      default: 'draft',
     },
     isLate: {
       type: Boolean,
       default: false,
     },
+    // Draft tracking
+    isDraft: {
+      type: Boolean,
+      default: true,
+    },
+    draftSavedAt: {
+      type: Date,
+    },
+    // Feedback files
+    feedbackFiles: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+    // Voice/Video feedback
+    voiceFeedbackUrl: {
+      type: String,
+    },
+    videoFeedbackUrl: {
+      type: String,
+    },
+    // Rubric score
+    rubricScore: [
+      {
+        criterion: {
+          type: String,
+          required: true,
+        },
+        score: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        maxScore: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -218,7 +287,6 @@ submissionSchema.pre('save', async function (next) {
         }
       }
     } catch (error) {
-      console.error('Error checking assignment due date:', error);
     }
   }
 
@@ -327,7 +395,6 @@ submissionSchema.methods.grade = async function (
       });
     }
   } catch (error) {
-    console.error('Error updating student stats:', error);
   }
 };
 

@@ -192,7 +192,7 @@ class CourseApprovalService {
 
       return approval;
     } catch (error) {
-      console.error('Error submitting course for approval:', error);
+
       throw error;
     }
   }

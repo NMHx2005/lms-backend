@@ -111,7 +111,7 @@ export class ClientCourseController {
         data: result
       });
     } catch (error: any) {
-      console.error('Get published courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get courses'
@@ -124,15 +124,6 @@ export class ClientCourseController {
     try {
       const { id } = req.params;
       const userId = (req as any).user?._id || (req as any).user?.id;
-      const token = req.headers.authorization?.replace('Bearer ', '');
-
-      console.log('📝 Controller getCourseById:', {
-        courseId: id,
-        userId,
-        hasUser: !!req.user,
-        hasToken: !!token,
-        user: (req as any).user
-      });
 
       const course = await ClientCourseService.getCourseById(id, userId);
 
@@ -145,7 +136,7 @@ export class ClientCourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Get course by ID error:', error);
+
       res.status(404).json({
         success: false,
         error: error.message || 'Course not found'
@@ -174,7 +165,7 @@ export class ClientCourseController {
         data: content
       });
     } catch (error: any) {
-      console.error('Get course content error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to get course content'
@@ -206,7 +197,7 @@ export class ClientCourseController {
         data: courses
       });
     } catch (error: any) {
-      console.error('Search courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to search courses'
@@ -224,7 +215,7 @@ export class ClientCourseController {
         data: categories
       });
     } catch (error: any) {
-      console.error('Get course categories error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course categories'
@@ -243,7 +234,7 @@ export class ClientCourseController {
         data: courses
       });
     } catch (error: any) {
-      console.error('Get featured courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get featured courses'
@@ -262,7 +253,7 @@ export class ClientCourseController {
         data: courses
       });
     } catch (error: any) {
-      console.error('Get popular courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get popular courses'
@@ -287,7 +278,7 @@ export class ClientCourseController {
         data: result
       });
     } catch (error: any) {
-      console.error('Get courses by instructor error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get courses by instructor'
@@ -308,7 +299,7 @@ export class ClientCourseController {
         data: courses
       });
     } catch (error: any) {
-      console.error('Get related courses error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get related courses'
@@ -336,7 +327,7 @@ export class ClientCourseController {
         data: progress
       });
     } catch (error: any) {
-      console.error('Get course progress error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to get course progress'
@@ -364,7 +355,7 @@ export class ClientCourseController {
         data: recommendations
       });
     } catch (error: any) {
-      console.error('Get course recommendations error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course recommendations'
@@ -382,7 +373,7 @@ export class ClientCourseController {
         data: filterOptions
       });
     } catch (error) {
-      console.error('Error getting filter options:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -401,7 +392,7 @@ export class ClientCourseController {
         data: tags
       });
     } catch (error) {
-      console.error('Error getting popular tags:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -451,7 +442,7 @@ export class ClientCourseController {
         data: lesson
       });
     } catch (error: any) {
-      console.error('Get lesson content error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get lesson content'
@@ -483,7 +474,7 @@ export class ClientCourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Error getting teacher course:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course'
@@ -521,7 +512,7 @@ export class ClientCourseController {
         pagination: result.pagination
       });
     } catch (error: any) {
-      console.error('Error getting teacher courses:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get teacher courses'
@@ -542,7 +533,7 @@ export class ClientCourseController {
         data: stats
       });
     } catch (error: any) {
-      console.error('Error getting course stats:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get course stats'
@@ -566,7 +557,7 @@ export class ClientCourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Error creating course:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to create course'
@@ -598,7 +589,7 @@ export class ClientCourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Error updating course:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to update course'
@@ -621,7 +612,7 @@ export class ClientCourseController {
         message: 'Course deleted successfully'
       });
     } catch (error: any) {
-      console.error('Error deleting course:', error);
+
       res.status(error.statusCode || 500).json({
         success: false,
         error: error.message || 'Failed to delete course'
@@ -653,7 +644,7 @@ export class ClientCourseController {
         data: course
       });
     } catch (error: any) {
-      console.error('Error updating course status:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to update course status'

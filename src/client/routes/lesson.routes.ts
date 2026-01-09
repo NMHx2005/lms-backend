@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { ClientLessonController } from '../controllers/lesson.controller';
+import { FileController } from '../controllers/file.controller';
 import { authenticate } from '../../shared/middleware/auth';
 import { validateRequest } from '../../shared/middleware/validation';
 import { clientLessonValidation } from '../validators/lesson.validator';
+import { multerInstances } from '../../shared/middleware/multer';
+import { requireTeacher } from '../../shared/middleware/auth';
 
 const router = Router();
 
@@ -14,6 +17,29 @@ router.post('/', ClientLessonController.createLesson);
 router.put('/:id', ClientLessonController.updateLesson);
 router.delete('/:id', ClientLessonController.deleteLesson);
 router.patch('/section/:sectionId/reorder', ClientLessonController.reorderLessons);
+
+// File routes - MUST be before /:id routes to avoid route conflicts
+router.post('/:id/files', 
+  requireTeacher,
+  validateRequest(clientLessonValidation.lessonId),
+  multerInstances.mixedFiles.array('files', 20),
+  FileController.uploadFiles as any
+);
+router.get('/:id/files', 
+  validateRequest(clientLessonValidation.lessonId),
+  FileController.getFiles as any
+);
+router.delete('/:id/files/:fileId', 
+  requireTeacher,
+  validateRequest(clientLessonValidation.lessonId),
+  FileController.deleteFile as any
+);
+
+// Quiz routes - MUST be before /:id routes to avoid route conflicts
+router.get('/:id/quiz/attempts', validateRequest(clientLessonValidation.lessonId), ClientLessonController.getQuizAttempts);
+router.post('/:id/quiz/attempts', validateRequest(clientLessonValidation.lessonId), ClientLessonController.submitQuizAttempt);
+router.get('/:id/quiz/settings', validateRequest(clientLessonValidation.lessonId), ClientLessonController.getQuizSettings);
+router.get('/:id/quiz/analytics', validateRequest(clientLessonValidation.lessonId), ClientLessonController.getQuizAnalytics);
 
 // Get lesson by ID (for enrolled students)
 router.get('/:id', validateRequest(clientLessonValidation.lessonId), ClientLessonController.getLessonById);

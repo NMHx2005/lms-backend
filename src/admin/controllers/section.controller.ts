@@ -14,7 +14,7 @@ export class SectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Create section error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to create section'
@@ -33,7 +33,7 @@ export class SectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Get section by ID error:', error);
+
       res.status(404).json({
         success: false,
         error: error.message || 'Section not found'
@@ -57,7 +57,7 @@ export class SectionController {
         data: sections
       });
     } catch (error: any) {
-      console.error('Get sections by course error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get sections'
@@ -79,7 +79,7 @@ export class SectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Update section error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to update section'
@@ -98,7 +98,7 @@ export class SectionController {
         message: result.message
       });
     } catch (error: any) {
-      console.error('Delete section error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to delete section'
@@ -127,7 +127,7 @@ export class SectionController {
         data: result
       });
     } catch (error: any) {
-      console.error('Reorder sections error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to reorder sections'
@@ -156,7 +156,7 @@ export class SectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Toggle section visibility error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to toggle section visibility'
@@ -175,7 +175,7 @@ export class SectionController {
         data: stats
       });
     } catch (error: any) {
-      console.error('Get section stats error:', error);
+
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get section statistics'
@@ -204,7 +204,7 @@ export class SectionController {
         data: result
       });
     } catch (error: any) {
-      console.error('Bulk update sections error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to bulk update sections'

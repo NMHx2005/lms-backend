@@ -49,7 +49,7 @@ export const getCategories = async (req: Request, res: Response) => {
       data: categories
     });
   } catch (error) {
-    console.error('Error fetching categories:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi tải danh mục',
@@ -81,7 +81,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
       data: category
     });
   } catch (error) {
-    console.error('Error fetching category:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi tải danh mục',
@@ -119,7 +119,7 @@ export const createCategory = async (req: Request, res: Response) => {
       message: 'Tạo danh mục thành công'
     });
   } catch (error) {
-    console.error('Error creating category:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi tạo danh mục',
@@ -172,7 +172,7 @@ export const updateCategory = async (req: Request, res: Response) => {
       message: 'Cập nhật danh mục thành công'
     });
   } catch (error) {
-    console.error('Error updating category:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi cập nhật danh mục',
@@ -210,7 +210,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
       message: 'Xóa danh mục thành công'
     });
   } catch (error) {
-    console.error('Error deleting category:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi xóa danh mục',
@@ -251,7 +251,7 @@ export const bulkDeleteCategories = async (req: Request, res: Response) => {
       message: `Đã xóa ${result.deletedCount} danh mục thành công`
     });
   } catch (error) {
-    console.error('Error bulk deleting categories:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi xóa danh mục',
@@ -282,7 +282,7 @@ export const toggleCategoryStatus = async (req: Request, res: Response) => {
       message: `Đã ${category.isActive ? 'kích hoạt' : 'vô hiệu hóa'} danh mục`
     });
   } catch (error) {
-    console.error('Error toggling category status:', error);
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi cập nhật trạng thái danh mục',

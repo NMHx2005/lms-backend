@@ -351,7 +351,7 @@ refundRequestSchema.methods.approve = async function (
       refundedAt: new Date()
     });
   } catch (error) {
-    console.error('Error updating bill status:', error);
+
   }
 
   // KICK USER FROM COURSE - Deactivate enrollment
@@ -374,7 +374,7 @@ refundRequestSchema.methods.approve = async function (
 
     console.log(`Student kicked from course - Enrollment ${(this as any).enrollmentId} deactivated`);
   } catch (error) {
-    console.error('Error deactivating enrollment:', error);
+
   }
 };
 

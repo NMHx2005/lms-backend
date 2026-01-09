@@ -24,7 +24,7 @@ export class MessageController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting messages:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -51,7 +51,7 @@ export class MessageController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting conversations:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -72,7 +72,7 @@ export class MessageController {
                 data: { count }
             });
         } catch (error) {
-            console.error('Error getting unread count:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -102,7 +102,7 @@ export class MessageController {
                 data: message
             });
         } catch (error) {
-            console.error('Error getting message:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -133,7 +133,7 @@ export class MessageController {
                 data: message
             });
         } catch (error) {
-            console.error('Error sending message:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -165,7 +165,7 @@ export class MessageController {
                 data: message
             });
         } catch (error) {
-            console.error('Error updating message:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -188,7 +188,7 @@ export class MessageController {
                 message: 'Message deleted successfully'
             });
         } catch (error) {
-            console.error('Error deleting message:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -212,7 +212,7 @@ export class MessageController {
                 data: message
             });
         } catch (error) {
-            console.error('Error marking message as read:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -236,7 +236,7 @@ export class MessageController {
                 data: message
             });
         } catch (error) {
-            console.error('Error archiving message:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -260,7 +260,7 @@ export class MessageController {
                 data: result
             });
         } catch (error) {
-            console.error('Error bulk marking as read:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -283,7 +283,7 @@ export class MessageController {
                 message: 'Typing indicator sent'
             });
         } catch (error) {
-            console.error('Error sending typing indicator:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'

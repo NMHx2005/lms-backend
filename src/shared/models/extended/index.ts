@@ -5,3 +5,8 @@ export { default as Notification, INotification } from './Notification';
 export { default as CourseCategory, ICourseCategory } from './CourseCategory';
 export { PackagePlan, type IPackagePlan, TeacherPackageSubscription, type ITeacherPackageSubscription } from './TeacherPackage';
 export { default as SystemSettings, type ISystemSettings } from './SystemSettings';
+export { VideoSubtitle, type IVideoSubtitle } from './VideoSubtitle';
+export { VideoNote, type IVideoNote } from './VideoNote';
+export { VideoProgress, type IVideoProgress } from './VideoProgress';
+export { VideoAnalytics, type IVideoAnalytics, type IWatchEvent } from './VideoAnalytics';
+export { VideoFile, type IVideoFile, type IVideoFormat } from './VideoFile';

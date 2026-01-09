@@ -162,7 +162,7 @@ export class CourseService {
     sort[sortBy] = sortOrder === COURSE_SORT_ORDERS.ASC ? 1 : -1;
 
     // Debug log
-    console.log('🔍 Course query filters:', filters);
+
     console.log('🔍 MongoDB query:', JSON.stringify(query, null, 2));
 
     // Execute query

@@ -25,7 +25,7 @@ export class AdminAnnouncementController {
         }
       });
     } catch (error: any) {
-      console.error('Test error:', error);
+
       res.status(500).json({
         success: false,
         error: error?.message || 'Unknown error'
@@ -84,7 +84,7 @@ export class AdminAnnouncementController {
         }
       });
     } catch (error: any) {
-      console.error('Error in getAnnouncements:', error);
+
       res.status(500).json({
         success: false,
         error: error?.message || 'Unknown error'

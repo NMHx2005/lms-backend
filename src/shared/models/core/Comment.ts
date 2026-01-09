@@ -10,7 +10,7 @@ export interface IComment {
   contentId: Types.ObjectId;
   parentId?: Types.ObjectId; // For nested comments
   rootId?: Types.ObjectId; // Top-level comment ID
-  
+
   // Moderation
   isApproved: boolean;
   isModerated: boolean;
@@ -18,13 +18,13 @@ export interface IComment {
   moderationReason?: string;
   moderatedBy?: Types.ObjectId;
   moderatedAt?: Date;
-  
+
   // Engagement
   likes: Types.ObjectId[];
   dislikes: Types.ObjectId[];
   helpfulVotes: number;
   totalVotes: number;
-  
+
   // Reporting
   reports: Array<{
     reporterId: Types.ObjectId;
@@ -33,7 +33,7 @@ export interface IComment {
     reportedAt: Date;
     status: 'pending' | 'resolved' | 'dismissed';
   }>;
-  
+
   // Metadata
   isEdited: boolean;
   editedAt?: Date;
@@ -42,15 +42,15 @@ export interface IComment {
     editedAt: Date;
     reason?: string;
   }>;
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Virtual properties
   replies?: IComment[];
   author?: any;
-  
+
   // Instance methods
   addLike(userId: Types.ObjectId): Promise<void>;
   removeLike(userId: Types.ObjectId): Promise<void>;
@@ -105,7 +105,7 @@ const commentSchema = new Schema<IComment>({
     ref: 'Comment',
     default: null
   },
-  
+
   // Moderation
   isApproved: {
     type: Boolean,
@@ -131,7 +131,7 @@ const commentSchema = new Schema<IComment>({
   moderatedAt: {
     type: Date
   },
-  
+
   // Engagement
   likes: [{
     type: Schema.Types.ObjectId,
@@ -149,7 +149,7 @@ const commentSchema = new Schema<IComment>({
     type: Number,
     default: 0
   },
-  
+
   // Reporting
   reports: [{
     reporterId: {
@@ -176,7 +176,7 @@ const commentSchema = new Schema<IComment>({
       default: 'pending'
     }
   }],
-  
+
   // Metadata
   isEdited: {
     type: Boolean,
@@ -199,7 +199,7 @@ const commentSchema = new Schema<IComment>({
       trim: true
     }
   }],
-  
+
   // Timestamps
   createdAt: {
     type: Date,
@@ -247,25 +247,36 @@ commentSchema.virtual('contentRef', {
 });
 
 // Pre-save middleware
-commentSchema.pre('save', function(next) {
+commentSchema.pre('save', function (next) {
   if (this.isNew) {
-    // Generate commentId
-    this.commentId = `cmt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Set rootId if this is a top-level comment
-    if (!this.parentId) {
-      this.rootId = this._id;
+    // Generate commentId only if not already set (fallback)
+    if (!this.commentId) {
+      this.commentId = `cmt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
+
+    // Note: rootId for top-level comments will be set in post-save hook
+    // because _id is not available in pre-save
   }
-  
+
   // Update totalVotes
-  this.totalVotes = this.likes.length + this.dislikes.length;
-  
+  this.totalVotes = (this.likes?.length || 0) + (this.dislikes?.length || 0);
+
   next();
 });
 
+// Post-save middleware to set rootId for top-level comments
+commentSchema.post('save', async function () {
+  // Set rootId if this is a top-level comment and rootId is not set
+  if (!this.parentId && !this.rootId && this._id) {
+    // Use this.constructor to get the model
+    const CommentModel = this.constructor as typeof mongoose.Model;
+    // Use updateOne to avoid triggering save hooks again
+    await CommentModel.updateOne({ _id: this._id }, { rootId: this._id });
+  }
+});
+
 // Instance methods
-commentSchema.methods.addLike = async function(userId: Types.ObjectId): Promise<void> {
+commentSchema.methods.addLike = async function (userId: Types.ObjectId): Promise<void> {
   if (this.likes.includes(userId)) {
     this.likes = this.likes.filter((id: Types.ObjectId) => !id.equals(userId));
   } else {
@@ -276,12 +287,12 @@ commentSchema.methods.addLike = async function(userId: Types.ObjectId): Promise<
   await this.save();
 };
 
-commentSchema.methods.removeLike = async function(userId: Types.ObjectId): Promise<void> {
+commentSchema.methods.removeLike = async function (userId: Types.ObjectId): Promise<void> {
   this.likes = this.likes.filter((id: Types.ObjectId) => !id.equals(userId));
   await this.save();
 };
 
-commentSchema.methods.addDislike = async function(userId: Types.ObjectId): Promise<void> {
+commentSchema.methods.addDislike = async function (userId: Types.ObjectId): Promise<void> {
   if (this.dislikes.includes(userId)) {
     this.dislikes = this.dislikes.filter((id: Types.ObjectId) => !id.equals(userId));
   } else {
@@ -292,21 +303,21 @@ commentSchema.methods.addDislike = async function(userId: Types.ObjectId): Promi
   await this.save();
 };
 
-commentSchema.methods.removeDislike = async function(userId: Types.ObjectId): Promise<void> {
+commentSchema.methods.removeDislike = async function (userId: Types.ObjectId): Promise<void> {
   this.dislikes = this.dislikes.filter((id: Types.ObjectId) => !id.equals(userId));
   await this.save();
 };
 
-commentSchema.methods.addReport = async function(
-  reporterId: Types.ObjectId, 
-  reason: string, 
+commentSchema.methods.addReport = async function (
+  reporterId: Types.ObjectId,
+  reason: string,
   description?: string
 ): Promise<void> {
   // Check if user already reported
-  const existingReport = this.reports.find((report: any) => 
+  const existingReport = this.reports.find((report: any) =>
     report.reporterId.equals(reporterId) && report.status === 'pending'
   );
-  
+
   if (!existingReport) {
     this.reports.push({
       reporterId,
@@ -315,65 +326,65 @@ commentSchema.methods.addReport = async function(
       reportedAt: new Date(),
       status: 'pending'
     });
-    
+
     // Auto-flag if multiple reports
     if (this.reports.filter((r: any) => r.status === 'pending').length >= 3) {
       this.moderationStatus = 'flagged';
       this.isModerated = true;
     }
-    
+
     await this.save();
   }
 };
 
-commentSchema.methods.markAsHelpful = async function(userId: Types.ObjectId): Promise<void> {
+commentSchema.methods.markAsHelpful = async function (userId: Types.ObjectId): Promise<void> {
   this.helpfulVotes += 1;
   await this.save();
 };
 
-commentSchema.methods.editContent = async function(newContent: string, reason?: string): Promise<void> {
+commentSchema.methods.editContent = async function (newContent: string, reason?: string): Promise<void> {
   // Save current content to history
   this.editHistory.push({
     content: this.content,
     editedAt: new Date(),
     reason
   });
-  
+
   // Update content
   this.content = newContent;
   this.isEdited = true;
   this.editedAt = new Date();
-  
+
   await this.save();
 };
 
-commentSchema.methods.approve = async function(moderatorId: Types.ObjectId, reason?: string): Promise<void> {
+commentSchema.methods.approve = async function (moderatorId: Types.ObjectId, reason?: string): Promise<void> {
   this.moderationStatus = 'approved';
   this.isModerated = true;
   this.moderatedBy = moderatorId;
   this.moderatedAt = new Date();
   this.moderationReason = reason;
-  
+
   await this.save();
 };
 
-commentSchema.methods.reject = async function(moderatorId: Types.ObjectId, reason: string): Promise<void> {
+commentSchema.methods.reject = async function (moderatorId: Types.ObjectId, reason: string): Promise<void> {
   this.moderationStatus = 'rejected';
   this.isModerated = true;
   this.moderatedBy = moderatorId;
   this.moderatedAt = new Date();
   this.moderationReason = reason;
-  
+
   await this.save();
 };
 
-commentSchema.methods.flag = async function(moderatorId: Types.ObjectId, reason: string): Promise<void> {
+commentSchema.methods.flag = async function (moderatorId: Types.ObjectId, reason: string): Promise<void> {
   this.moderationStatus = 'flagged';
   this.isModerated = true;
   this.moderatedBy = moderatorId;
   this.moderatedAt = new Date();
   this.moderationReason = reason;
-  
+
   await this.save();
 };
 

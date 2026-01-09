@@ -215,7 +215,7 @@ export class CloudinaryService {
         await Promise.allSettled(batchPromises);
       } catch (error) {
         // Continue with next batch even if current batch fails
-        console.error(`Batch upload failed:`, error);
+
       }
     }
 

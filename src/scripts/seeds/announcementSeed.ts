@@ -88,11 +88,9 @@ const announcementSeedData = [
 
 export const seedAnnouncementData = async () => {
     try {
-        console.log('🌱 Bắt đầu seeding announcement data...');
 
         // Connect to MongoDB
         await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/lms');
-        console.log('✅ Đã kết nối MongoDB');
 
         // Get admin user for createdBy
         const adminUser = await User.findOne({ role: 'admin' });
@@ -102,7 +100,6 @@ export const seedAnnouncementData = async () => {
 
         // Clear existing announcements
         await Announcement.deleteMany({});
-        console.log('🧹 Đã xóa announcements cũ');
 
         // Create announcements with admin as creator
         const announcementsWithCreator = announcementSeedData.map(announcement => ({
@@ -115,13 +112,11 @@ export const seedAnnouncementData = async () => {
         }));
 
         const createdAnnouncements = await Announcement.insertMany(announcementsWithCreator);
-        console.log(`✅ Đã tạo ${createdAnnouncements.length} announcements`);
 
-        console.log('🎉 Seeding announcements hoàn thành!');
 
         await mongoose.connection.close();
     } catch (error) {
-        console.error('❌ Lỗi seeding announcements:', error);
+
         throw error;
     }
 };
@@ -130,11 +125,11 @@ export const seedAnnouncementData = async () => {
 if (require.main === module) {
     seedAnnouncementData()
         .then(() => {
-            console.log('✅ Seeding hoàn thành');
+
             process.exit(0);
         })
         .catch((error) => {
-            console.error('❌ Seeding thất bại:', error);
+
             process.exit(1);
         });
 }

@@ -191,7 +191,6 @@ export class ClientWishlistService {
                 totalPages: Math.ceil(total / limit)
             };
         } catch (error) {
-            console.error('Error getting user wishlist:', error);
             return {
                 success: false,
                 message: 'Failed to get wishlist',
@@ -236,7 +235,6 @@ export class ClientWishlistService {
                 data: wishlistItem
             };
         } catch (error) {
-            console.error('Error adding to wishlist:', error);
             return {
                 success: false,
                 message: 'Failed to add course to wishlist',
@@ -265,7 +263,6 @@ export class ClientWishlistService {
                 message: 'Course removed from wishlist successfully'
             };
         } catch (error) {
-            console.error('Error removing from wishlist:', error);
             return {
                 success: false,
                 message: 'Failed to remove course from wishlist',
@@ -299,7 +296,6 @@ export class ClientWishlistService {
                 data: result
             };
         } catch (error) {
-            console.error('Error updating wishlist item:', error);
             return {
                 success: false,
                 message: 'Failed to update wishlist item',
@@ -321,7 +317,6 @@ export class ClientWishlistService {
                 }
             };
         } catch (error) {
-            console.error('Error checking wishlist status:', error);
             return {
                 success: false,
                 message: 'Failed to check wishlist status',
@@ -340,7 +335,6 @@ export class ClientWishlistService {
                 message: `Cleared ${result.deletedCount} items from wishlist`
             };
         } catch (error) {
-            console.error('Error clearing wishlist:', error);
             return {
                 success: false,
                 message: 'Failed to clear wishlist',
@@ -370,7 +364,6 @@ export class ClientWishlistService {
                 message: 'Course moved to cart successfully'
             };
         } catch (error) {
-            console.error('Error moving to cart:', error);
             return {
                 success: false,
                 message: 'Failed to move course to cart',
@@ -444,7 +437,6 @@ export class ClientWishlistService {
                 }
             };
         } catch (error) {
-            console.error('Error getting wishlist stats:', error);
             return {
                 success: false,
                 message: 'Failed to get wishlist statistics',
@@ -481,7 +473,6 @@ export class ClientWishlistService {
 
             return 0;
         } catch (error) {
-            console.error('Error cleaning up deleted courses from wishlist:', error);
             return 0;
         }
     }

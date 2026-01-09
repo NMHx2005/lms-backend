@@ -105,7 +105,6 @@ export class UserService {
     // Send reset email (commented out for now)
     // const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     // await EmailService.sendPasswordResetEmail(user.email, resetUrl);
-    console.log(`Password reset email would be sent to ${user.email} with token: ${resetToken}`);
   }
 
   /**
@@ -177,7 +176,6 @@ export class UserService {
     // Send verification email (commented out for now)
     // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     // await EmailService.sendEmailVerification(user.email, verificationUrl);
-    console.log(`Email verification would be sent to ${user.email} with token: ${verificationToken}`);
   }
 
   /**

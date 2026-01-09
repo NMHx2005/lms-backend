@@ -110,7 +110,7 @@ class GoogleOAuthService {
 
       done(null, user);
     } catch (error) {
-      console.error('Google OAuth Error:', error);
+
       done(error, false);
     }
   }
@@ -172,7 +172,7 @@ class GoogleOAuthService {
       return await this.createNewGoogleUser(userData);
 
     } catch (error) {
-      console.error('Error in findOrCreateUser:', error);
+
       throw error;
     }
   }
@@ -404,7 +404,7 @@ class GoogleOAuthService {
 
       return true;
     } catch (error) {
-      console.error('Error revoking Google tokens:', error);
+
       return false;
     }
   }
@@ -447,7 +447,7 @@ class GoogleOAuthService {
 
       return data.access_token;
     } catch (error) {
-      console.error('Error refreshing Google token:', error);
+
       return null;
     }
   }
@@ -486,7 +486,7 @@ class GoogleOAuthService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error getting Google profile:', error);
+
       return null;
     }
   }

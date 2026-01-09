@@ -56,7 +56,7 @@ export class OpenAIService {
       apiKey: apiKey
     });
     this.isInitialized = true;
-    console.log('✅ OpenAI service initialized successfully');
+
   }
 
   async evaluateCourse(courseId: string): Promise<CourseEvaluationResult> {
@@ -117,18 +117,17 @@ Return response in this exact JSON format:
       try {
         evaluation = JSON.parse(aiResponse);
       } catch (parseError) {
-        console.error('Failed to parse AI response:', aiResponse);
+
         throw new Error('Invalid AI response format');
       }
 
       // Validate and normalize scores
       evaluation = this.validateEvaluation(evaluation);
-      
-      console.log(`✅ AI evaluation completed for course ${courseId} with overall score: ${evaluation.overallScore}`);
+
       return evaluation;
 
     } catch (error: any) {
-      console.error('❌ OpenAI evaluation error:', error);
+
       throw new Error(`AI evaluation failed: ${error.message}`);
     }
   }
@@ -187,7 +186,7 @@ Return response in this exact JSON format:
         }))
       };
     } catch (error) {
-      console.error('Error gathering course data:', error);
+
       throw error;
     }
   }
@@ -292,7 +291,7 @@ Please evaluate this course comprehensively and provide detailed feedback in the
       
       return response.choices[0]?.message?.content?.includes('OK') || false;
     } catch (error) {
-      console.error('❌ OpenAI connection test failed:', error);
+
       return false;
     }
   }

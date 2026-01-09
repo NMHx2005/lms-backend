@@ -328,8 +328,7 @@ export const applySecurityMiddleware = (app: any) => {
   // Request size and timeout middleware
   app.use(requestSizeLimitMiddleware);
   app.use(requestTimeoutMiddleware);
-  
-  console.log('✅ Security middleware applied successfully');
+
 };
 
 export default applySecurityMiddleware;

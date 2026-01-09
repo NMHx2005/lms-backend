@@ -28,7 +28,7 @@ export class BackupController {
                 pagination: result.pagination
             });
         } catch (error: any) {
-            console.error('Error in getBackups:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to retrieve backups'
@@ -58,7 +58,7 @@ export class BackupController {
                 data: backup
             });
         } catch (error: any) {
-            console.error('Error in createBackup:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to create backup'
@@ -89,7 +89,7 @@ export class BackupController {
                 data: backup
             });
         } catch (error: any) {
-            console.error('Error in getBackupById:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to retrieve backup'
@@ -112,7 +112,7 @@ export class BackupController {
                 message: 'Backup deleted successfully'
             });
         } catch (error: any) {
-            console.error('Error in deleteBackup:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to delete backup'
@@ -141,7 +141,7 @@ export class BackupController {
                 data: restoreJob
             });
         } catch (error: any) {
-            console.error('Error in restoreBackup:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to create restore job'
@@ -172,7 +172,7 @@ export class BackupController {
                 pagination: result.pagination
             });
         } catch (error: any) {
-            console.error('Error in getRestoreJobs:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to retrieve restore jobs'
@@ -203,7 +203,7 @@ export class BackupController {
                 data: restoreJob
             });
         } catch (error: any) {
-            console.error('Error in getRestoreJobById:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to retrieve restore job'
@@ -226,7 +226,7 @@ export class BackupController {
                 message: 'Restore job cancelled successfully'
             });
         } catch (error: any) {
-            console.error('Error in cancelRestoreJob:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to cancel restore job'
@@ -257,7 +257,7 @@ export class BackupController {
                 pagination: result.pagination
             });
         } catch (error: any) {
-            console.error('Error in getBackupSchedules:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to retrieve backup schedules'
@@ -288,7 +288,7 @@ export class BackupController {
                 data: schedule
             });
         } catch (error: any) {
-            console.error('Error in createBackupSchedule:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to create backup schedule'
@@ -313,7 +313,7 @@ export class BackupController {
                 data: schedule
             });
         } catch (error: any) {
-            console.error('Error in updateBackupSchedule:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to update backup schedule'
@@ -336,7 +336,7 @@ export class BackupController {
                 message: 'Backup schedule deleted successfully'
             });
         } catch (error: any) {
-            console.error('Error in deleteBackupSchedule:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to delete backup schedule'
@@ -360,7 +360,7 @@ export class BackupController {
                 data: backup
             });
         } catch (error: any) {
-            console.error('Error in runBackupSchedule:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to run backup schedule'
@@ -382,7 +382,7 @@ export class BackupController {
                 data: settings
             });
         } catch (error: any) {
-            console.error('Error in getBackupSettings:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to retrieve backup settings'
@@ -406,7 +406,7 @@ export class BackupController {
                 data: settings
             });
         } catch (error: any) {
-            console.error('Error in updateBackupSettings:', error);
+
             res.status(500).json({
                 success: false,
                 error: error?.message || 'Failed to update backup settings'

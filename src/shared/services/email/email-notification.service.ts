@@ -21,7 +21,7 @@ export class EmailNotificationService {
     try {
       const user = await User.findById(userId);
       if (!user || !user.email) {
-        console.error('User not found or no email provided');
+
         return false;
       }
 
@@ -45,7 +45,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending welcome email:', error);
+
       return false;
     }
   }
@@ -59,7 +59,7 @@ export class EmailNotificationService {
       ]);
 
       if (!user || !course || !user.email) {
-        console.error('User or course not found');
+
         return false;
       }
 
@@ -87,7 +87,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending course enrollment email:', error);
+
       return false;
     }
   }
@@ -101,7 +101,7 @@ export class EmailNotificationService {
       ]);
 
       if (!user || !assignment || !user.email) {
-        console.error('User or assignment not found');
+
         return false;
       }
 
@@ -129,7 +129,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending assignment due reminder:', error);
+
       return false;
     }
   }
@@ -143,7 +143,7 @@ export class EmailNotificationService {
       ]);
 
       if (!user || !assignment || !user.email) {
-        console.error('User or assignment not found');
+
         return false;
       }
 
@@ -172,7 +172,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending grade available email:', error);
+
       return false;
     }
   }
@@ -187,7 +187,7 @@ export class EmailNotificationService {
     try {
       const user = await User.findById(userId);
       if (!user || !user.email) {
-        console.error('User not found or no email provided');
+
         return false;
       }
 
@@ -215,7 +215,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending payment confirmation email:', error);
+
       return false;
     }
   }
@@ -229,7 +229,7 @@ export class EmailNotificationService {
       ]);
 
       if (!user || !course || !user.email) {
-        console.error('User or course not found');
+
         return false;
       }
 
@@ -257,7 +257,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending course completion email:', error);
+
       return false;
     }
   }
@@ -267,7 +267,7 @@ export class EmailNotificationService {
     try {
       const user = await User.findOne({ email });
       if (!user) {
-        console.error('User not found for password reset');
+
         return false;
       }
 
@@ -294,7 +294,7 @@ export class EmailNotificationService {
 
       return await sendGridService.sendEmail(emailData);
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+
       return false;
     }
   }
@@ -334,7 +334,7 @@ export class EmailNotificationService {
 
       return { success, failed };
     } catch (error) {
-      console.error('Error sending bulk emails:', error);
+
       return { success: 0, failed: userIds.length };
     }
   }
@@ -379,7 +379,7 @@ export class EmailNotificationService {
           return notifications.email !== false;
       }
     } catch (error) {
-      console.error('Error checking email preferences:', error);
+
       return true; // Default to allow on error
     }
   }

@@ -10,13 +10,6 @@ export class ClientSectionController {
       const user = (req as any).user;
       const userId = user?._id || user?.id;
 
-      console.log('🔍 getSectionsByCourse - Auth check:', {
-        hasUser: !!user,
-        userId,
-        userRoles: user?.roles,
-        courseId
-      });
-
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -32,7 +25,6 @@ export class ClientSectionController {
         data: sections
       });
     } catch (error: any) {
-      console.error('Get sections by course error:', error);
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get sections'
@@ -61,7 +53,6 @@ export class ClientSectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Get section by ID error:', error);
       res.status(404).json({
         success: false,
         error: error.message || 'Section not found'
@@ -89,7 +80,7 @@ export class ClientSectionController {
         data: progress
       });
     } catch (error: any) {
-      console.error('Get section progress error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to get section progress'
@@ -117,7 +108,6 @@ export class ClientSectionController {
         data: nextSection
       });
     } catch (error: any) {
-      console.error('Get next section error:', error);
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to get next section'
@@ -145,7 +135,7 @@ export class ClientSectionController {
         data: previousSection
       });
     } catch (error: any) {
-      console.error('Get previous section error:', error);
+
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to get previous section'
@@ -173,7 +163,6 @@ export class ClientSectionController {
         data: overview
       });
     } catch (error: any) {
-      console.error('Get section overview error:', error);
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get section overview'
@@ -203,7 +192,7 @@ export class ClientSectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Create section error:', error);
+
       res.status(error.message.includes('permission') ? 403 : 500).json({
         success: false,
         error: error.message || 'Failed to create section'
@@ -232,7 +221,6 @@ export class ClientSectionController {
         data: section
       });
     } catch (error: any) {
-      console.error('Update section error:', error);
       res.status(error.message.includes('permission') ? 403 : 500).json({
         success: false,
         error: error.message || 'Failed to update section'
@@ -260,7 +248,7 @@ export class ClientSectionController {
         message: 'Section deleted successfully'
       });
     } catch (error: any) {
-      console.error('Delete section error:', error);
+
       res.status(error.message.includes('permission') ? 403 : 500).json({
         success: false,
         error: error.message || 'Failed to delete section'
@@ -289,7 +277,6 @@ export class ClientSectionController {
         data: updatedSections
       });
     } catch (error: any) {
-      console.error('Reorder sections error:', error);
       res.status(error.message.includes('permission') ? 403 : 500).json({
         success: false,
         error: error.message || 'Failed to reorder sections'
@@ -304,10 +291,6 @@ export class ClientSectionController {
     try {
       const { courseId } = req.params;
 
-      console.log('🔍 getSectionsForPreview - Public preview:', {
-        courseId
-      });
-
       const sections = await ClientSectionService.getSectionsForPreview(courseId);
 
       res.json({
@@ -316,7 +299,6 @@ export class ClientSectionController {
         message: 'Course preview - Enroll to access full content'
       });
     } catch (error: any) {
-      console.error('Get sections for preview error:', error);
       res.status(error.message.includes('not found') ? 404 : 400).json({
         success: false,
         error: error.message || 'Failed to get course preview'

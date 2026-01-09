@@ -69,7 +69,6 @@ export class SystemDataService {
      */
     static async getSystemData(): Promise<SystemData> {
         try {
-            console.log('🔍 Loading comprehensive system data for AI...');
 
             // Load all data in parallel for better performance
             const [
@@ -94,10 +93,9 @@ export class SystemDataService {
                 support: supportData
             };
 
-            console.log('✅ System data loaded successfully');
             return systemData;
         } catch (error) {
-            console.error('❌ Error loading system data:', error);
+
             return this.getDefaultSystemData();
         }
     }
@@ -157,7 +155,7 @@ export class SystemDataService {
                 }
             };
         } catch (error) {
-            console.error('Error loading courses data:', error);
+
             return {
                 total: 0,
                 published: 0,
@@ -190,7 +188,7 @@ export class SystemDataService {
                 active
             };
         } catch (error) {
-            console.error('Error loading users data:', error);
+
             return {
                 total: 0,
                 students: 0,
@@ -248,7 +246,7 @@ export class SystemDataService {
                 topInstructors: [] // Will be populated from actual data
             };
         } catch (error) {
-            console.error('Error loading analytics data:', error);
+
             return {
                 totalEnrollments: 0,
                 completionRate: 0,

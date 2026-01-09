@@ -1,7 +1,18 @@
 import express from 'express';
 import { Bill, Course, User } from '../../shared/models';
+import { buildVnpayPaymentUrl, verifyVnpSignature } from '../../shared/services/payments/vnpay.service';
 
 const router = express.Router();
+
+// Helper function to get client IP address
+const getClientIp = (req: any): string => {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip'] ||
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.ip ||
+    '127.0.0.1';
+};
 
 // Get user payment history
 router.get('/history', async (req: any, res) => {
@@ -203,15 +214,20 @@ router.post('/vnpay-real/:courseId', async (req: any, res) => {
 
     await bill.save();
 
-    // Generate REAL VNPay URL
-    const paymentUrl = generateVNPayPaymentUrl({
+    // Generate REAL VNPay URL using shared service
+    const clientIp = getClientIp(req);
+    const ipnUrl = process.env.VNPAY_IPN_URL || `${process.env.BACKEND_URL || 'https://lms-backend-cf11.onrender.com'}/api/client/payments/vnpay/ipn`;
+
+    const paymentUrl = buildVnpayPaymentUrl({
       orderId: vnpayOrderId,
       amount: bill.amount,
-      courseTitle: courseTitle || course.title,
-      returnUrl,
-      cancelUrl,
-      userEmail: user.email,
-      userName: (user.firstName || user.lastName) ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer'
+      orderInfo: `Thanh toan khoa hoc: ${courseTitle || course.title}`,
+      ipAddr: clientIp,
+      returnUrl: returnUrl,
+      ipnUrl: ipnUrl,
+      email: user.email,
+      name: (user.firstName || user.lastName) ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer',
+      expireMinutes: 15
     });
 
     res.json({
@@ -225,7 +241,6 @@ router.post('/vnpay-real/:courseId', async (req: any, res) => {
       }
     });
   } catch (error) {
-    console.error('VNPay payment creation error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -387,7 +402,6 @@ router.post('/vnpay/:courseId', async (req: any, res) => {
           }
         });
       } catch (error) {
-        console.error('Mock payment error:', error);
         return res.status(500).json({
           success: false,
           error: 'Failed to process mock payment'
@@ -395,15 +409,20 @@ router.post('/vnpay/:courseId', async (req: any, res) => {
       }
     }
 
-    // Real VNPay payment (if mock is disabled)
-    const paymentUrl = generateVNPayPaymentUrl({
+    // Real VNPay payment (if mock is disabled) - using shared service
+    const clientIp = getClientIp(req);
+    const ipnUrl = process.env.VNPAY_IPN_URL || `${process.env.BACKEND_URL || 'https://lms-backend-cf11.onrender.com'}/api/client/payments/vnpay/ipn`;
+
+    const paymentUrl = buildVnpayPaymentUrl({
       orderId: vnpayOrderId,
       amount: bill.amount,
-      courseTitle: courseTitle || course.title,
-      returnUrl,
-      cancelUrl,
-      userEmail: user.email,
-      userName: (user.firstName || user.lastName) ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer'
+      orderInfo: `Thanh toan khoa hoc: ${courseTitle || course.title}`,
+      ipAddr: clientIp,
+      returnUrl: returnUrl,
+      ipnUrl: ipnUrl,
+      email: user.email,
+      name: (user.firstName || user.lastName) ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer',
+      expireMinutes: 15
     });
 
     res.json({
@@ -417,7 +436,6 @@ router.post('/vnpay/:courseId', async (req: any, res) => {
       }
     });
   } catch (error) {
-    console.error('VNPay payment creation error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -436,7 +454,6 @@ async function processMockIPN(orderId: string, amount: number, responseCode: str
     });
 
     if (!bill) {
-      console.error(`Mock IPN - Bill not found for order: ${orderId}`);
       return;
     }
 
@@ -510,98 +527,16 @@ async function processMockIPN(orderId: string, amount: number, responseCode: str
           console.log(`Mock IPN - User already enrolled in course: ${bill.courseId}`);
         }
       } catch (enrollmentError) {
-        console.error('Mock IPN - Error creating enrollment:', enrollmentError);
+
       }
     }
 
     console.log(`Mock IPN processed successfully for order: ${orderId}`);
   } catch (error) {
-    console.error('Mock IPN processing error:', error);
   }
 }
 
-// Helper function to generate VNPay payment URL
-function generateVNPayPaymentUrl(params: {
-  orderId: string;
-  amount: number;
-  courseTitle: string;
-  returnUrl: string;
-  cancelUrl: string;
-  userEmail: string;
-  userName: string;
-}) {
-  const baseUrl = process.env.VNPAY_PAYMENT_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-  const tmnCode = process.env.VNPAY_TMN_CODE || 'V0M3ZTRW';
-  const hashSecret = process.env.VNPAY_HASH_SECRET || 'UEYCKX1ZQ2SXSCPY7KGKC04XQWAWOT15';
-
-  // Create payment URL with required VNPay parameters
-  const url = new URL(baseUrl);
-
-  // Required parameters
-  url.searchParams.set('vnp_Version', '2.1.0');
-  url.searchParams.set('vnp_Command', 'pay');
-  url.searchParams.set('vnp_TmnCode', tmnCode);
-  url.searchParams.set('vnp_Amount', (params.amount * 100).toString()); // Convert to smallest currency unit
-  url.searchParams.set('vnp_CurrCode', 'VND');
-  url.searchParams.set('vnp_TxnRef', params.orderId);
-  url.searchParams.set('vnp_OrderInfo', `Thanh toan khoa hoc: ${params.courseTitle}`);
-  url.searchParams.set('vnp_OrderType', 'other');
-  url.searchParams.set('vnp_Locale', 'vn');
-  url.searchParams.set('vnp_ReturnUrl', params.returnUrl);
-  url.searchParams.set('vnp_IpnUrl', process.env.VNPAY_IPN_URL || 'https://lms-backend-cf11.onrender.com/api/client/payments/vnpay/ipn');
-
-  // Add user information for VNPay email notifications (optional)
-  // Only add if email is valid to avoid SMTP errors
-  if (params.userEmail && params.userEmail.includes('@') && params.userEmail.includes('.')) {
-    url.searchParams.set('vnp_Email', params.userEmail);
-    url.searchParams.set('vnp_Name', params.userName);
-  }
-
-  // Add timestamp (VNPay format: YYYYMMDDHHmmss)
-  const date = new Date();
-  const createDate =
-    date.getFullYear().toString() +
-    ('0' + (date.getMonth() + 1)).slice(-2) +
-    ('0' + date.getDate()).slice(-2) +
-    ('0' + date.getHours()).slice(-2) +
-    ('0' + date.getMinutes()).slice(-2) +
-    ('0' + date.getSeconds()).slice(-2);
-  url.searchParams.set('vnp_CreateDate', createDate);
-
-  // Add expire time (15 minutes from now) - VNPay format: YYYYMMDDHHmmss
-  const expireDate = new Date(date.getTime() + 15 * 60 * 1000);
-  const expireDateStr =
-    expireDate.getFullYear().toString() +
-    ('0' + (expireDate.getMonth() + 1)).slice(-2) +
-    ('0' + expireDate.getDate()).slice(-2) +
-    ('0' + expireDate.getHours()).slice(-2) +
-    ('0' + expireDate.getMinutes()).slice(-2) +
-    ('0' + expireDate.getSeconds()).slice(-2);
-  url.searchParams.set('vnp_ExpireDate', expireDateStr);
-
-  // Generate checksum hash - VNPay requires sorted params
-  const crypto = require('crypto');
-
-  // Get all params and sort alphabetically
-  const sortedParams: string[] = [];
-  url.searchParams.forEach((value, key) => {
-    sortedParams.push(`${key}=${value}`);
-  });
-  sortedParams.sort();
-
-  // Create hash data string
-  const hashData = sortedParams.join('&');
-
-  // Generate HMAC SHA512 hash
-  const hmac = crypto.createHmac('sha512', hashSecret);
-  hmac.update(Buffer.from(hashData, 'utf-8'));
-  const vnp_SecureHash = hmac.digest('hex');
-
-  // Add secure hash to URL
-  url.searchParams.set('vnp_SecureHash', vnp_SecureHash);
-
-  return url.toString();
-}
+// Removed duplicate generateVNPayPaymentUrl function - now using shared buildVnpayPaymentUrl service
 
 // Process payment callback
 router.post('/callback', async (req: any, res) => {
@@ -674,124 +609,8 @@ router.get('/vnpay/test-ipn', async (req: any, res) => {
   }
 });
 
-// VNPay IPN callback
-router.post('/vnpay/ipn', async (req: any, res) => {
-  try {
-    const vnpParams = req.body;
-    console.log('VNPay IPN received:', vnpParams);
-
-    // Extract VNPay parameters
-    const orderId = vnpParams.vnp_TxnRef;
-    const amount = parseInt(vnpParams.vnp_Amount) / 100; // Convert from smallest currency unit
-    const responseCode = vnpParams.vnp_ResponseCode;
-    const transactionId = vnpParams.vnp_TransactionNo;
-    const bankCode = vnpParams.vnp_BankCode;
-    const secureHash = vnpParams.vnp_SecureHash;
-
-    // Verify response code
-    const isSuccess = responseCode === '00';
-    const status = isSuccess ? 'completed' : 'failed';
-
-    console.log(`VNPay IPN - Order: ${orderId}, Amount: ${amount}, Response: ${responseCode}, Status: ${status}`);
-
-    // Find bill by orderId
-    const bill = await Bill.findOne({
-      'metadata.vnpayOrderId': orderId
-    });
-
-    if (!bill) {
-      console.error(`VNPay IPN - Bill not found for order: ${orderId}`);
-      return res.status(404).json({
-        success: false,
-        error: 'Bill not found'
-      });
-    }
-
-    // Update bill status
-    bill.status = status;
-    bill.transactionId = transactionId;
-    if (isSuccess) {
-      bill.paidAt = new Date();
-      bill.metadata = {
-        ...bill.metadata,
-        vnpBankCode: bankCode,
-        vnpTransactionNo: transactionId,
-        vnpResponseCode: responseCode
-      };
-    }
-
-    await bill.save();
-    console.log(`VNPay IPN - Bill ${bill._id} updated to status: ${status}`);
-
-    // If payment successful, create enrollment
-    if (isSuccess && bill.courseId) {
-      try {
-        // Import Enrollment model
-        const { Enrollment } = require('../../shared/models');
-
-        // Check if already enrolled
-        const existingEnrollment = await Enrollment.findOne({
-          studentId: bill.studentId,
-          courseId: bill.courseId
-        });
-
-        if (!existingEnrollment) {
-          // Get course to get instructorId
-          const course = await Course.findById(bill.courseId);
-
-          // Create enrollment
-          const enrollment = new Enrollment({
-            studentId: bill.studentId,
-            courseId: bill.courseId,
-            instructorId: course?.instructorId,
-            enrolledAt: new Date(),
-            progress: 0,
-            isActive: true,
-            paymentStatus: 'completed',
-            paymentMethod: 'vnpay',
-            paymentDetails: {
-              billId: bill._id,
-              transactionId: transactionId,
-              amount: amount,
-              currency: 'VND',
-              paymentGateway: 'vnpay'
-            }
-          });
-
-          await enrollment.save();
-          console.log(`VNPay IPN - Enrollment created: ${enrollment._id}`);
-
-          // Update course stats
-          await Course.findByIdAndUpdate(bill.courseId, {
-            $inc: { totalStudents: 1 }
-          });
-
-          // Update user stats
-          await User.findByIdAndUpdate(bill.studentId, {
-            $inc: { 'stats.totalCoursesEnrolled': 1 }
-          });
-        } else {
-          console.log(`VNPay IPN - User already enrolled in course: ${bill.courseId}`);
-        }
-      } catch (enrollmentError) {
-        console.error('VNPay IPN - Error creating enrollment:', enrollmentError);
-      }
-    }
-
-    // Return success to VNPay (required)
-    res.json({
-      RspCode: '00',
-      Message: 'Confirmed'
-    });
-
-  } catch (error) {
-    console.error('VNPay IPN error:', error);
-    res.status(500).json({
-      RspCode: '99',
-      Message: 'Unknown error'
-    });
-  }
-});
+// NOTE: VNPay IPN callback has been moved to index.route.ts as public route (no authentication)
+// This allows VNPay server to call the endpoint without authentication token
 
 // Mock VNPay IPN for testing
 router.post('/vnpay/mock-ipn', async (req: any, res) => {
@@ -806,7 +625,6 @@ router.post('/vnpay/mock-ipn', async (req: any, res) => {
     });
 
     if (!bill) {
-      console.error(`Mock VNPay IPN - Bill not found for order: ${orderId}`);
       return res.status(404).json({
         success: false,
         error: 'Bill not found'
@@ -883,7 +701,7 @@ router.post('/vnpay/mock-ipn', async (req: any, res) => {
           console.log(`Mock VNPay IPN - User already enrolled in course: ${bill.courseId}`);
         }
       } catch (enrollmentError) {
-        console.error('Mock VNPay IPN - Error creating enrollment:', enrollmentError);
+
       }
     }
 
@@ -899,7 +717,6 @@ router.post('/vnpay/mock-ipn', async (req: any, res) => {
     });
 
   } catch (error) {
-    console.error('Mock VNPay IPN error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -907,46 +724,8 @@ router.post('/vnpay/mock-ipn', async (req: any, res) => {
   }
 });
 
-// VNPay return URL (user redirect after payment)
-router.get('/vnpay/return', async (req: any, res) => {
-  try {
-    const vnpParams = req.query;
-
-    console.log('VNPay return URL called with params:', vnpParams);
-
-    const orderId = vnpParams.vnp_TxnRef;
-    const responseCode = vnpParams.vnp_ResponseCode;
-    const amount = vnpParams.vnp_Amount / 100;
-    const transactionId = vnpParams.vnp_TransactionNo;
-    const bankCode = vnpParams.vnp_BankCode;
-
-    // Find bill by orderId
-    const bill = await Bill.findOne({
-      'metadata.vnpayOrderId': orderId
-    });
-
-    if (!bill) {
-      // Redirect to frontend with error
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      return res.redirect(`${frontendUrl}/payment/result?error=order_not_found`);
-    }
-
-    // Redirect to frontend with payment result
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const redirectUrl = new URL('/payment/result', frontendUrl);
-
-    // Add all VNPay parameters to redirect URL
-    Object.keys(vnpParams).forEach(key => {
-      redirectUrl.searchParams.set(key, vnpParams[key]);
-    });
-
-    res.redirect(redirectUrl.toString());
-  } catch (error) {
-    console.error('VNPay return URL error:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/payment/result?error=internal_error`);
-  }
-});
+// NOTE: VNPay return URL has been moved to index.route.ts as public route (no authentication)
+// This allows VNPay to redirect users after payment without requiring authentication
 
 // Request refund
 router.post('/refund', async (req: any, res) => {
@@ -1097,15 +876,20 @@ router.post('/bills/:id/retry', async (req: any, res) => {
     // Get user information
     const user = await User.findById(req.user.id);
 
-    // Generate payment URL
-    const paymentUrl = generateVNPayPaymentUrl({
+    // Generate payment URL using shared service
+    const clientIp = getClientIp(req);
+    const ipnUrl = process.env.VNPAY_IPN_URL || `${process.env.BACKEND_URL || 'https://lms-backend-cf11.onrender.com'}/api/client/payments/vnpay/ipn`;
+
+    const paymentUrl = buildVnpayPaymentUrl({
       orderId: vnpayOrderId,
       amount: bill.amount,
-      courseTitle: course.title,
+      orderInfo: `Thanh toan khoa hoc: ${course.title}`,
+      ipAddr: clientIp,
       returnUrl: `${frontendUrl}/payment/result`,
-      cancelUrl: `${frontendUrl}/courses/${course._id}`,
-      userEmail: user?.email || '',
-      userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer'
+      ipnUrl: ipnUrl,
+      email: user?.email || '',
+      name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Customer',
+      expireMinutes: 15
     });
 
     res.json({
@@ -1119,7 +903,6 @@ router.post('/bills/:id/retry', async (req: any, res) => {
       }
     });
   } catch (error) {
-    console.error('Retry payment error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -1261,7 +1044,6 @@ router.get('/bills/:id/invoice', async (req: any, res) => {
 
     doc.end();
   } catch (error) {
-    console.error('Generate invoice error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to generate invoice'

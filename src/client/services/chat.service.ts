@@ -59,7 +59,7 @@ export class ChatService {
                 sessionId: session.sessionId
             };
         } catch (error) {
-            console.error('Chat service error:', error);
+
             throw new Error('Failed to process message');
         }
     }
@@ -106,7 +106,7 @@ export class ChatService {
             // Generate response using Gemini
             return await this.geminiService.generateCourseRecommendation(message, enrichedContext);
         } catch (error) {
-            console.error('AI response generation error:', error);
+
             return 'Xin lỗi, tôi không thể trả lời lúc này. Vui lòng thử lại sau.';
         }
     }
@@ -116,7 +116,6 @@ export class ChatService {
      */
     private async enrichContext(context: ChatContext): Promise<ChatContext> {
         try {
-            console.log('🔍 Enriching context with database data...');
 
             // If we have courseId, get detailed course information
             if (context.courseId) {
@@ -124,10 +123,10 @@ export class ChatService {
                     const courseData = await ClientCourseService.getCourseById(context.courseId);
                     if (courseData) {
                         context.courseInfo = courseData;
-                        console.log('📚 Loaded course info:', courseData.title);
+
                     }
                 } catch (error: any) {
-                    console.log('⚠️ Could not load specific course:', error?.message || error);
+
                 }
             }
 
@@ -142,7 +141,6 @@ export class ChatService {
 
                 if (coursesResponse && coursesResponse.data && coursesResponse.data.courses) {
                     context.availableCourses = coursesResponse.data.courses;
-                    console.log(`📚 Loaded ${coursesResponse.data.courses.length} courses for recommendations`);
 
                     // Add course statistics
                     context.courseStats = {
@@ -156,7 +154,7 @@ export class ChatService {
                     };
                 }
             } catch (error: any) {
-                console.log('⚠️ Could not load courses list:', error?.message || error);
+
             }
 
             // Load popular courses for home page
@@ -165,10 +163,10 @@ export class ChatService {
                     const popularCourses = await (ClientCourseService as any).getPopularCourses();
                     if (popularCourses && Array.isArray(popularCourses)) {
                         context.popularCourses = popularCourses.slice(0, 10);
-                        console.log(`🔥 Loaded ${context.popularCourses.length} popular courses`);
+
                     }
                 } catch (error: any) {
-                    console.log('⚠️ Could not load popular courses:', error?.message || error);
+
                 }
             }
 
@@ -176,25 +174,24 @@ export class ChatService {
             try {
                 // For now, use hardcoded domains to avoid import issues
                 context.availableDomains = ['Programming', 'Design', 'Business', 'Marketing', 'Data Science'];
-                console.log('🏷️ Using default domains:', context.availableDomains.length);
+
             } catch (error: any) {
-                console.log('⚠️ Could not load domains:', error?.message || error);
+
             }
 
             // Load comprehensive system data
             try {
-                console.log('🌐 Loading comprehensive system data...');
+
                 const systemData = await SystemDataService.getSystemData();
                 context.systemData = systemData;
-                console.log('✅ System data loaded successfully');
+
             } catch (error: any) {
-                console.log('⚠️ Could not load system data:', error?.message || error);
+
             }
 
-            console.log('✅ Context enrichment completed');
             return context;
         } catch (error) {
-            console.error('Context enrichment error:', error);
+
             return context;
         }
     }
@@ -206,7 +203,7 @@ export class ChatService {
         try {
             return await this.geminiService.testConnection();
         } catch (error) {
-            console.error('AI connection test failed:', error);
+
             return false;
         }
     }
@@ -232,7 +229,7 @@ export class ChatService {
                 lastActivity
             };
         } catch (error) {
-            console.error('Chat stats error:', error);
+
             return {
                 totalMessages: 0,
                 totalSessions: 0,

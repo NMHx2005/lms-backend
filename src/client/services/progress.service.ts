@@ -42,8 +42,8 @@ export class ProgressService {
                 isCompleted: true
             });
 
-            // Calculate progress percentage
-            const progressPercentage = Math.round((completedLessonsCount / course.totalLessons) * 100);
+            // Calculate progress percentage (cap at 100 to prevent validation errors)
+            const progressPercentage = Math.min(100, Math.round((completedLessonsCount / course.totalLessons) * 100));
 
             // Update enrollment progress
             enrollment.progress = progressPercentage;
@@ -79,9 +79,7 @@ export class ProgressService {
                     // Mark certificate as issued
                     enrollment.certificateIssued = true;
                     enrollment.certificateUrl = `/api/client/certificates/${enrollment._id}/download`;
-                    console.log(`✅ Certificate generated for user ${userId} in course ${courseId}`);
                 } catch (certError: any) {
-                    console.error('Error generating certificate:', certError);
                     // Still mark as completed even if certificate generation fails
                     // Certificate can be generated later via manual trigger
                 }

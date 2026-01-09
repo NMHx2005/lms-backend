@@ -7,7 +7,7 @@ export interface IAssignment extends Document {
   title: string;
   description: string;
   instructions: string;
-  type: 'file' | 'quiz' | 'text';
+  type: 'file' | 'quiz' | 'text' | 'code' | 'video' | 'audio' | 'mixed';
   dueDate?: Date;
   maxScore: number;
   timeLimit?: number;
@@ -16,6 +16,21 @@ export interface IAssignment extends Document {
   isGraded: boolean;
   gradingCriteria: string[];
   importantNotes: string[];
+  // Assignment settings
+  allowLateSubmission?: boolean;
+  latePenalty?: number; // Percentage deduction per day
+  autoGrade?: boolean; // Auto-grade for quiz assignments
+  peerReview?: boolean; // Students review each other
+  groupAssignment?: boolean; // Team submission
+  anonymousGrading?: boolean; // Hide student names during grading
+  rubricUrl?: string; // URL to rubric file
+  plagiarismCheck?: boolean; // Enable plagiarism checking
+  // Resources
+  resources?: {
+    name: string;
+    url: string;
+    type: 'link' | 'file';
+  }[];
   attachments?: {
     name: string;
     url: string;
@@ -71,8 +86,8 @@ const assignmentSchema = new Schema<IAssignment>(
       type: String,
       required: [true, 'Assignment type is required'],
       enum: {
-        values: ['file', 'quiz', 'text'],
-        message: 'Assignment type must be file, quiz, or text',
+        values: ['file', 'quiz', 'text', 'code', 'video', 'audio', 'mixed'],
+        message: 'Assignment type must be file, quiz, text, code, video, audio, or mixed',
       },
     },
     dueDate: {
@@ -147,6 +162,59 @@ const assignmentSchema = new Schema<IAssignment>(
         },
         type: {
           type: String,
+          required: true,
+        },
+      },
+    ],
+    // Assignment settings
+    allowLateSubmission: {
+      type: Boolean,
+      default: false,
+    },
+    latePenalty: {
+      type: Number,
+      min: [0, 'Late penalty cannot be negative'],
+      max: [100, 'Late penalty cannot exceed 100%'],
+      default: 0,
+    },
+    autoGrade: {
+      type: Boolean,
+      default: false,
+    },
+    peerReview: {
+      type: Boolean,
+      default: false,
+    },
+    groupAssignment: {
+      type: Boolean,
+      default: false,
+    },
+    anonymousGrading: {
+      type: Boolean,
+      default: false,
+    },
+    rubricUrl: {
+      type: String,
+    },
+    plagiarismCheck: {
+      type: Boolean,
+      default: false,
+    },
+    // Resources (links and files)
+    resources: [
+      {
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          enum: ['link', 'file'],
           required: true,
         },
       },

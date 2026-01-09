@@ -761,14 +761,12 @@ const commentsData = [
 // Main seeding function
 async function seedDatabase() {
   try {
-    console.log('🚀 Bắt đầu seeding database...');
-    
+
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/lms');
-    console.log('✅ Đã kết nối MongoDB');
 
     // Clear existing data
-    console.log('🧹 Xóa dữ liệu cũ...');
+
     await Promise.all([
       User.deleteMany({}),
       Course.deleteMany({}),
@@ -784,10 +782,9 @@ async function seedDatabase() {
       Assignment.deleteMany({}),
       Submission.deleteMany({})
     ]);
-    console.log('✅ Đã xóa dữ liệu cũ');
 
     // Create users
-    console.log('👥 Tạo users...');
+
     let users;
     try {
       const hashedUsersData = usersData.map(user => ({
@@ -795,9 +792,9 @@ async function seedDatabase() {
         password: bcrypt.hashSync(user.password, 10)
       }));
       users = await User.insertMany(hashedUsersData);
-      console.log(`✅ Đã tạo ${users.length} users`);
+
     } catch (error) {
-      console.error('❌ Lỗi tạo users:', error);
+
       throw error;
     }
 
@@ -818,25 +815,23 @@ async function seedDatabase() {
     }
 
     // Create courses with instructor IDs
-    console.log('📚 Tạo courses...');
+
     const coursesWithInstructors = coursesData.map((course, index) => ({
       ...course,
       instructorId: teacherUsers[index % teacherUsers.length]._id
     }));
     const courses = await Course.insertMany(coursesWithInstructors);
-    console.log(`✅ Đã tạo ${courses.length} courses`);
 
     // Create sections for first course
-    console.log('📖 Tạo sections...');
+
     const sectionsWithCourse = sectionsData.map(section => ({
       ...section,
       courseId: courses[0]._id
     }));
     const sections = await Section.insertMany(sectionsWithCourse);
-    console.log(`✅ Đã tạo ${sections.length} sections`);
 
     // Create lessons for first section
-    console.log('🎯 Tạo lessons...');
+
     const lessonsWithSection = lessonsData.map((lesson, index) => ({
       ...lesson,
       courseId: courses[0]._id,
@@ -844,20 +839,18 @@ async function seedDatabase() {
       order: lesson.order // Đảm bảo order đúng
     }));
     const lessons = await Lesson.insertMany(lessonsWithSection);
-    console.log(`✅ Đã tạo ${lessons.length} lessons`);
 
     // Create assignments for first course
-    console.log('📝 Tạo assignments...');
+
     const assignmentsWithCourse = assignmentsData.map((assignment, index) => ({
       ...assignment,
       courseId: courses[0]._id,
       lessonId: lessons[index]?._id || lessons[0]._id // Link to corresponding lesson or first lesson
     }));
     const assignments = await Assignment.insertMany(assignmentsWithCourse);
-    console.log(`✅ Đã tạo ${assignments.length} assignments`);
 
     // Create enrollments
-    console.log('🎓 Tạo enrollments...');
+
     const enrollments = [];
     for (const course of courses) {
       for (const student of studentUsers) {
@@ -887,10 +880,9 @@ async function seedDatabase() {
     }
     
     await Enrollment.insertMany(enrollments);
-    console.log(`✅ Đã tạo ${enrollments.length} enrollments`);
 
     // Create course reviews
-    console.log('⭐ Tạo course reviews...');
+
     const courseReviews = [];
     for (const course of courses) {
       // Chỉ tạo 2-3 reviews cho mỗi course để tránh duplicate
@@ -906,16 +898,15 @@ async function seedDatabase() {
       }
     }
     await CourseReview.insertMany(courseReviews);
-    console.log(`✅ Đã tạo ${courseReviews.length} course reviews`);
 
     // Create teacher ratings - temporarily disabled due to complex validation requirements
-    console.log('👨‍🏫 Tạo teacher ratings...');
-    console.log('⚠️  Teacher ratings temporarily disabled - model requires complex nested fields');
+
+
     const teacherRatings = [];
     console.log(`✅ Đã tạo ${teacherRatings.length} teacher ratings (disabled)`);
 
     // Create comments
-    console.log('💬 Tạo comments...');
+
     const comments = [];
     const contentTypes = ['course', 'lesson', 'assignment'];
     const contentIds = [courses[0]._id, lessons[0]._id, assignments[0]._id];
@@ -943,10 +934,9 @@ async function seedDatabase() {
       });
     }
     await Comment.insertMany(comments);
-    console.log(`✅ Đã tạo ${comments.length} comments`);
 
     // Create payments and orders
-    console.log('💰 Tạo payments và orders...');
+
     const payments = [];
     const orders = [];
     
@@ -980,17 +970,15 @@ async function seedDatabase() {
     }
     
     const createdOrders = await Order.insertMany(orders);
-    console.log(`✅ Đã tạo ${createdOrders.length} orders`);
-    
+
     // Update payments with order IDs
     for (let i = 0; i < payments.length; i++) {
       payments[i].orderId = createdOrders[i]._id;
     }
     await Payment.insertMany(payments);
-    console.log(`✅ Đã tạo ${payments.length} payments`);
 
          // Create certificates for completed enrollments
-     console.log('🏆 Tạo certificates...');
+
      const completedEnrollments = enrollments.filter(e => e.isCompleted);
      const certificates = completedEnrollments.map(enrollment => {
        const course = courses.find(c => c._id.equals(enrollment.courseId))!;
@@ -1065,10 +1053,9 @@ async function seedDatabase() {
        };
      });
     await Certificate.insertMany(certificates);
-    console.log(`✅ Đã tạo ${certificates.length} certificates`);
 
-    console.log('🎉 Seeding hoàn thành thành công!');
-    console.log('\n📊 Thống kê dữ liệu đã tạo:');
+
+
     console.log(`- Users: ${users.length}`);
     console.log(`- Courses: ${courses.length}`);
     console.log(`- Sections: ${sections.length}`);
@@ -1083,11 +1070,11 @@ async function seedDatabase() {
     console.log(`- Certificates: ${certificates.length}`);
 
   } catch (error) {
-    console.error('❌ Lỗi khi seeding:', error);
+
     throw error;
   } finally {
     await mongoose.disconnect();
-    console.log('🔌 Đã ngắt kết nối MongoDB');
+
   }
 }
 
@@ -1095,11 +1082,11 @@ async function seedDatabase() {
 if (require.main === module) {
   seedDatabase()
     .then(() => {
-      console.log('✅ Seeding hoàn thành!');
+
       process.exit(0);
     })
     .catch((error) => {
-      console.error('❌ Seeding thất bại:', error);
+
       process.exit(1);
     });
 }

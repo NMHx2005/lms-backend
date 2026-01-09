@@ -12,7 +12,7 @@ export class AnalyticsController {
         data: analytics
       });
     } catch (error) {
-      console.error('Dashboard analytics error:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -31,7 +31,7 @@ export class AnalyticsController {
         data: analytics
       });
     } catch (error) {
-      console.error('User analytics error:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -50,7 +50,7 @@ export class AnalyticsController {
         data: analytics
       });
     } catch (error) {
-      console.error('Course analytics error:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -69,7 +69,7 @@ export class AnalyticsController {
         data: analytics
       });
     } catch (error) {
-      console.error('Revenue analytics error:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'
@@ -88,7 +88,7 @@ export class AnalyticsController {
         data: analytics
       });
     } catch (error) {
-      console.error('Enrollment analytics error:', error);
+
       res.status(500).json({
         success: false,
         error: 'Internal server error'

@@ -64,7 +64,7 @@ export class QRGeneratorService {
 
       return svgString;
     } catch (error) {
-      console.error('Error generating QR code:', error);
+
       throw new Error('Failed to generate QR code');
     }
   }
@@ -102,7 +102,7 @@ export class QRGeneratorService {
       const base64 = Buffer.from(svgString).toString('base64');
       return `data:image/svg+xml;base64,${base64}`;
     } catch (error) {
-      console.error('Error generating QR code data URL:', error);
+
       throw new Error('Failed to generate QR code data URL');
     }
   }
@@ -214,7 +214,7 @@ export class QRGeneratorService {
         completionDate
       };
     } catch (error) {
-      console.error('Error extracting certificate data from URL:', error);
+
       return null;
     }
   }

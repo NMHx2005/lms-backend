@@ -75,7 +75,7 @@ function initializeGoogleStrategy(): void {
 
         done(null, user);
       } catch (error) {
-        console.error('Google OAuth Error:', error);
+
         done(error, false);
       }
     }
@@ -146,7 +146,7 @@ async function findOrCreateUser(userData: OAuthUserData): Promise<IUser> {
     return await createNewGoogleUser(userData);
 
   } catch (error) {
-    console.error('Error in findOrCreateUser:', error);
+
     throw error;
   }
 }

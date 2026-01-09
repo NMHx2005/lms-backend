@@ -373,7 +373,7 @@ export class LessonService {
         await (section as any).updateDuration();
       }
     } catch (error) {
-      console.error('Error updating section stats:', error);
+
     }
   }
 }

@@ -47,7 +47,6 @@ export const seedSupportData = async () => {
         ];
 
         await FAQ.insertMany(faqs);
-        console.log('✅ Seeded FAQs successfully');
 
         // Seed Support Tickets
         const tickets = [
@@ -154,11 +153,10 @@ export const seedSupportData = async () => {
         ];
 
         await SupportTicket.insertMany(tickets);
-        console.log('✅ Seeded Support Tickets successfully');
 
-        console.log('🎉 Support data seeding completed!');
+
     } catch (error) {
-        console.error('❌ Error seeding support data:', error);
+
         throw error;
     }
 };
@@ -167,9 +165,9 @@ export const clearSupportData = async () => {
     try {
         await FAQ.deleteMany({});
         await SupportTicket.deleteMany({});
-        console.log('🗑️ Cleared support data');
+
     } catch (error) {
-        console.error('❌ Error clearing support data:', error);
+
         throw error;
     }
 };

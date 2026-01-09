@@ -9,7 +9,7 @@ export class SystemSettingsService {
             const settings = await (SystemSettings as any).getInstance();
             return settings;
         } catch (error) {
-            console.error('Error getting system settings:', error);
+
             throw error;
         }
     }
@@ -21,8 +21,6 @@ export class SystemSettingsService {
         try {
             const settings = await (SystemSettings as any).getInstance();
 
-            console.log('📝 Updating settings with:', updates);
-
             // Update fields
             Object.keys(updates).forEach(key => {
                 if (updates[key as keyof ISystemSettings] !== undefined) {
@@ -31,16 +29,11 @@ export class SystemSettingsService {
             });
 
             await settings.save();
-            console.log('✅ System settings updated successfully');
-            console.log('📊 Updated settings:', {
-                siteName: settings.siteName,
-                siteLogo: settings.siteLogo,
-                siteFavicon: settings.siteFavicon
-            });
+
 
             return settings;
         } catch (error) {
-            console.error('Error updating system settings:', error);
+
             throw error;
         }
     }
@@ -52,10 +45,10 @@ export class SystemSettingsService {
         try {
             await SystemSettings.deleteMany({});
             const settings = await (SystemSettings as any).getInstance();
-            console.log('✅ System settings reset to defaults');
+
             return settings;
         } catch (error) {
-            console.error('Error resetting system settings:', error);
+
             throw error;
         }
     }
@@ -92,7 +85,7 @@ export class SystemSettingsService {
                 legal: settings.legal
             };
         } catch (error) {
-            console.error('Error getting public settings:', error);
+
             throw error;
         }
     }

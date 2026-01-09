@@ -38,7 +38,17 @@ export class UploadController {
   // Upload multiple files
   static uploadMultipleFiles = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const files = req.files as Express.Multer.File[];
+      // Handle both array format (from multer.array) and object format (from multer.fields)
+      let files: Express.Multer.File[] = [];
+      
+      if (Array.isArray(req.files)) {
+        // Direct array from multer.array()
+        files = req.files;
+      } else if (req.files && typeof req.files === 'object') {
+        // Object format from multer.fields() - extract files from 'files' field
+        const filesObj = req.files as { [fieldname: string]: Express.Multer.File[] };
+        files = filesObj['files'] || filesObj['file'] || Object.values(filesObj).flat();
+      }
       
       if (!files || files.length === 0) {
         throw ErrorFactory.fileUpload('No files provided');

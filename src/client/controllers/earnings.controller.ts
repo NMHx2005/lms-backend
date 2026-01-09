@@ -15,7 +15,7 @@ export class EarningsController {
                 data: overview
             });
         } catch (error) {
-            console.error('Error getting earnings overview:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -36,7 +36,7 @@ export class EarningsController {
                 data: balance
             });
         } catch (error) {
-            console.error('Error getting balance:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -66,7 +66,7 @@ export class EarningsController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting earnings history:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -87,7 +87,7 @@ export class EarningsController {
                 data: pending
             });
         } catch (error) {
-            console.error('Error getting pending earnings:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -116,7 +116,7 @@ export class EarningsController {
                 data: withdrawal
             });
         } catch (error: any) {
-            console.error('Error requesting withdrawal:', error);
+
             res.status(error.statusCode || 500).json({
                 success: false,
                 error: error.message || 'Internal server error'
@@ -144,7 +144,7 @@ export class EarningsController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting withdrawals:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -174,7 +174,7 @@ export class EarningsController {
                 data: withdrawal
             });
         } catch (error) {
-            console.error('Error getting withdrawal:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -197,7 +197,7 @@ export class EarningsController {
                 data: stats
             });
         } catch (error) {
-            console.error('Error getting stats:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -229,7 +229,7 @@ export class EarningsController {
                 pagination: result.pagination
             });
         } catch (error) {
-            console.error('Error getting transactions:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -259,7 +259,7 @@ export class EarningsController {
                 data: transaction
             });
         } catch (error) {
-            console.error('Error getting transaction:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -280,7 +280,7 @@ export class EarningsController {
                 data: stats
             });
         } catch (error) {
-            console.error('Error getting transaction stats:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -306,7 +306,7 @@ export class EarningsController {
             res.setHeader('Content-Disposition', `attachment; filename=transactions_${Date.now()}.csv`);
             res.send(file);
         } catch (error) {
-            console.error('Error exporting transactions:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -327,7 +327,7 @@ export class EarningsController {
                 data: overview
             });
         } catch (error) {
-            console.error('Error getting analytics overview:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -350,7 +350,7 @@ export class EarningsController {
                 data: trends
             });
         } catch (error) {
-            console.error('Error getting trends:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -371,7 +371,7 @@ export class EarningsController {
                 data: byCourse
             });
         } catch (error) {
-            console.error('Error getting earnings by course:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -398,7 +398,7 @@ export class EarningsController {
                 data: byPeriod
             });
         } catch (error) {
-            console.error('Error getting earnings by period:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -421,7 +421,7 @@ export class EarningsController {
                 data: forecast
             });
         } catch (error) {
-            console.error('Error getting forecast:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -444,7 +444,7 @@ export class EarningsController {
                 data: comparison
             });
         } catch (error) {
-            console.error('Error getting comparison:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
@@ -466,7 +466,7 @@ export class EarningsController {
                 data: breakdown
             });
         } catch (error) {
-            console.error('Error getting monthly breakdown:', error);
+
             res.status(500).json({
                 success: false,
                 error: 'Internal server error'
