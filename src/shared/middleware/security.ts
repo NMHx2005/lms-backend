@@ -124,9 +124,16 @@ export const requestValidationMiddleware = (req: Request, res: Response, next: N
     }
   }
   
-  // Skip Accept validation for OAuth browser redirects
+  // Skip Accept validation for OAuth browser redirects and VNPAY callbacks (browser redirects)
   const oauthPaths = ['/api/auth/google/start', '/api/auth/google/callback'];
-  if (oauthPaths.includes(req.path)) {
+  const vnpayCallbackPaths = [
+    '/api/client/payments/vnpay/return',
+    '/api/client/payments/vnpay/ipn',
+    '/api/client/teacher-packages/vnpay/return',
+    '/api/client/teacher-packages/vnpay/callback'
+  ];
+  
+  if (oauthPaths.includes(req.path) || vnpayCallbackPaths.includes(req.path)) {
     return next();
   }
   

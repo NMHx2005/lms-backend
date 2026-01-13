@@ -330,7 +330,8 @@ router.post('/vnpay/:courseId', async (req: any, res) => {
     await bill.save();
 
     // Use mock payment for development/testing (like teacher package flow)
-    const useMockPayment = process.env.NODE_ENV === 'development' || process.env.VNPAY_USE_MOCK === 'true' || true;
+    // NOTE: Remove || true to allow real VNPAY payment when VNPAY_USE_MOCK is not 'true'
+    const useMockPayment = process.env.NODE_ENV === 'development' || process.env.VNPAY_USE_MOCK === 'true';
 
     if (useMockPayment) {
       // Mock payment - process immediately and create enrollment

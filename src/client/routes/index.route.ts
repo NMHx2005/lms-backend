@@ -90,9 +90,62 @@ router.post('/payments/vnpay/ipn', async (req: any, res) => {
 
     console.log(`VNPay IPN - Order: ${orderId}, Amount: ${amount}, Response: ${responseCode}, Status: ${status}`);
 
-    // ✅ BƯỚC 2: Find bill by orderId
-    const bill = await Bill.findOne({
-      'metadata.vnpayOrderId': orderId
+    // ✅ BƯỚC 2: Find bill by orderId (try multiple formats - similar to Return URL)
+    // Parse orderId to extract courseId and studentId
+    // Format: VNPAY_timestamp_studentId_courseId
+    const orderParts = orderId ? orderId.split('_') : [];
+    let bill = null;
+
+    // Method 1: Find by metadata.vnpayOrderId (primary method)
+    if (orderId) {
+      bill = await Bill.findOne({
+        'metadata.vnpayOrderId': orderId
+      });
+    }
+
+    // Method 2: If not found and orderId format is correct, parse and find by courseId + studentId
+    if (!bill && orderParts.length >= 4 && orderParts[0] === 'VNPAY') {
+      const studentId = orderParts[orderParts.length - 2];
+      const courseId = orderParts[orderParts.length - 1];
+
+      console.log(`VNPay IPN - Parsing orderId - studentId: ${studentId}, courseId: ${courseId}`);
+
+      // Find by courseId + studentId + status pending (similar to teacher package)
+      bill = await Bill.findOne({
+        courseId: courseId,
+        studentId: studentId,
+        status: 'pending',
+        paymentMethod: 'vnpay'
+      });
+
+      console.log(`VNPay IPN - Found bill by courseId+studentId: ${bill ? bill._id : 'not found'}`);
+    }
+
+    // Method 3: Fallback - try other formats
+    if (!bill && orderId) {
+      console.log(`VNPay IPN - Bill not found with primary methods, trying fallback lookups for: ${orderId}`);
+
+      // Try finding by orderId as transactionId
+      bill = await Bill.findOne({
+        transactionId: orderId
+      });
+
+      // Try finding by orderId in metadata (different key)
+      if (!bill) {
+        bill = await Bill.findOne({
+          'metadata.orderId': orderId
+        });
+      }
+    }
+
+    console.log('VNPay IPN - Bill lookup result:', {
+      orderId,
+      billFound: !!bill,
+      billId: bill?._id?.toString(),
+      billStatus: bill?.status,
+      billCourseId: bill?.courseId?.toString(),
+      billStudentId: bill?.studentId?.toString(),
+      billMetadata: bill?.metadata
     });
 
     if (!bill) {
@@ -112,7 +165,7 @@ router.post('/payments/vnpay/ipn', async (req: any, res) => {
         Message: 'Order already confirmed'
       });
     }
-    
+
     // Kiểm tra nếu status không phải pending thì không xử lý
     if (bill.status !== 'pending') {
       console.log(`Bill ${bill._id} status is ${bill.status}, not pending`);
@@ -231,10 +284,18 @@ router.post('/payments/vnpay/ipn', async (req: any, res) => {
 router.get('/payments/vnpay/return', async (req: any, res) => {
   try {
     const vnpParams = req.query;
-    console.log('VNPay return URL called with params:', vnpParams);
+    console.log('=== VNPay Return URL Handler Called ===');
+    console.log('VNPay return URL called with params:', JSON.stringify(vnpParams, null, 2));
 
     // ✅ Verify signature (theo chuẩn VNPay - Return URL chỉ verify, không update)
-    const { valid } = verifyVnpSignature(vnpParams);
+    const { valid, calc, provided } = verifyVnpSignature(vnpParams);
+
+    console.log('VNPay return URL signature verification:', {
+      valid,
+      calcPrefix: calc?.substring(0, 20) || 'N/A',
+      providedPrefix: provided?.substring(0, 20) || 'N/A',
+      orderId: vnpParams.vnp_TxnRef
+    });
 
     const orderId = vnpParams.vnp_TxnRef;
     const responseCode = vnpParams.vnp_ResponseCode;
@@ -243,40 +304,224 @@ router.get('/payments/vnpay/return', async (req: any, res) => {
     const transactionId = vnpParams.vnp_TransactionNo;
     const bankCode = vnpParams.vnp_BankCode;
 
-    // Find bill by orderId
-    const bill = await Bill.findOne({
-      'metadata.vnpayOrderId': orderId
+    // Determine success/failure
+    const isSuccess = responseCode === '00' || transactionStatus === '00';
+
+    console.log('VNPay return URL - Payment status:', {
+      orderId,
+      responseCode,
+      transactionStatus,
+      isSuccess,
+      amount,
+      transactionId,
+      bankCode
     });
+
+    // Parse orderId to extract courseId and studentId (similar to teacher package)
+    // Format: VNPAY_timestamp_studentId_courseId
+    const orderParts = orderId ? orderId.split('_') : [];
+    let bill = null;
+
+    // Method 1: Find by metadata.vnpayOrderId (primary method)
+    if (orderId) {
+      bill = await Bill.findOne({
+        'metadata.vnpayOrderId': orderId
+      });
+    }
+
+    // Method 2: If not found and orderId format is correct, parse and find by courseId + studentId
+    if (!bill && orderParts.length >= 4 && orderParts[0] === 'VNPAY') {
+      const studentId = orderParts[orderParts.length - 2];
+      const courseId = orderParts[orderParts.length - 1];
+
+      console.log(`Parsing orderId - studentId: ${studentId}, courseId: ${courseId}`);
+
+      // Find by courseId + studentId + status pending (similar to teacher package)
+      bill = await Bill.findOne({
+        courseId: courseId,
+        studentId: studentId,
+        status: 'pending',
+        paymentMethod: 'vnpay'
+      });
+
+      console.log(`Found bill by courseId+studentId: ${bill ? bill._id : 'not found'}`);
+    }
+
+    // Method 3: Fallback - try other formats
+    if (!bill && orderId) {
+      console.log(`Bill not found with primary methods, trying fallback lookups for: ${orderId}`);
+
+      // Try finding by orderId as transactionId
+      bill = await Bill.findOne({
+        transactionId: orderId
+      });
+
+      // Try finding by orderId in metadata (different key)
+      if (!bill) {
+        bill = await Bill.findOne({
+          'metadata.orderId': orderId
+        });
+      }
+    }
+
+    console.log('VNPay return URL - Bill lookup result:', {
+      orderId,
+      billFound: !!bill,
+      billId: bill?._id?.toString(),
+      billStatus: bill?.status,
+      billCourseId: bill?.courseId?.toString(),
+      billStudentId: bill?.studentId?.toString(),
+      billAmount: bill?.amount,
+      billMetadata: bill?.metadata
+    });
+
+    // Try to update bill and create enrollment if payment successful (fallback if IPN didn't work)
+    if (isSuccess && valid && bill) {
+      try {
+        // Update bill if still pending (fallback - IPN should have done this)
+        if (bill.status === 'pending') {
+          bill.status = 'completed';
+          bill.paidAt = new Date();
+          bill.transactionId = transactionId || orderId;
+          bill.metadata = {
+            ...bill.metadata,
+            vnpBankCode: bankCode,
+            vnpTransactionNo: transactionId,
+            vnpResponseCode: responseCode,
+            vnpTransactionStatus: transactionStatus,
+            vnpOrderId: orderId,
+            vnpPayDate: vnpParams.vnp_PayDate,
+            processedAt: new Date(),
+            updatedViaReturnUrl: true // Flag to indicate this was updated via return URL
+          };
+          await bill.save();
+          console.log(`VNPay return URL - Bill ${bill._id} updated to completed (fallback)`);
+
+          // Create enrollment if not exists (fallback - IPN should have done this)
+          if (bill.courseId) {
+            const existingEnrollment = await Enrollment.findOne({
+              studentId: bill.studentId,
+              courseId: bill.courseId
+            });
+
+            if (!existingEnrollment) {
+              const course = await Course.findById(bill.courseId);
+              const enrollment = new Enrollment({
+                studentId: bill.studentId,
+                courseId: bill.courseId,
+                instructorId: course?.instructorId,
+                enrolledAt: new Date(),
+                progress: 0,
+                isActive: true,
+                paymentStatus: 'completed',
+                paymentMethod: 'vnpay',
+                paymentDetails: {
+                  billId: bill._id,
+                  transactionId: transactionId,
+                  amount: amount,
+                  currency: 'VND',
+                  paymentGateway: 'vnpay'
+                }
+              });
+              await enrollment.save();
+              console.log(`VNPay return URL - Enrollment created: ${enrollment._id} (fallback)`);
+
+              // Update course stats
+              await Course.findByIdAndUpdate(bill.courseId, {
+                $inc: { totalStudents: 1 }
+              });
+
+              // Update user stats
+              await User.findByIdAndUpdate(bill.studentId, {
+                $inc: { 'stats.totalCoursesEnrolled': 1 }
+              });
+            } else {
+              console.log(`VNPay return URL - User already enrolled in course: ${bill.courseId}`);
+            }
+          }
+        } else {
+          console.log(`VNPay return URL - Bill ${bill._id} already processed (status: ${bill.status})`);
+        }
+      } catch (error) {
+        console.error('Error updating bill/enrollment in return URL:', error);
+        // Don't fail redirect if update fails
+      }
+    }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const redirectUrl = new URL('/payment/result', frontendUrl);
 
     if (!valid) {
-      console.error('Invalid VNPay signature in return URL');
+      console.error('Invalid VNPay signature in return URL - will not update bill/enrollment for security');
       redirectUrl.searchParams.set('error', 'invalid_signature');
-      redirectUrl.searchParams.set('orderId', orderId);
+      redirectUrl.searchParams.set('signatureError', 'true');
+      if (orderId) redirectUrl.searchParams.set('orderId', orderId);
       return res.redirect(redirectUrl.toString());
     }
 
     if (!bill) {
-      console.error(`Bill not found for orderId: ${orderId}`);
+      console.error(`=== ERROR: Bill not found for orderId: ${orderId} ===`);
+      console.error('Attempted lookups:', {
+        'metadata.vnpayOrderId': orderId,
+        'transactionId': orderId,
+        'metadata.orderId': orderId
+      });
       redirectUrl.searchParams.set('error', 'order_not_found');
-      redirectUrl.searchParams.set('orderId', orderId);
+      if (orderId) redirectUrl.searchParams.set('orderId', orderId);
       return res.redirect(redirectUrl.toString());
     }
 
-    // Add VNPay parameters to redirect URL
-    redirectUrl.searchParams.set('orderId', orderId);
-    redirectUrl.searchParams.set('responseCode', responseCode);
-    redirectUrl.searchParams.set('transactionStatus', transactionStatus || '');
-    redirectUrl.searchParams.set('transactionId', transactionId || '');
-    redirectUrl.searchParams.set('amount', amount.toString());
-    redirectUrl.searchParams.set('bankCode', bankCode || '');
+    console.log('=== VNPay Return URL - Processing bill update ===');
+    console.log('Bill details before update:', {
+      billId: bill._id.toString(),
+      status: bill.status,
+      courseId: bill.courseId?.toString(),
+      studentId: bill.studentId?.toString()
+    });
+
+    // Add VNPay parameters to redirect URL (use original VNPAY parameter names for frontend compatibility)
+    // Frontend expects: vnp_ResponseCode, vnp_TxnRef, vnp_Amount, vnp_TransactionNo, vnp_BankCode
+    if (orderId) {
+      redirectUrl.searchParams.set('vnp_TxnRef', orderId); // Original VNPAY name
+      redirectUrl.searchParams.set('orderId', orderId); // Also set mapped name
+    }
+    if (responseCode) {
+      redirectUrl.searchParams.set('vnp_ResponseCode', responseCode); // Original VNPAY name
+      redirectUrl.searchParams.set('responseCode', responseCode); // Also set mapped name
+    }
+    if (transactionStatus) {
+      redirectUrl.searchParams.set('vnp_TransactionStatus', transactionStatus); // Original VNPAY name
+      redirectUrl.searchParams.set('transactionStatus', transactionStatus); // Also set mapped name
+    }
+    if (transactionId) {
+      redirectUrl.searchParams.set('vnp_TransactionNo', transactionId); // Original VNPAY name
+      redirectUrl.searchParams.set('transactionId', transactionId); // Also set mapped name
+    }
+    if (amount) {
+      redirectUrl.searchParams.set('vnp_Amount', (amount * 100).toString()); // VNPAY uses amount * 100
+      redirectUrl.searchParams.set('amount', amount.toString()); // Also set mapped name
+    }
+    if (bankCode) {
+      redirectUrl.searchParams.set('vnp_BankCode', bankCode); // Original VNPAY name
+      redirectUrl.searchParams.set('bankCode', bankCode); // Also set mapped name
+    }
 
     // Determine success/failure
-    const isSuccess = responseCode === '00' || transactionStatus === '00';
     redirectUrl.searchParams.set('success', isSuccess ? 'true' : 'false');
 
+    if (isSuccess && valid) {
+      console.log('=== Return URL: Signature valid, payment successful ===');
+      console.log('Final bill status:', bill.status);
+      console.log('Enrollment check will be done in fallback logic above');
+    } else {
+      console.log('=== Return URL: Payment failed or signature invalid ===', {
+        isSuccess,
+        valid
+      });
+    }
+
+    console.log('=== Redirecting to frontend ===');
+    console.log('Redirect URL:', redirectUrl.toString());
     res.redirect(redirectUrl.toString());
   } catch (error) {
     console.error('Error processing VNPay return URL:', error);
@@ -287,6 +532,153 @@ router.get('/payments/vnpay/return', async (req: any, res) => {
 
 // VNPay callback for teacher package payments (server-to-server)
 router.post('/teacher-packages/vnpay/callback', TeacherPackageController.handleVNPayCallback);
+
+// VNPay return URL for teacher package payments (user redirect)
+router.get('/teacher-packages/vnpay/return', async (req: any, res) => {
+  try {
+    const vnpParams = req.query;
+    console.log('VNPay teacher package return URL called with params:', vnpParams);
+
+    // ✅ Verify signature (theo chuẩn VNPay - Return URL chỉ verify, không update)
+    const { valid, calc, provided } = verifyVnpSignature(vnpParams);
+
+    console.log('VNPay return URL signature verification:', {
+      valid,
+      calcPrefix: calc.substring(0, 20),
+      providedPrefix: provided.substring(0, 20),
+      orderId: vnpParams.vnp_TxnRef
+    });
+
+    const orderId = vnpParams.vnp_TxnRef;
+    const responseCode = vnpParams.vnp_ResponseCode;
+    const transactionStatus = vnpParams.vnp_TransactionStatus;
+    const amount = vnpParams.vnp_Amount ? parseInt(vnpParams.vnp_Amount) / 100 : 0;
+    const transactionId = vnpParams.vnp_TransactionNo;
+    const bankCode = vnpParams.vnp_BankCode;
+
+    // Determine success/failure
+    const isSuccess = responseCode === '00' || transactionStatus === '00';
+
+    // Extract orderId parts to get teacherId and packageId
+    const orderParts = orderId ? orderId.split('_') : [];
+    if (orderParts.length >= 4 && orderParts[0] === 'PKG') {
+      const teacherId = orderParts[2];
+      const packageId = orderParts[3];
+
+      // Try to find subscription and update if payment successful (fallback if IPN didn't work)
+      // Only update if signature is valid AND payment is successful
+      if (isSuccess && valid) {
+        try {
+          const { TeacherPackageSubscription } = require('../../shared/models/extended/TeacherPackage');
+
+          // Try multiple methods to find subscription (similar to IPN handler)
+          // Method 1: Find by teacherId + packageId + status pending
+          let subscription = await TeacherPackageSubscription.findOne({
+            teacherId,
+            packageId,
+            status: 'pending',
+            paymentMethod: 'vnpay'
+          });
+
+          // Method 2: If not found, try to find by metadata.vnpOrderId
+          if (!subscription) {
+            subscription = await TeacherPackageSubscription.findOne({
+              'metadata.vnpayOrderId': orderId,
+              status: 'pending'
+            });
+          }
+
+          // Method 3: If still not found, try to find by metadata.vnpOrderId (any status) to check if already processed
+          if (!subscription) {
+            subscription = await TeacherPackageSubscription.findOne({
+              'metadata.vnpayOrderId': orderId
+            });
+          }
+
+          if (subscription) {
+            // ✅ IDEMPOTENCY CHECK: Don't update if already processed by IPN
+            if (subscription.status === 'active' && subscription.metadata?.vnpTransactionNo) {
+              console.log(`VNPay return URL - Subscription ${subscription._id} already processed by IPN, skipping update`);
+            } else if (subscription.status !== 'pending') {
+              console.log(`VNPay return URL - Subscription ${subscription._id} status is ${subscription.status}, not pending, skipping update`);
+            } else {
+              // Only update if still pending (IPN hasn't processed it yet)
+              subscription.status = 'active';
+              subscription.metadata = {
+                ...subscription.metadata,
+                vnpBankCode: bankCode,
+                vnpTransactionNo: transactionId,
+                vnpResponseCode: responseCode,
+                vnpTransactionStatus: transactionStatus,
+                vnpOrderId: orderId,
+                vnpayOrderId: orderId, // Also set for consistency
+                vnpPayDate: vnpParams.vnp_PayDate,
+                processedAt: new Date(),
+                updatedViaReturnUrl: true // Flag to indicate this was updated via return URL
+              };
+              await subscription.save();
+              console.log(`VNPay return URL - Subscription ${subscription._id} updated to active (fallback - IPN didn't process yet)`);
+
+              // Also update bill if exists
+              const bill = await Bill.findOne({
+                'metadata.vnpayOrderId': orderId
+              });
+              if (bill && bill.status === 'pending') {
+                bill.status = 'completed';
+                bill.paidAt = new Date();
+                bill.transactionId = transactionId || orderId;
+                bill.metadata = {
+                  ...bill.metadata,
+                  vnpBankCode: bankCode,
+                  vnpTransactionNo: transactionId,
+                  vnpResponseCode: responseCode,
+                  vnpTransactionStatus: transactionStatus,
+                  vnpOrderId: orderId,
+                  vnpPayDate: vnpParams.vnp_PayDate,
+                  subscriptionId: subscription._id.toString(),
+                  processedAt: new Date(),
+                  updatedViaReturnUrl: true
+                };
+                await bill.save();
+                console.log(`VNPay return URL - Bill ${bill._id} updated to completed (fallback)`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error updating subscription in return URL:', error);
+          // Don't fail redirect if update fails
+        }
+      }
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const redirectUrl = new URL('/teacher/advanced/packages', frontendUrl);
+
+    // Add VNPay parameters to redirect URL
+    redirectUrl.searchParams.set('payment', isSuccess && valid ? 'success' : 'failed');
+    if (orderId) redirectUrl.searchParams.set('orderId', orderId);
+    if (responseCode) redirectUrl.searchParams.set('responseCode', responseCode);
+    if (transactionStatus) redirectUrl.searchParams.set('transactionStatus', transactionStatus);
+    if (transactionId) redirectUrl.searchParams.set('transactionId', transactionId);
+    if (amount) redirectUrl.searchParams.set('amount', amount.toString());
+
+    if (!valid) {
+      console.error('Invalid signature in return URL - will not update subscription/bill for security');
+      redirectUrl.searchParams.set('error', 'invalid_signature');
+      redirectUrl.searchParams.set('signatureError', 'true');
+    } else if (isSuccess) {
+      // If signature is valid and payment successful, but subscription/bill not updated above,
+      // it means IPN should have handled it. Log for debugging.
+      console.log('Return URL: Signature valid, payment successful. IPN should have updated subscription/bill.');
+    }
+
+    res.redirect(redirectUrl.toString());
+  } catch (error) {
+    console.error('Error processing VNPay teacher package return URL:', error);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/teacher/advanced/packages?payment=error&error=internal_error`);
+  }
+  });
 
 // Protected routes (authentication required)
 router.use('/auth', clientAuthRoutes);

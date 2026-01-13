@@ -92,6 +92,12 @@ export class TeacherPackageController {
         req // Pass request object to get IP address
       );
 
+      console.log('Subscribe result:', {
+        hasPaymentUrl: !!result.paymentUrl,
+        paymentMethod,
+        status: result.status
+      });
+
       res.status(201).json({
         success: true,
         data: result,
@@ -245,16 +251,34 @@ export class TeacherPackageController {
       const teacherId = orderParts[2];
       const packageId = orderParts[3];
 
-      // Find pending subscription
-      const subscription = await TeacherPackageSubscription.findOne({
+      // Find pending subscription - try multiple ways
+      // Method 1: Find by teacherId + packageId + status pending
+      let subscription = await TeacherPackageSubscription.findOne({
         teacherId,
         packageId,
         status: 'pending',
         paymentMethod: 'vnpay'
       });
 
+      // Method 2: If not found, try to find by metadata.vnpOrderId (fallback)
       if (!subscription) {
-        console.error(`Subscription not found for orderId: ${orderId}`);
+        subscription = await TeacherPackageSubscription.findOne({
+          'metadata.vnpOrderId': orderId,
+          status: 'pending'
+        });
+        console.log(`Found subscription by metadata.vnpOrderId: ${subscription ? subscription._id : 'not found'}`);
+      }
+
+      // Method 3: If still not found, try to find any subscription with this orderId (even if not pending)
+      if (!subscription) {
+        subscription = await TeacherPackageSubscription.findOne({
+          'metadata.vnpOrderId': orderId
+        });
+        console.log(`Found subscription by metadata.vnpOrderId (any status): ${subscription ? subscription._id : 'not found'}`);
+      }
+
+      if (!subscription) {
+        console.error(`Subscription not found for orderId: ${orderId}, teacherId: ${teacherId}, packageId: ${packageId}`);
         return res.status(404).json({
           RspCode: '01',
           Message: 'Subscription not found'
@@ -270,7 +294,7 @@ export class TeacherPackageController {
           Message: 'Order already confirmed'
         });
       }
-      
+
       // Kiểm tra nếu status không phải pending thì không xử lý
       if (subscription.status !== 'pending') {
         console.log(`Subscription ${subscription._id} status is ${subscription.status}, not pending`);
@@ -293,6 +317,21 @@ export class TeacherPackageController {
       // ✅ BƯỚC 4: Update subscription status
       subscription.status = status;
       if (isSuccess) {
+        // Set startAt and endAt if not already set (should be set during creation, but ensure it)
+        if (!subscription.startAt) {
+          subscription.startAt = new Date();
+        }
+        if (!subscription.endAt) {
+          const endAt = new Date(subscription.startAt);
+          const billingCycle = subscription.snapshot?.billingCycle || 'monthly';
+          if (billingCycle === 'monthly') {
+            endAt.setMonth(endAt.getMonth() + 1);
+          } else {
+            endAt.setFullYear(endAt.getFullYear() + 1);
+          }
+          subscription.endAt = endAt;
+        }
+
         subscription.metadata = {
           ...subscription.metadata,
           vnpBankCode: bankCode,
@@ -315,14 +354,16 @@ export class TeacherPackageController {
       }
 
       await subscription.save();
-      console.log(`VNPay package callback - Subscription ${subscription._id} updated to status: ${status}`);
+      console.log(`VNPay package callback - Subscription ${subscription._id} updated to status: ${status}, startAt: ${subscription.startAt}, endAt: ${subscription.endAt}`);
 
-      // ✅ BƯỚC 5: Create or update bill when payment is successful
+      // ✅ BƯỚC 5: Update bill when payment is successful (giống logic course payment)
       if (isSuccess) {
         try {
-          // Find existing bill by transactionId (orderId)
-          let bill = await Bill.findOne({ transactionId: orderId });
-          
+          // Find bill by metadata.vnpayOrderId (giống course payment)
+          const bill = await Bill.findOne({
+            'metadata.vnpayOrderId': orderId
+          });
+
           if (bill) {
             // Idempotency check for bill - chỉ xử lý khi status = pending
             if (bill.status === 'completed' && bill.paidAt) {
@@ -339,7 +380,9 @@ export class TeacherPackageController {
                 vnpResponseCode: responseCode,
                 vnpTransactionStatus: transactionStatus,
                 vnpOrderId: orderId,
-                subscriptionId: subscription._id.toString()
+                vnpPayDate: vnpParams.vnp_PayDate,
+                subscriptionId: subscription._id.toString(),
+                processedAt: new Date()
               };
               await bill.save();
               console.log(`VNPay package callback - Bill ${bill._id} updated to completed`);
@@ -347,40 +390,35 @@ export class TeacherPackageController {
               console.log(`Bill ${bill._id} status is ${bill.status}, not pending - skipping update`);
             }
           } else {
-            // Create new bill if not found (shouldn't happen, but handle it)
-            const pkg = await PackagePlan.findById(packageId);
-            const user = await User.findById(teacherId);
-            
-            if (pkg && user) {
-              bill = new Bill({
-                studentId: teacherId,
-                amount: pkg.price,
-                currency: 'VND',
-                purpose: 'subscription',
-                status: 'completed',
-                paymentMethod: 'vnpay',
-                description: `Payment for package: ${pkg.name}`,
-                transactionId: transactionId || orderId,
-                paidAt: new Date(),
-                metadata: {
-                  subscriptionId: subscription._id.toString(),
-                  packageId: packageId,
-                  packageName: pkg.name,
-                  isPackageSubscription: true,
-                  vnpBankCode: bankCode,
-                  vnpTransactionNo: transactionId,
-                  vnpResponseCode: responseCode,
-                  vnpTransactionStatus: transactionStatus,
-                  vnpOrderId: orderId
-                }
-              });
-              await bill.save();
-              console.log(`VNPay package callback - New bill ${bill._id} created`);
-            }
+            console.error(`Bill not found for orderId: ${orderId} in package callback`);
+            // Don't create new bill here - bill should have been created during subscription creation
           }
         } catch (error) {
-          console.error('Error creating/updating bill in VNPay callback:', error);
-          // Don't fail the callback if bill creation fails, but log it
+          console.error('Error updating bill in VNPay callback:', error);
+          // Don't fail the callback if bill update fails, but log it
+        }
+      } else {
+        // Update bill status to failed if payment failed
+        try {
+          const bill = await Bill.findOne({
+            'metadata.vnpayOrderId': orderId
+          });
+
+          if (bill && bill.status === 'pending') {
+            bill.status = 'failed';
+            bill.metadata = {
+              ...bill.metadata,
+              vnpResponseCode: responseCode,
+              vnpTransactionStatus: transactionStatus,
+              vnpOrderId: orderId,
+              error: `Payment failed with code: ${responseCode}`,
+              processedAt: new Date()
+            };
+            await bill.save();
+            console.log(`VNPay package callback - Bill ${bill._id} updated to failed`);
+          }
+        } catch (error) {
+          console.error('Error updating bill status to failed:', error);
         }
       }
 

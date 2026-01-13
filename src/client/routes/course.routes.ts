@@ -3,7 +3,7 @@ import { ClientCourseController } from '../controllers/course.controller';
 import { authenticate, optionalAuth } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { clientCourseValidation } from '../validators/course.validator';
-import { Enrollment, Course, User, UserActivityLog, Bill, LessonProgress } from '../../shared/models';
+import { Enrollment, Course, User, UserActivityLog, Bill, LessonProgress, IBill } from '../../shared/models';
 
 const router = Router();
 
@@ -93,43 +93,114 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
         });
 
         let enrollment;
-        let bill;
+        let bill: IBill | null = null;
 
-        // If course has price, create Bill with completed status immediately (like package subscription)
+        // If course has price, MUST use VNPAY payment (giống teacher package - không tự động tạo enrollment)
         if (course.price > 0) {
+            // Always use VNPAY for paid courses (giống teacher package)
+            // Generate unique order ID for VNPay
+            const vnpayOrderId = `VNPAY_${Date.now()}_${req.user.id}_${id}`;
+
             // Get user payment information from profile
             const userFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Customer';
             const userEmail = user.email || '';
             const userPhone = user.phone || '';
 
-            // Create Bill with completed status immediately (no checkout needed)
+            // Create Bill with pending status for VNPay payment (giống teacher package)
             bill = new Bill({
                 studentId: req.user.id,
                 courseId: id,
                 amount: course.price,
                 currency: 'VND',
                 purpose: 'course_purchase',
-                status: 'completed', // Completed immediately, like package subscription
-                paymentMethod: paymentMethod as 'stripe' | 'paypal' | 'bank_transfer' | 'cash' | 'vnpay',
+                status: 'pending', // Pending until VNPAY payment succeeds
+                paymentMethod: 'vnpay',
                 description: `Payment for course: ${course.title}`,
-                paidAt: new Date(),
-                transactionId: `COURSE_${Date.now()}_${req.user.id}_${id}`,
                 metadata: {
+                    vnpayOrderId,
                     userInfo: {
                         fullName: userFullName,
                         email: userEmail,
                         phone: userPhone
                     },
                     courseTitle: course.title,
-                    couponCode: couponCode || null,
-                    noCheckout: true // Flag to indicate no separate checkout process
+                    couponCode: couponCode || null
                 }
             });
             await bill.save();
 
+            // Generate VNPay payment URL using shared service
+            // Return URL should point to backend handler (like teacher package), which will then redirect to frontend
+            // IMPORTANT: Use request host to ensure correct URL (localhost in dev, production in prod)
+            const protocol = req.protocol || (req.secure ? 'https' : 'http');
+            const host = req.get('host') || 'localhost:5000';
+            const backendUrl = `${protocol}://${host}`;
+
+            // For IPN, use environment variable if set (for production), otherwise use request host
+            const ipnUrl = process.env.VNPAY_IPN_URL ||
+                (process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/api/client/payments/vnpay/ipn` :
+                    `${backendUrl}/api/client/payments/vnpay/ipn`);
+
+            const returnUrl = `${backendUrl}/api/client/payments/vnpay/return`;
+
+            console.log('VNPay URLs configured:', {
+                backendUrl,
+                returnUrl,
+                ipnUrl,
+                requestHost: req.get('host'),
+                requestProtocol: req.protocol,
+                nodeEnv: process.env.NODE_ENV,
+                envBackendUrl: process.env.BACKEND_URL
+            });
+
+            // Get client IP address
+            const getClientIp = (req: any): string => {
+                return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                    req.headers['x-real-ip'] ||
+                    req.connection?.remoteAddress ||
+                    req.socket?.remoteAddress ||
+                    req.ip ||
+                    '127.0.0.1';
+            };
+            const clientIp = getClientIp(req);
+
+            const { buildVnpayPaymentUrl } = require('../../shared/services/payments/vnpay.service');
+            const paymentUrl = buildVnpayPaymentUrl({
+                orderId: vnpayOrderId,
+                amount: course.price,
+                orderInfo: `Thanh toan khoa hoc: ${course.title}`,
+                ipAddr: clientIp,
+                returnUrl: returnUrl,
+                ipnUrl: ipnUrl,
+                email: userEmail,
+                name: userFullName,
+                expireMinutes: 15
+            });
+
+            console.log('Course payment URL created:', {
+                orderId: vnpayOrderId,
+                paymentUrl,
+                amount: course.price,
+                returnUrl
+            });
+
+            // Return payment URL for frontend to redirect (giống teacher package)
+            return res.json({
+                success: true,
+                message: 'VNPay payment initiated successfully',
+                data: {
+                    paymentUrl,
+                    billId: bill._id,
+                    orderId: vnpayOrderId,
+                    amount: course.price,
+                    paymentMethod: 'vnpay',
+                    status: 'pending'
+                }
+            });
         }
 
-        // Create enrollment (reactivate if exists, or create new)
+        // Only create enrollment for FREE courses (paid courses will create enrollment after VNPAY payment succeeds via IPN)
+        // Create enrollment (reactivate if exists, or create new) - ONLY for free courses
         if (inactiveEnrollment) {
             // Reactivate the old enrollment instead of creating a new one
             inactiveEnrollment.isActive = true;
@@ -185,17 +256,20 @@ router.post('/:id/enroll', authenticate, async (req: any, res) => {
             $inc: { 'stats.totalCoursesEnrolled': 1 }
         });
 
+        // Prepare response data
+        // Note: For free courses, bill is always null (paid courses return early with VNPAY URL)
+        const responseData: {
+            enrollment: any;
+            bill: { id: any; amount: number; status: string } | null;
+        } = {
+            enrollment,
+            bill: null // Free courses don't have bills
+        };
+
         res.status(201).json({
             success: true,
             message: 'Successfully enrolled in course',
-            data: {
-                enrollment,
-                bill: bill ? {
-                    id: bill._id,
-                    amount: bill.amount,
-                    status: bill.status
-                } : null
-            }
+            data: responseData
         });
     } catch (error: any) {
 

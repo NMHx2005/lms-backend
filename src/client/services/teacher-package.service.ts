@@ -255,6 +255,52 @@ export class TeacherPackageService {
         }
 
         // Allow multiple package subscriptions - no need to cancel existing ones
+        // BUT: Prevent duplicate pending subscriptions for the same package (avoid double-click)
+        if (paymentMethod === 'vnpay') {
+            const existingPendingSamePackage = await TeacherPackageSubscription.findOne({
+                teacherId,
+                packageId: pkg._id,
+                status: 'pending',
+                paymentMethod: 'vnpay'
+            });
+
+            if (existingPendingSamePackage) {
+                console.log(`Found existing pending subscription ${existingPendingSamePackage._id} for same package, returning existing payment URL`);
+                // Return existing subscription's payment URL if available
+                const existingOrderId = existingPendingSamePackage.metadata?.vnpayOrderId ||
+                    `PKG_${existingPendingSamePackage.createdAt?.getTime() || Date.now()}_${teacherId}_${packageId}`;
+
+                // Regenerate payment URL for existing subscription
+                const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+                const returnUrl = `${frontendUrl}/teacher/advanced/packages?payment=success&orderId=${existingOrderId}`;
+                const ipnUrl = process.env.VNPAY_IPN_URL || `${process.env.BACKEND_URL || 'https://lms-backend-cf11.onrender.com'}/api/client/teacher-packages/vnpay/callback`;
+                const clientIp = this.getClientIp(req);
+                const paymentUrl = buildVnpayPaymentUrl({
+                    orderId: existingOrderId,
+                    amount: pkg.price,
+                    orderInfo: `Thanh toan goi: ${pkg.name}`,
+                    ipAddr: clientIp,
+                    returnUrl: returnUrl,
+                    ipnUrl: ipnUrl,
+                    email: user.email,
+                    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Customer',
+                    expireMinutes: 15
+                });
+
+                return {
+                    id: existingPendingSamePackage._id,
+                    packageId: existingPendingSamePackage.packageId,
+                    status: 'pending',
+                    startAt: existingPendingSamePackage.startAt,
+                    endAt: existingPendingSamePackage.endAt,
+                    snapshot: existingPendingSamePackage.snapshot,
+                    paymentMethod,
+                    couponCode,
+                    paymentUrl,
+                    message: 'Existing pending subscription found, returning payment URL'
+                };
+            }
+        }
 
         // Calculate subscription period
         const startAt = new Date();
@@ -268,7 +314,7 @@ export class TeacherPackageService {
         // Process payment based on payment method
         if (paymentMethod === 'vnpay') {
             // Check if we should use mock payment (for development/testing)
-            const useMockPayment = process.env.NODE_ENV === 'development' || process.env.VNPAY_USE_MOCK === 'true';
+            const useMockPayment = process.env.VNPAY_USE_MOCK === 'true';
 
             if (useMockPayment) {
                 // Mock payment - create active subscription directly
@@ -323,6 +369,7 @@ export class TeacherPackageService {
                 };
             } else {
                 // Real VNPay payment
+                // Format: PKG_timestamp_teacherId_packageId (for IPN callback parsing)
                 const orderId = `PKG_${Date.now()}_${teacherId}_${packageId}`;
                 const subscription = await TeacherPackageSubscription.create({
                     teacherId,
@@ -339,7 +386,11 @@ export class TeacherPackageService {
                         price: pkg.price,
                     },
                     paymentMethod,
-                    couponCode
+                    couponCode,
+                    metadata: {
+                        vnpayOrderId: orderId, // Store orderId in metadata for easier lookup
+                        createdAt: new Date()
+                    }
                 });
 
                 // Create bill with pending status for VNPay payment
@@ -360,10 +411,10 @@ export class TeacherPackageService {
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
                 const returnUrl = `${frontendUrl}/teacher/advanced/packages?payment=success&orderId=${orderId}`;
                 const ipnUrl = process.env.VNPAY_IPN_URL || `${process.env.BACKEND_URL || 'https://lms-backend-cf11.onrender.com'}/api/client/teacher-packages/vnpay/callback`;
-                
+
                 // Get client IP address
                 const clientIp = this.getClientIp(req);
-                
+
                 const paymentUrl = buildVnpayPaymentUrl({
                     orderId: orderId,
                     amount: pkg.price,
@@ -374,6 +425,13 @@ export class TeacherPackageService {
                     email: user.email,
                     name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Customer',
                     expireMinutes: 15
+                });
+
+                console.log('Teacher package payment URL created:', {
+                    orderId,
+                    paymentUrl,
+                    amount: pkg.price,
+                    returnUrl
                 });
 
                 return {
