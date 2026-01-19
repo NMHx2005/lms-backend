@@ -19,6 +19,7 @@ export interface IQuizAttempt extends Document {
   incorrect: number;
   unanswered: number;
   timeSpent: number; // in seconds
+  startedAt?: Date; // Time when quiz was started
   submittedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -91,6 +92,10 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
       type: Number,
       required: true,
       min: [0, 'Time spent cannot be negative'],
+    },
+    startedAt: {
+      type: Date,
+      default: undefined,
     },
     submittedAt: {
       type: Date,

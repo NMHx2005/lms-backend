@@ -756,7 +756,50 @@ courseSchema.pre('save', function (next) {
     this.approvedAt = new Date();
   }
 
+  // Update submittedAt when submitting for review
+  if (this.isModified('status') && this.status === 'submitted' && !this.submittedAt) {
+    this.submittedAt = new Date();
+    this.submittedForReview = true;
+  }
+
   next();
+});
+
+// Post-save middleware to auto-trigger AI evaluation
+courseSchema.post('save', async function (doc) {
+  try {
+    // Check if status changed to 'submitted' and AI evaluation not yet started
+    if (doc.status === 'submitted' && !doc.aiEvaluation?.evaluationId) {
+      console.log(`🤖 Auto-triggering AI evaluation for course: ${doc.title}`);
+      
+      // Check if AI is enabled in system settings
+      const SystemSettings = mongoose.model('SystemSettings');
+      const settings = await (SystemSettings as any).getInstance();
+      
+      if (!settings.ai?.enabled) {
+        console.log('⏭️ AI evaluation disabled in system settings');
+        return;
+      }
+      
+      // Dynamic import to avoid circular dependency
+      const { aiEvaluationService } = await import('../../services/ai/evaluation.service');
+      
+      // Submit for AI evaluation asynchronously
+      await aiEvaluationService.submitCourseForEvaluation({
+        courseId: doc._id.toString(),
+        submittedBy: {
+          userId: doc.instructorId.toString(),
+          name: 'Auto-Submit',
+          role: 'teacher'
+        }
+      });
+      
+      console.log(`✅ AI evaluation triggered for course: ${doc.title}`);
+    }
+  } catch (error: any) {
+    console.error('❌ Failed to auto-trigger AI evaluation:', error.message);
+    // Don't throw error - just log it, don't block course save
+  }
 });
 
 // Pre-save middleware to validate instructor

@@ -8,12 +8,12 @@ export interface IAIEvaluation extends Document {
     role: string;
   };
   submittedAt: Date;
-  
+
   // Instance methods
   addLog(stage: string, message: string, error?: string): Promise<IAIEvaluation>;
   markAICompleted(analysisData: any): Promise<IAIEvaluation>;
   markFailed(error: string): Promise<IAIEvaluation>;
-  
+
   // AI Analysis Results
   aiAnalysis: {
     overallScore: number; // 0-100
@@ -41,7 +41,7 @@ export interface IAIEvaluation extends Document {
     strengths: string[];
     weaknesses: string[];
   };
-  
+
   // Admin Review
   adminReview: {
     reviewedBy?: {
@@ -59,7 +59,7 @@ export interface IAIEvaluation extends Document {
       deadline?: Date;
     };
   };
-  
+
   // Processing Status
   status: 'processing' | 'ai_completed' | 'admin_review' | 'completed' | 'failed';
   processingLogs: {
@@ -68,11 +68,11 @@ export interface IAIEvaluation extends Document {
     message: string;
     error?: string;
   }[];
-  
+
   // Metrics
   processingTime: number; // milliseconds
   aiModelVersion: string;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -98,40 +98,40 @@ const AIEvaluationSchema = new Schema<IAIEvaluation>({
     default: Date.now,
     index: true
   },
-  
-  // AI Analysis Results
+
+  // AI Analysis Results - populated asynchronously after AI processing
   aiAnalysis: {
     overallScore: {
       type: Number,
       min: 0,
-      max: 100,
-      required: true
+      max: 100
+      // Not required - populated after AI completes
     },
     contentQuality: {
-      score: { type: Number, min: 0, max: 100, required: true },
-      feedback: { type: String, required: true },
+      score: { type: Number, min: 0, max: 100 },
+      feedback: { type: String },
       issues: [{ type: String }]
     },
     structureQuality: {
-      score: { type: Number, min: 0, max: 100, required: true },
-      feedback: { type: String, required: true },
+      score: { type: Number, min: 0, max: 100 },
+      feedback: { type: String },
       issues: [{ type: String }]
     },
     educationalValue: {
-      score: { type: Number, min: 0, max: 100, required: true },
-      feedback: { type: String, required: true },
+      score: { type: Number, min: 0, max: 100 },
+      feedback: { type: String },
       issues: [{ type: String }]
     },
     completeness: {
-      score: { type: Number, min: 0, max: 100, required: true },
-      feedback: { type: String, required: true },
+      score: { type: Number, min: 0, max: 100 },
+      feedback: { type: String },
       issues: [{ type: String }]
     },
     recommendations: [{ type: String }],
     strengths: [{ type: String }],
     weaknesses: [{ type: String }]
   },
-  
+
   // Admin Review
   adminReview: {
     reviewedBy: {
@@ -161,7 +161,7 @@ const AIEvaluationSchema = new Schema<IAIEvaluation>({
       deadline: Date
     }
   },
-  
+
   // Processing Status
   status: {
     type: String,
@@ -175,7 +175,7 @@ const AIEvaluationSchema = new Schema<IAIEvaluation>({
     message: { type: String, required: true },
     error: String
   }],
-  
+
   // Metrics
   processingTime: {
     type: Number,
@@ -198,18 +198,18 @@ AIEvaluationSchema.index({ 'adminReview.decision': 1, submittedAt: -1 });
 AIEvaluationSchema.index({ status: 1, submittedAt: -1 });
 
 // Virtual for evaluation age
-AIEvaluationSchema.virtual('evaluationAge').get(function() {
+AIEvaluationSchema.virtual('evaluationAge').get(function () {
   return Date.now() - this.submittedAt.getTime();
 });
 
 // Virtual for is urgent (pending > 24 hours)
-AIEvaluationSchema.virtual('isUrgent').get(function() {
+AIEvaluationSchema.virtual('isUrgent').get(function () {
   const hoursSinceSubmission = (Date.now() - this.submittedAt.getTime()) / (1000 * 60 * 60);
   return this.adminReview.decision === 'pending' && hoursSinceSubmission > 24;
 });
 
 // Instance Methods
-AIEvaluationSchema.methods.addLog = function(stage: string, message: string, error?: string) {
+AIEvaluationSchema.methods.addLog = function (stage: string, message: string, error?: string) {
   this.processingLogs.push({
     timestamp: new Date(),
     stage,
@@ -219,33 +219,33 @@ AIEvaluationSchema.methods.addLog = function(stage: string, message: string, err
   return this.save();
 };
 
-AIEvaluationSchema.methods.markAICompleted = function(analysisData: any) {
+AIEvaluationSchema.methods.markAICompleted = function (analysisData: any) {
   this.aiAnalysis = analysisData;
   this.status = 'ai_completed';
   this.adminReview.decision = 'pending';
   return this.addLog('ai_analysis', 'AI analysis completed successfully');
 };
 
-AIEvaluationSchema.methods.markFailed = function(error: string) {
+AIEvaluationSchema.methods.markFailed = function (error: string) {
   this.status = 'failed';
   return this.addLog('error', 'Processing failed', error);
 };
 
 // Static Methods
-AIEvaluationSchema.statics.findPendingReviews = function() {
+AIEvaluationSchema.statics.findPendingReviews = function () {
   return this.find({
     status: 'ai_completed',
     'adminReview.decision': 'pending'
   }).sort({ submittedAt: 1 });
 };
 
-AIEvaluationSchema.statics.findByTeacher = function(teacherId: string) {
+AIEvaluationSchema.statics.findByTeacher = function (teacherId: string) {
   return this.find({
     'submittedBy.userId': teacherId
   }).sort({ submittedAt: -1 });
 };
 
-AIEvaluationSchema.statics.getStatistics = function() {
+AIEvaluationSchema.statics.getStatistics = function () {
   return this.aggregate([
     {
       $group: {

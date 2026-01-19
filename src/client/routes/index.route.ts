@@ -31,6 +31,7 @@ import questionBankRoutes from './question-bank.routes';
 import linkRoutes from './link.routes';
 import assignmentGradingRoutes from './assignment-grading.routes';
 import assignmentAnalyticsRoutes from './assignment-analytics.routes';
+import quizHistoryRoutes from './quiz-history.routes';
 import { StudyGroupController } from '../controllers/study-group.controller';
 
 const router = express.Router();
@@ -711,6 +712,7 @@ router.use('/earnings', earningsRoutes);
 router.use('/ai-tools', aiToolsRoutes);
 router.use('/progress', authenticate, progressRoutes);
 router.use('/chat', authenticate, chatRoutes);
+router.use('/quiz/history', quizHistoryRoutes);
 
 // Protected Study Group endpoints (must be before public routes to avoid conflicts)
 router.use('/study-groups', authenticate, studyGroupRoutes);

@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import AIEvaluation, { IAIEvaluation } from '../../models/ai/AIEvaluation';
 import Course from '../../models/core/Course';
+import SystemSettings from '../../models/extended/SystemSettings';
 import { openAIService } from './openai.service';
+import { geminiEvaluationService } from './gemini-evaluation.service';
 import { emailNotificationService } from '../email/email-notification.service';
 import { webSocketService } from '../websocket/websocket.service';
 import User from '../../models/core/User';
@@ -69,11 +71,11 @@ export class AIEvaluationService {
           role: data.submittedBy.role
         },
         status: 'processing',
-        aiModelVersion: 'gpt-4-turbo',
+        aiModelVersion: 'gemini-2.5-flash', // Using Gemini instead of GPT-4
         processingLogs: [{
           timestamp: new Date(),
           stage: 'submission',
-          message: 'Course submitted for AI evaluation'
+          message: 'Course submitted for AI evaluation (using Gemini 2.5 Flash)'
         }]
       });
 
@@ -113,8 +115,15 @@ export class AIEvaluationService {
       // Log processing start
       await evaluation.addLog('ai_processing', 'Starting AI analysis');
 
-      // Get AI evaluation
-      const aiResult = await openAIService.evaluateCourse(evaluation.courseId.toString());
+      // Get AI settings to determine model
+      const SystemSettingsModel = mongoose.model('SystemSettings');
+      const settings = await (SystemSettingsModel as any).getInstance();
+      const aiConfig = settings.ai;
+      const model = aiConfig.model || 'gemini-2.0-flash';
+
+      // Get AI evaluation - Use Gemini with configured model
+      console.log(`🤖 Using AI model: ${model}`);
+      const aiResult = await geminiEvaluationService.evaluateCourse(evaluation.courseId.toString(), model);
 
       // Update evaluation with AI results
       await evaluation.markAICompleted(aiResult);
@@ -124,11 +133,18 @@ export class AIEvaluationService {
       evaluation.processingTime = processingTime;
       await evaluation.save();
 
-      // Notify admin that evaluation is ready for review
-      await this.notifyAdminEvaluationReady(evaluation);
+      // Check if auto-approval is enabled and score meets threshold
+      const autoApproved = await this.autoApproveCourse(evaluation, aiResult);
 
-      // Notify teacher about AI evaluation completion
-      await this.notifyTeacherEvaluationComplete(evaluation);
+      if (autoApproved) {
+        // Notify teacher about auto-approval
+        await this.notifyTeacherAutoApproval(evaluation);
+      } else {
+        // Notify admin that manual review is needed
+        await this.notifyAdminEvaluationReady(evaluation);
+        // Notify teacher that evaluation is complete but needs admin review
+        await this.notifyTeacherEvaluationComplete(evaluation);
+      }
 
     } catch (error: any) {
 
@@ -327,11 +343,194 @@ export class AIEvaluationService {
     }
   }
 
+  // ========== AUTO-APPROVAL LOGIC ==========
+
+  /**
+   * Auto-approve course if meets criteria
+   * Returns true if course was auto-approved, false otherwise
+   */
+  private async autoApproveCourse(evaluation: IAIEvaluation, aiResult: any): Promise<boolean> {
+    try {
+      // Get AI config from database (not from .env)
+      const SystemSettings = (await import('../../models/extended/SystemSettings')).default;
+      const settings = await (SystemSettings as any).getInstance();
+      const aiConfig = settings.ai;
+
+      // Check if AI is enabled
+      if (!aiConfig.enabled) {
+        console.log('⏭️ AI is disabled in system settings');
+        return false;
+      }
+
+      // Check if auto-approval is enabled
+      if (!aiConfig.autoApproval.enabled) {
+        console.log('⏭️ Auto-approval is disabled in system settings');
+        return false;
+      }
+
+      // Check if score meets threshold
+      if (aiResult.overallScore < aiConfig.autoApproval.threshold) {
+        console.log(`⏭️ Score ${aiResult.overallScore} < threshold ${aiConfig.autoApproval.threshold}, needs admin review`);
+        return false;
+      }
+
+      // Increment AI usage counter
+      settings.ai.rateLimit.currentUsage += 1;
+      await settings.save();
+
+      // Check minimum requirements
+      const meetsRequirements = await this.checkAutoApprovalRequirements(evaluation.courseId.toString());
+      if (!meetsRequirements) {
+        console.log('⏭️ Course does not meet minimum requirements, needs admin review');
+        return false;
+      }
+
+      console.log(`✅ Auto-approving course (Score: ${aiResult.overallScore}/${aiConfig.autoApproval.threshold})`);
+
+      // Update evaluation status
+      evaluation.adminReview = {
+        decision: 'approved',
+        reviewedAt: new Date(),
+        adminFeedback: `Auto-approved by AI (Score: ${aiResult.overallScore}/100)`,
+        adminComments: `Course automatically approved based on AI evaluation. Score: ${aiResult.overallScore}/100, Threshold: ${aiConfig.autoApproval.threshold}/100.`
+      };
+      evaluation.status = 'completed';
+      await evaluation.save();
+
+      // Update Course status
+      const course = await Course.findById(evaluation.courseId);
+      if (course) {
+        course.status = 'approved';
+        course.isApproved = true;
+        course.approvedAt = new Date();
+
+        // Set publishedAt if course is ready to publish
+        if (course.isPublished === false) {
+          course.isPublished = true;
+          course.publishedAt = new Date();
+        }
+
+        await course.save();
+        console.log(`✅ Course "${course.title}" status updated to approved`);
+      }
+
+      // Log auto-approval
+      await evaluation.addLog('auto_approval', `Course auto-approved with score ${aiResult.overallScore}/100`);
+
+      return true;
+
+    } catch (error: any) {
+      console.error('❌ Auto-approval failed:', error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Check if course meets minimum requirements for auto-approval
+   */
+  private async checkAutoApprovalRequirements(courseId: string): Promise<boolean> {
+    try {
+      // Get AI config from database
+      const SystemSettings = (await import('../../models/extended/SystemSettings')).default;
+      const settings = await (SystemSettings as any).getInstance();
+      const requirements = settings.ai.autoApproval.minRequirements;
+
+      // Get course
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return false;
+      }
+
+      // Check description
+      if (requirements.hasDescription) {
+        if (!course.description || course.description.length < 50) {
+          console.log('❌ Course description too short (<50 chars)');
+          return false;
+        }
+      }
+
+      // Check learning objectives
+      if (requirements.hasLearningObjectives) {
+        if (!course.learningObjectives || course.learningObjectives.length === 0) {
+          console.log('❌ Course has no learning objectives');
+          return false;
+        }
+      }
+
+      // Check sections
+      const Section = (await import('../../models/core/Section')).default;
+      const sectionsCount = await Section.countDocuments({ courseId });
+      if (sectionsCount < requirements.minSections) {
+        console.log(`❌ Course has ${sectionsCount} sections, requires ${requirements.minSections}`);
+        return false;
+      }
+
+      // Check lessons
+      const Lesson = (await import('../../models/core/Lesson')).default;
+      const sectionIds = await Section.find({ courseId }).distinct('_id');
+      const lessonsCount = await Lesson.countDocuments({ sectionId: { $in: sectionIds } });
+      if (lessonsCount < requirements.minLessons) {
+        console.log(`❌ Course has ${lessonsCount} lessons, requires ${requirements.minLessons}`);
+        return false;
+      }
+
+      console.log(`✅ Course meets all minimum requirements`);
+      return true;
+
+    } catch (error: any) {
+      console.error('❌ Error checking requirements:', error.message);
+      return false;
+    }
+  }
+
+  // ========== NOTIFICATION METHODS ==========
+
+  /**
+   * Notify teacher about auto-approval
+   */
+  private async notifyTeacherAutoApproval(evaluation: IAIEvaluation): Promise<void> {
+    try {
+      const course = await Course.findById(evaluation.courseId);
+      const teacher = await User.findById(evaluation.submittedBy.userId);
+
+      if (teacher && course) {
+        // WebSocket notification
+        webSocketService.sendToUser(teacher._id.toString(), {
+          type: 'success',
+          title: '🎉 Khóa học được duyệt tự động!',
+          message: `Khóa học "${course.title}" đã được AI đánh giá và tự động duyệt (Score: ${evaluation.aiAnalysis?.overallScore}/100).`,
+          actionUrl: `/teacher/courses/${course._id}`,
+          priority: 'high'
+        });
+
+        // Email notification
+        await emailNotificationService.sendEmail({
+          to: teacher.email,
+          subject: `🎉 Khóa học được duyệt tự động: ${course.title}`,
+          html: `
+            <h2>Chúc mừng! Khóa học đã được duyệt tự động</h2>
+            <p>Xin chào ${teacher.firstName},</p>
+            <p>Khóa học <strong>"${course.title}"</strong> của bạn đã được hệ thống AI đánh giá và tự động duyệt.</p>
+            <p><strong>Điểm AI:</strong> ${evaluation.aiAnalysis?.overallScore}/100</p>
+            <p><strong>Trạng thái:</strong> Đã duyệt và xuất bản</p>
+            <p>Khóa học của bạn đã sẵn sàng cho học viên đăng ký!</p>
+            <p>Bạn có thể xem chi tiết tại dashboard của mình.</p>
+          `,
+          type: 'course_evaluation',
+          userId: teacher._id,
+          courseId: course._id
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error notifying teacher about auto-approval:', error);
+    }
+  }
+
   // Notification methods
   private async notifyAdminsNewSubmission(course: any, evaluation: IAIEvaluation): Promise<void> {
     try {
       const admins = await User.find({ role: 'admin', isActive: true });
-      
+
       for (const admin of admins) {
         // WebSocket notification
         webSocketService.sendToUser(admin._id.toString(), {
@@ -367,7 +566,7 @@ export class AIEvaluationService {
     try {
       const course = await Course.findById(evaluation.courseId);
       const admins = await User.find({ role: 'admin', isActive: true });
-      
+
       for (const admin of admins) {
         // WebSocket notification
         webSocketService.sendToUser(admin._id.toString(), {
@@ -387,7 +586,7 @@ export class AIEvaluationService {
     try {
       const course = await Course.findById(evaluation.courseId);
       const teacher = await User.findById(evaluation.submittedBy.userId);
-      
+
       if (teacher) {
         // WebSocket notification
         webSocketService.sendToUser(teacher._id.toString(), {
@@ -424,7 +623,7 @@ export class AIEvaluationService {
     try {
       const course = await Course.findById(evaluation.courseId);
       const teacher = await User.findById(evaluation.submittedBy.userId);
-      
+
       if (teacher) {
         // WebSocket notification
         webSocketService.sendToUser(teacher._id.toString(), {

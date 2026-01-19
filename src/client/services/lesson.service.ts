@@ -66,7 +66,7 @@ export class ClientLessonService {
     }
 
     const lessons = await LessonModel.find(query)
-      .select('title type order estimatedTime isPreview isRequired duration isPublished content videoUrl fileUrl externalLink quizQuestions assignmentDetails')
+      .select('title type order estimatedTime isPreview isRequired duration isPublished content videoUrl fileUrl externalLink quizQuestions quizSettings assignmentDetails')
       .sort({ order: 1 });
 
     // Add progress information to each lesson and map fields
@@ -498,9 +498,17 @@ export class ClientLessonService {
     if (updates.quizQuestions !== undefined) {
       mappedUpdates.quizQuestions = updates.quizQuestions;
     }
+    // Quiz settings (randomize, time limit, etc.)
+    if (updates.quizSettings !== undefined) {
+      mappedUpdates.quizSettings = updates.quizSettings;
+    }
     // Assignment details
     if (updates.assignmentDetails !== undefined) {
       mappedUpdates.assignmentDetails = updates.assignmentDetails;
+    }
+    // Preview mode (allow non-enrolled users to view)
+    if (updates.isPreview !== undefined) {
+      mappedUpdates.isPreview = updates.isPreview;
     }
 
     const updatedLesson = await LessonModel.findByIdAndUpdate(

@@ -3,12 +3,18 @@ import { ISection } from '../../shared/models/core/Section';
 
 export class ClientSectionService {
   // Get sections by course (for enrolled students and course instructors)
-  static async getSectionsByCourse(courseId: string, userId: string): Promise<ISection[]> {
+  // Supports preview mode: if not enrolled, returns only preview lessons
+  static async getSectionsByCourse(courseId: string, userId: string, previewMode: boolean = false): Promise<ISection[]> {
     // Check if user is the course instructor
     const course = await CourseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
     const isInstructor = course && course.instructorId.toString() === userId;
 
     // Check if user is enrolled (if not instructor)
+    let isEnrolled = false;
     if (!isInstructor) {
       const enrollment = await EnrollmentModel.findOne({
         courseId,
@@ -16,9 +22,14 @@ export class ClientSectionService {
         isActive: true
       });
 
-      if (!enrollment) {
+      isEnrolled = !!enrollment;
+
+      // If not enrolled and not in preview mode, throw error
+      if (!isEnrolled && !previewMode) {
         throw new Error('You must be enrolled to access course sections');
       }
+    } else {
+      isEnrolled = true; // Instructors are considered "enrolled"
     }
 
     // Get sections with lessons
@@ -28,24 +39,264 @@ export class ClientSectionService {
       query.isVisible = true;
     }
 
-    // Populate lessons - instructors see all, students only see visible ones
-    const lessonMatch = isInstructor ? {} : { isVisible: true };
+    // Debug: Check if sections exist at all
+    const allSectionsCount = await SectionModel.countDocuments({ courseId });
+    const visibleSectionsCount = await SectionModel.countDocuments({ courseId, isVisible: true });
+    console.log('📋 Sections debug:', {
+      allSectionsCount,
+      visibleSectionsCount,
+      query,
+      isInstructor
+    });
 
-    const sections = await SectionModel.find(query)
-      .populate({
-        path: 'lessons',
-        match: lessonMatch,
-        select: 'title type order estimatedTime isPreview isRequired duration isPublished',
-        options: { sort: { order: 1 } }
-      })
-      .sort({ order: 1 });
+    // Populate lessons - different logic for enrolled vs preview mode
+    let lessonMatch: any = {};
+    if (isInstructor) {
+      // Instructors see all lessons
+      lessonMatch = {};
+    } else if (isEnrolled) {
+      // Enrolled students see visible lessons
+      lessonMatch = { isVisible: true };
+    } else {
+      // Preview mode: only show preview lessons
+      lessonMatch = { isVisible: true, isPreview: true };
+    }
 
-    // Add progress information to each section
+    console.log('🔍 getSectionsByCourse debug:', {
+      courseId,
+      userId,
+      previewMode,
+      isInstructor,
+      isEnrolled,
+      lessonMatch
+    });
+
+    // First, check if there are any preview lessons in the course
+    if (previewMode && !isEnrolled) {
+      const mongoose = require('mongoose');
+
+      // Try querying with string courseId first (in case it's stored as string)
+      const allLessonsCountString = await LessonModel.countDocuments({
+        courseId: courseId
+      });
+
+      // Try querying with ObjectId
+      const allLessonsCountObjectId = await LessonModel.countDocuments({
+        courseId: new mongoose.Types.ObjectId(courseId)
+      });
+
+      // Check visible lessons (string)
+      const visibleLessonsCountString = await LessonModel.countDocuments({
+        courseId: courseId,
+        isVisible: true
+      });
+
+      // Check visible lessons (ObjectId)
+      const visibleLessonsCountObjectId = await LessonModel.countDocuments({
+        courseId: new mongoose.Types.ObjectId(courseId),
+        isVisible: true
+      });
+
+      // Check preview lessons (with isVisible, string)
+      const previewLessonsCountString = await LessonModel.countDocuments({
+        courseId: courseId,
+        isVisible: true,
+        isPreview: true
+      });
+
+      // Check preview lessons (with isVisible, ObjectId)
+      const previewLessonsCountObjectId = await LessonModel.countDocuments({
+        courseId: new mongoose.Types.ObjectId(courseId),
+        isVisible: true,
+        isPreview: true
+      });
+
+      // Check preview lessons (without isVisible filter, string)
+      const previewLessonsCountNoVisibleString = await LessonModel.countDocuments({
+        courseId: courseId,
+        isPreview: true
+      });
+
+      // Check preview lessons (without isVisible filter, ObjectId)
+      const previewLessonsCountNoVisibleObjectId = await LessonModel.countDocuments({
+        courseId: new mongoose.Types.ObjectId(courseId),
+        isPreview: true
+      });
+
+      // Get a sample of lessons to see what courseIds exist
+      const sampleLessons = await LessonModel.find({}).limit(5).select('_id title courseId sectionId isPreview isVisible').lean();
+
+      // Get all unique courseIds in lessons
+      const allCourseIds = await LessonModel.distinct('courseId');
+
+      console.log('👁️ Preview lessons debug:', {
+        courseId,
+        allLessonsCountString,
+        allLessonsCountObjectId,
+        visibleLessonsCountString,
+        visibleLessonsCountObjectId,
+        previewLessonsCountString,
+        previewLessonsCountObjectId,
+        previewLessonsCountNoVisibleString,
+        previewLessonsCountNoVisibleObjectId,
+        sampleLessons,
+        allCourseIds: allCourseIds.map((id: any) => id.toString()),
+        note: 'Checking both string and ObjectId formats'
+      });
+
+      // Also check lessons by section to debug
+      const allSections = await SectionModel.find({ courseId }).select('_id title isVisible');
+      console.log(`📚 Found ${allSections.length} sections in course`);
+
+      for (const sec of allSections) {
+        const allLessonsInSection = await LessonModel.countDocuments({ sectionId: sec._id });
+        const visibleLessonsInSection = await LessonModel.countDocuments({
+          sectionId: sec._id,
+          isVisible: true
+        });
+        const previewCount = await LessonModel.countDocuments({
+          sectionId: sec._id,
+          isVisible: true,
+          isPreview: true
+        });
+        const previewCountNoVisible = await LessonModel.countDocuments({
+          sectionId: sec._id,
+          isPreview: true
+        });
+
+        console.log(`  - Section "${sec.title}" (visible: ${sec.isVisible}):`, {
+          allLessons: allLessonsInSection,
+          visibleLessons: visibleLessonsInSection,
+          previewLessons: previewCount,
+          previewLessonsNoVisible: previewCountNoVisible
+        });
+      }
+    }
+
+    // Get sections first
+    const sections = await SectionModel.find(query).sort({ order: 1 });
+
+    // For preview mode, manually populate lessons to ensure proper filtering
+    let sectionsWithPopulatedLessons;
+    if (previewMode && !isEnrolled) {
+      // Manually query and attach preview lessons
+      sectionsWithPopulatedLessons = await Promise.all(
+        sections.map(async (section: any) => {
+          const lessons = await LessonModel.find({
+            sectionId: section._id,
+            ...lessonMatch
+          })
+            .select('title type order estimatedTime isPreview isRequired duration isPublished videoUrl externalLink')
+            .sort({ order: 1 })
+            .lean();
+
+          // Debug: Log videoUrl for preview lessons
+          if (lessons.length > 0) {
+            console.log('📹 Preview lessons videoUrl (backend):', lessons.map((l: any) => ({
+              id: l._id,
+              title: l.title,
+              type: l.type,
+              videoUrl: l.videoUrl || '(empty or undefined)',
+              externalLink: l.externalLink || '(empty or undefined)',
+              hasVideoUrl: !!l.videoUrl,
+              allFields: Object.keys(l) // Show all fields that were returned
+            })));
+
+            // Also check directly from database
+            for (const lesson of lessons) {
+              const fullLesson = await LessonModel.findById(lesson._id).select('videoUrl externalLink').lean();
+              if (fullLesson) {
+                console.log(`  - Lesson "${lesson.title}":`, {
+                  videoUrl: fullLesson.videoUrl || '(empty)',
+                  externalLink: fullLesson.externalLink || '(empty)'
+                });
+              }
+            }
+          }
+
+          // Convert section to plain object safely
+          const sectionObj = typeof section.toObject === 'function' ? section.toObject() : { ...section };
+
+          // Ensure videoUrl and externalLink are included even if undefined/null
+          // Mongoose .lean() might omit undefined fields, so we need to explicitly include them
+          sectionObj.lessons = lessons.map((lesson: any) => ({
+            ...lesson,
+            videoUrl: lesson.videoUrl || undefined, // Explicitly include, even if empty
+            externalLink: lesson.externalLink || undefined // Explicitly include, even if empty
+          }));
+
+          return sectionObj;
+        })
+      );
+    } else {
+      // Use normal populate for enrolled users (or instructors in preview mode)
+      // For preview mode with instructors, still need to include videoUrl for YouTube videos
+      const lessonSelect = previewMode
+        ? 'title type order estimatedTime isPreview isRequired duration isPublished videoUrl externalLink'
+        : 'title type order estimatedTime isPreview isRequired duration isPublished';
+
+      sectionsWithPopulatedLessons = await SectionModel.find(query)
+        .populate({
+          path: 'lessons',
+          match: lessonMatch,
+          select: lessonSelect,
+          options: { sort: { order: 1 } }
+        })
+        .sort({ order: 1 })
+        .lean()
+        .then(sections => sections.map((s: any) => typeof s.toObject === 'function' ? s.toObject() : s));
+
+      // For preview mode, filter to only show preview lessons (even for instructors)
+      if (previewMode) {
+        sectionsWithPopulatedLessons = sectionsWithPopulatedLessons.map((section: any) => {
+          const previewLessons = (section.lessons || []).filter((l: any) => l.isPreview === true);
+          return {
+            ...section,
+            lessons: previewLessons
+          };
+        }).filter((section: any) => section.lessons && section.lessons.length > 0);
+      }
+    }
+
+    console.log('📊 Sections found:', {
+      totalSections: sectionsWithPopulatedLessons.length,
+      sectionsWithLessons: sectionsWithPopulatedLessons.map((s: any) => ({
+        id: s._id,
+        title: s.title,
+        lessonsCount: s.lessons?.length || 0,
+        lessons: s.lessons?.map((l: any) => ({
+          id: l._id,
+          title: l.title,
+          isPreview: l.isPreview
+        })) || []
+      }))
+    });
+
+    // Filter out sections with no lessons (in preview mode)
+    const sectionsWithLessons = sectionsWithPopulatedLessons.filter((section: any) =>
+      section.lessons && section.lessons.length > 0
+    );
+
+    console.log('✅ Filtered sections:', {
+      beforeFilter: sections.length,
+      afterFilter: sectionsWithLessons.length
+    });
+
+    // Add progress information to each section (only if enrolled)
     const sectionsWithProgress = await Promise.all(
-      sections.map(async (section: any) => {
-        const progress = await this.calculateSectionProgress(section._id.toString(), userId);
+      sectionsWithLessons.map(async (section: any) => {
+        let progress: any = isEnrolled
+          ? await this.calculateSectionProgress(section._id.toString(), userId)
+          : {
+            totalLessons: 0,
+            completedLessons: 0,
+            percentage: 0,
+            estimatedTime: 0,
+            remainingTime: 0
+          };
+        const sectionObj = typeof section.toObject === 'function' ? section.toObject() : { ...section };
         return {
-          ...section.toObject(),
+          ...sectionObj,
           progress
         };
       })
@@ -85,8 +336,9 @@ export class ClientSectionService {
     const progress = await this.calculateSectionProgress(sectionId, userId);
     const nextLesson = await this.getNextLessonInSection(sectionId, userId);
 
+    const sectionObj = typeof section.toObject === 'function' ? section.toObject() : { ...section };
     return {
-      ...section.toObject(),
+      ...sectionObj,
       progress,
       nextLesson
     };
@@ -153,8 +405,9 @@ export class ClientSectionService {
     // Add progress information
     const progress = await this.calculateSectionProgress(nextSection._id.toString(), userId);
 
+    const nextSectionObj = typeof nextSection.toObject === 'function' ? nextSection.toObject() : { ...nextSection };
     return {
-      ...nextSection.toObject(),
+      ...nextSectionObj,
       progress
     };
   }
@@ -191,8 +444,9 @@ export class ClientSectionService {
     // Add progress information
     const progress = await this.calculateSectionProgress(previousSection._id.toString(), userId);
 
+    const previousSectionObj = typeof previousSection.toObject === 'function' ? previousSection.toObject() : { ...previousSection };
     return {
-      ...previousSection.toObject(),
+      ...previousSectionObj,
       progress
     };
   }
@@ -226,8 +480,9 @@ export class ClientSectionService {
     const sectionsWithProgress = await Promise.all(
       sections.map(async (section: any) => {
         const progress = await this.calculateSectionProgress(section._id.toString(), userId);
+        const sectionObj = typeof section.toObject === 'function' ? section.toObject() : { ...section };
         return {
-          ...section.toObject(),
+          ...sectionObj,
           progress
         };
       })
@@ -424,7 +679,7 @@ export class ClientSectionService {
 
     // Format response for preview with lesson count and total duration
     const sectionsForPreview = sections.map((section: any) => {
-      const sectionObj = section.toObject();
+      const sectionObj = typeof section.toObject === 'function' ? section.toObject() : { ...section };
       const lessons = sectionObj.lessons || [];
 
       return {

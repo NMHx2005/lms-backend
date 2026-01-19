@@ -43,7 +43,9 @@ export class GeminiService {
         }
 
         // Initialize with new Google GenAI SDK
-        this.genAI = new GoogleGenAI({});
+        this.genAI = new GoogleGenAI({
+            apiKey: apiKey
+        });
     }
 
     /**

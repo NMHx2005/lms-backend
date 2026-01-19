@@ -124,6 +124,28 @@ export interface ISystemSettings extends Document {
         profanityFilter: boolean;
     };
 
+    // AI Settings
+    ai: {
+        enabled: boolean;
+        provider: 'openai' | 'gemini';
+        model?: string; // gemini-1.5-flash or gemini-2.5-flash
+        autoApproval: {
+            enabled: boolean;
+            threshold: number; // 0-100
+            minRequirements: {
+                hasDescription: boolean;
+                hasLearningObjectives: boolean;
+                minLessons: number;
+                minSections: number;
+            };
+        };
+        rateLimit: {
+            requestsPerDay: number;
+            currentUsage: number;
+            lastReset: Date;
+        };
+    };
+
     // Legal
     legal: {
         termsOfServiceUrl: string;
@@ -282,6 +304,35 @@ const systemSettingsSchema = new Schema<ISystemSettings>(
             requireCourseApproval: { type: Boolean, default: true },
             requireReviewApproval: { type: Boolean, default: false },
             profanityFilter: { type: Boolean, default: true }
+        },
+
+        // AI Settings
+        ai: {
+            enabled: { type: Boolean, default: false },
+            provider: {
+                type: String,
+                enum: ['openai', 'gemini'],
+                default: 'gemini'
+            },
+            model: {
+                type: String,
+                default: 'gemini-2.0-flash' // gemini-2.0-flash (replaces deprecated gemini-1.5-flash)
+            },
+            autoApproval: {
+                enabled: { type: Boolean, default: false },
+                threshold: { type: Number, default: 70, min: 0, max: 100 },
+                minRequirements: {
+                    hasDescription: { type: Boolean, default: true },
+                    hasLearningObjectives: { type: Boolean, default: true },
+                    minLessons: { type: Number, default: 3, min: 0 },
+                    minSections: { type: Number, default: 1, min: 0 }
+                }
+            },
+            rateLimit: {
+                requestsPerDay: { type: Number, default: 1500 }, // Default for gemini-1.5-flash
+                currentUsage: { type: Number, default: 0 },
+                lastReset: { type: Date, default: Date.now }
+            }
         },
 
         // Legal

@@ -4,11 +4,20 @@ import { UserActivityLog } from '../../shared/models';
 
 export class ClientSectionController {
   // Get sections by course (for enrolled students)
+  // Supports preview mode via query parameter
   static async getSectionsByCourse(req: Request, res: Response) {
     try {
       const { courseId } = req.params;
       const user = (req as any).user;
       const userId = user?._id || user?.id;
+      const previewMode = req.query.preview === 'true';
+
+      console.log('🔍 Controller getSectionsByCourse:', {
+        courseId,
+        userId,
+        previewMode,
+        queryPreview: req.query.preview
+      });
 
       if (!userId) {
         return res.status(401).json({
@@ -17,14 +26,29 @@ export class ClientSectionController {
         });
       }
 
-      const sections = await ClientSectionService.getSectionsByCourse(courseId, userId);
+      const sections = await ClientSectionService.getSectionsByCourse(courseId, userId, previewMode);
       UserActivityLog.create({ userId, action: 'section_view', resource: 'section', courseId });
+
+      console.log('✅ Controller returning sections:', {
+        sectionsCount: sections.length,
+        previewMode
+      });
 
       res.json({
         success: true,
-        data: sections
+        data: sections,
+        previewMode: previewMode && sections.length > 0
       });
     } catch (error: any) {
+      // If error is about enrollment and preview mode is requested, return empty array instead
+      const isPreviewMode = req.query.preview === 'true';
+      if (isPreviewMode && error.message?.includes('enrolled')) {
+        return res.json({
+          success: true,
+          data: [],
+          previewMode: true
+        });
+      }
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to get sections'

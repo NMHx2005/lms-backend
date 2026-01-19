@@ -454,7 +454,8 @@ export class ClientLessonController {
         correct,
         incorrect,
         unanswered,
-        timeSpent
+        timeSpent,
+        startedAt
       } = req.body;
 
       // Get lesson to check settings
@@ -500,6 +501,7 @@ export class ClientLessonController {
         incorrect,
         unanswered,
         timeSpent,
+        startedAt: startedAt ? new Date(startedAt) : undefined,
         submittedAt: new Date()
       });
 
