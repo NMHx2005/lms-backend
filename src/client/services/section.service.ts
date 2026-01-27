@@ -272,10 +272,13 @@ export class ClientSectionService {
       }))
     });
 
-    // Filter out sections with no lessons (in preview mode)
-    const sectionsWithLessons = sectionsWithPopulatedLessons.filter((section: any) =>
-      section.lessons && section.lessons.length > 0
-    );
+    // Filter out sections with no lessons (only in preview mode)
+    let sectionsWithLessons = sectionsWithPopulatedLessons;
+    if (previewMode && !isEnrolled) {
+      sectionsWithLessons = sectionsWithPopulatedLessons.filter((section: any) =>
+        section.lessons && section.lessons.length > 0
+      );
+    }
 
     console.log('✅ Filtered sections:', {
       beforeFilter: sections.length,
