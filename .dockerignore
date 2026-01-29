@@ -1,18 +1,56 @@
+# Dependencies
 node_modules
 npm-debug.log
-.git
-.gitignore
-README.md
+# NOTE: Keep package-lock.json for npm ci
+
+# Build output
+dist
+
+# Environment files
 .env
 .env.local
-.env.development
-.env.test
-.env.production
-dist
-coverage
-.nyc_output
+.env.*.local
+
+# IDE
 .vscode
 .idea
-*.log
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README.md
+
+# Tests
+*.test.ts
+*.spec.ts
+__tests__
+coverage
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Deployment configs
+render.yaml
+vercel.json
