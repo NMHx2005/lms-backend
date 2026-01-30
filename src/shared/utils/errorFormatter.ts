@@ -13,13 +13,13 @@ export const getUserLanguage = (req: Request): 'en' | 'vi' => {
   if (acceptLanguage && acceptLanguage.includes('vi')) {
     return 'vi';
   }
-  
+
   // Check custom header
   const customLang = req.headers['x-language'] as string;
   if (customLang && ['en', 'vi'].includes(customLang)) {
     return customLang as 'en' | 'vi';
   }
-  
+
   // Default to English
   return 'en';
 };
@@ -39,10 +39,10 @@ export const formatErrorResponse = (
   const language = getUserLanguage(req);
   const timestamp = new Date().toISOString();
   const path = req.originalUrl || req.url;
-  
+
   if (error instanceof AppError) {
     const localizedMessage = getLocalizedErrorMessage(error.errorCode, language);
-    
+
     return {
       success: false,
       error: {
@@ -56,7 +56,7 @@ export const formatErrorResponse = (
       },
     };
   }
-  
+
   // Handle generic errors
   return {
     success: false,
@@ -81,14 +81,14 @@ export const formatValidationErrorResponse = (
   const language = getUserLanguage(req);
   const timestamp = new Date().toISOString();
   const path = req.originalUrl || req.url;
-  
+
   const formattedErrors = errors.map(err => ({
     field: err.path || err.param || 'unknown',
     message: err.msg || 'Invalid value',
     value: err.value,
     location: err.location || 'body',
   }));
-  
+
   return {
     success: false,
     error: {
@@ -115,11 +115,11 @@ export const formatDatabaseErrorResponse = (
   const language = getUserLanguage(req);
   const timestamp = new Date().toISOString();
   const path = req.originalUrl || req.url;
-  
+
   let errorCode: string = ERROR_CODES.DATABASE_ERROR;
   let message = getLocalizedErrorMessage(ERROR_CODES.DATABASE_ERROR, language);
   let details: any = { originalError: error.message };
-  
+
   // Handle MongoDB specific errors
   if (error.code === 11000) {
     errorCode = ERROR_CODES.DUPLICATE_KEY;
@@ -130,7 +130,7 @@ export const formatDatabaseErrorResponse = (
     message = getLocalizedErrorMessage(ERROR_CODES.CONSTRAINT_VIOLATION, language);
     details.constraintViolation = error.errmsg;
   }
-  
+
   // Handle Mongoose specific errors
   if (error.name === 'ValidationError') {
     errorCode = ERROR_CODES.VALIDATION_ERROR;
@@ -151,7 +151,7 @@ export const formatDatabaseErrorResponse = (
       kind: error.kind,
     };
   }
-  
+
   return {
     success: false,
     error: {
@@ -175,10 +175,10 @@ export const formatJWTErrorResponse = (
   const language = getUserLanguage(req);
   const timestamp = new Date().toISOString();
   const path = req.originalUrl || req.url;
-  
+
   let errorCode: string = ERROR_CODES.JWT_ERROR;
   let message = getLocalizedErrorMessage(ERROR_CODES.JWT_ERROR, language);
-  
+
   if (error.name === 'JsonWebTokenError') {
     errorCode = ERROR_CODES.JWT_MALFORMED;
     message = getLocalizedErrorMessage(ERROR_CODES.JWT_MALFORMED, language);
@@ -186,7 +186,7 @@ export const formatJWTErrorResponse = (
     errorCode = ERROR_CODES.TOKEN_EXPIRED;
     message = getLocalizedErrorMessage(ERROR_CODES.TOKEN_EXPIRED, language);
   }
-  
+
   return {
     success: false,
     error: {
@@ -213,7 +213,7 @@ export const formatRateLimitErrorResponse = (
   const language = getUserLanguage(req);
   const timestamp = new Date().toISOString();
   const path = req.originalUrl || req.url;
-  
+
   return {
     success: false,
     error: {
@@ -242,7 +242,7 @@ export const formatMaintenanceErrorResponse = (
   const language = getUserLanguage(req);
   const timestamp = new Date().toISOString();
   const path = req.originalUrl || req.url;
-  
+
   return {
     success: false,
     error: {
@@ -270,8 +270,34 @@ export const addRetryAfterHeader = (res: Response, retryAfter: number): void => 
   res.setHeader('Retry-After', retryAfter);
 };
 
-export const addCorsHeaders = (res: Response): void => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+export const addCorsHeaders = (res: Response, req?: Request): void => {
+  const origin = req?.headers.origin;
+
+  // Get allowed origins from env
+  const envOrigins = [
+    process.env.CORS_ORIGIN_PRODUCTION,
+    process.env.CORS_ORIGIN_DEVELOPMENT,
+    process.env.CORS_ORIGIN,
+    process.env.CORS_ORIGINS
+  ].filter(Boolean).join(',').split(',').map(s => s.trim().replace(/\/$/, ''));
+
+  // Allow localhost and VPS by default for safety
+  const defaultAllowed = [
+    'http://localhost:3000',
+    'http://150.95.109.145',
+    'http://150.95.109.145:3000'
+  ];
+
+  const allAllowed = [...new Set([...envOrigins, ...defaultAllowed])];
+  const isAllowed = origin && allAllowed.some(allowed => allowed === origin || allowed === '*');
+
+  if (origin && isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
 };

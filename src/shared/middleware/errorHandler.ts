@@ -34,10 +34,10 @@ export const globalErrorHandler = (
   next: NextFunction
 ): void => {
   const requestId = (req as ExtendedRequest).requestId || generateRequestId();
-  
+
   // Add CORS headers for error responses
-  addCorsHeaders(res);
-  
+  addCorsHeaders(res, req);
+
   // Handle different types of errors
   if (error instanceof AppError) {
     // Handle custom application errors
@@ -45,7 +45,7 @@ export const globalErrorHandler = (
     res.status(error.statusCode).json(errorResponse);
     return;
   }
-  
+
   // Handle specific error types by name
   if (error.name === 'RateLimitError' || (error as any).statusCode === 429) {
     const retryAfter = (error as any).retryAfter || 60;
@@ -54,34 +54,34 @@ export const globalErrorHandler = (
     res.status(429).json(errorResponse);
     return;
   }
-  
+
   if (error.name === 'MaintenanceError' || (error as any).statusCode === 503) {
     const errorResponse = formatMaintenanceErrorResponse(req, requestId);
     res.status(503).json(errorResponse);
     return;
   }
-  
+
   // Handle JWT errors
   if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError' || error.name === 'NotBeforeError') {
     const errorResponse = formatJWTErrorResponse(error, req, requestId);
     res.status(401).json(errorResponse);
     return;
   }
-  
+
   // Handle validation errors
   if (error.name === 'ValidationError') {
     const errorResponse = formatValidationErrorResponse([error], req, requestId);
     res.status(400).json(errorResponse);
     return;
   }
-  
+
   // Handle database errors
   if (error.name === 'MongoError' || error.name === 'MongoServerError' || error.name === 'CastError') {
     const errorResponse = formatDatabaseErrorResponse(error, req, requestId);
     res.status(500).json(errorResponse);
     return;
   }
-  
+
   // Handle generic errors
   const errorResponse = formatErrorResponse(error, req, requestId);
   res.status(500).json(errorResponse);
@@ -109,10 +109,10 @@ export const asyncHandler = <T extends any[], R>(
 // 404 handler middleware
 export const notFoundHandler = (req: Request, res: Response): void => {
   const requestId = (req as ExtendedRequest).requestId || generateRequestId();
-  
-  addCorsHeaders(res);
+
+  addCorsHeaders(res, req);
   addRequestIdToHeaders(res, requestId);
-  
+
   res.status(404).json({
     success: false,
     error: {
@@ -138,7 +138,7 @@ export const errorLoggingMiddleware = (
   next: NextFunction
 ): void => {
   const requestId = (req as ExtendedRequest).requestId || 'unknown';
-  
+
   // Log error details
   console.error(`[${new Date().toISOString()}] [${requestId}] Error:`, {
     name: error.name,
@@ -155,7 +155,7 @@ export const errorLoggingMiddleware = (
       details: error.details,
     }),
   });
-  
+
   // Pass error to next middleware
   next(error);
 };
@@ -170,9 +170,9 @@ export const developmentErrorHandler = (
   if (process.env.NODE_ENV !== 'development') {
     return next(error);
   }
-  
+
   const requestId = (req as ExtendedRequest).requestId || generateRequestId();
-  
+
   // Enhanced error response for development
   const errorResponse = {
     success: false,
@@ -198,10 +198,10 @@ export const developmentErrorHandler = (
       },
     },
   };
-  
-  addCorsHeaders(res);
+
+  addCorsHeaders(res, req);
   addRequestIdToHeaders(res, requestId);
-  
+
   if (error instanceof AppError) {
     res.status(error.statusCode).json(errorResponse);
   } else {
@@ -219,9 +219,9 @@ export const productionErrorHandler = (
   if (process.env.NODE_ENV === 'development') {
     return next(error);
   }
-  
+
   const requestId = (req as ExtendedRequest).requestId || generateRequestId();
-  
+
   // Sanitized error response for production
   const errorResponse = {
     success: false,
@@ -234,8 +234,8 @@ export const productionErrorHandler = (
       requestId,
     },
   };
-  
-  addCorsHeaders(res);
+
+  addCorsHeaders(res, req);
   addRequestIdToHeaders(res, requestId);
   res.status(500).json(errorResponse);
 };
@@ -243,19 +243,19 @@ export const productionErrorHandler = (
 // Graceful shutdown handler
 export const gracefulShutdown = (server: any, signal: string): void => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
-  
+
   server.close(() => {
     console.log('HTTP server closed');
-    
+
     // Close database connections
     // mongoose.connection.close();
-    
+
     // Close other connections (Redis, etc.)
-    
+
     console.log('Graceful shutdown completed');
     process.exit(0);
   });
-  
+
   // Force close after 30 seconds
   setTimeout(() => {
 
