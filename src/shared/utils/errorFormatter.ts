@@ -66,7 +66,8 @@ export const formatErrorResponse = (
       statusCode: 500,
       timestamp,
       path,
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      // DEBUG: Temporarily show error details to diagnose 500 error
+      details: error.message || String(error),
       requestId,
     },
   };

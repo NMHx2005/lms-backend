@@ -7,7 +7,7 @@ export class AuthController {
    */
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password, name, roles } = req.body;
+      const { email, password, name, phone, roles } = req.body;
 
       // Validate password strength
       const passwordValidation = AuthService.validatePassword(password);
@@ -23,6 +23,7 @@ export class AuthController {
         email,
         password,
         name,
+        phone,
         roles,
       });
 

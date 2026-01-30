@@ -12,6 +12,7 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
+  phone?: string;
   roles?: string[];
 }
 
@@ -200,6 +201,8 @@ export class AuthService {
       ...data,
       email: data.email.toLowerCase(),
       password: data.password,
+      name: data.name,
+      phone: data.phone,
       roles: data.roles || ['student'],
       isActive: true,
     };
@@ -415,7 +418,7 @@ export class AuthService {
       errors.push('Password must contain at least one number');
     }
 
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    if (!/[\W_]/.test(password)) {
       errors.push('Password must contain at least one special character');
     }
 
